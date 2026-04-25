@@ -28,6 +28,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,6 +51,7 @@ import com.vinotheque.nativeapp.data.Wine
 
 private val Gold = Color(0xFFD4A54E)
 private val DarkBg = Color(0xFF0D0505)
+private val BarBg = Color(0xFF1A0A0A)
 
 @Composable
 fun CellarScreen(
@@ -58,60 +60,78 @@ fun CellarScreen(
     onDeleteWine: (Wine) -> Unit
 ) {
     val wines by viewModel.wines.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val typeFilter by viewModel.typeFilter.collectAsState()
     var wineToDelete by remember { mutableStateOf<Wine?>(null) }
 
-    // Delete confirmation dialog
+    // Delete dialog
     if (wineToDelete != null) {
         AlertDialog(
             onDismissRequest = { wineToDelete = null },
             title = { Text("Delete Wine") },
-            text = { Text("Remove " + (wineToDelete?.name ?: "") + " from your cellar?") },
+            text = { Text("Remove " + (wineToDelete?.name ?: "") + "?") },
             confirmButton = {
                 TextButton(onClick = {
                     wineToDelete?.let { onDeleteWine(it) }
                     wineToDelete = null
-                }) {
-                    Text("Delete", color = Color.Red)
-                }
+                }) { Text("Delete", color = Color.Red) }
             },
             dismissButton = {
-                TextButton(onClick = { wineToDelete = null }) {
-                    Text("Cancel")
-                }
+                TextButton(onClick = { wineToDelete = null }) { Text("Cancel") }
             }
         )
     }
 
-    if (wines.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize().background(DarkBg),
-            contentAlignment = Alignment.Center
+    Column(modifier = Modifier.fillMaxSize().background(DarkBg)) {
+        // Search bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { viewModel.searchQuery.value = it },
+            label = { Text("Search wines...") },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            singleLine = true
+        )
+
+        // Type filter chips
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "Your cellar is empty", color = Color.Gray, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(16.dp))
+            listOf("", "Red", "White", "Rose", "Sparkling", "Dessert").forEach { t ->
+                val label = if (t.isEmpty()) "All" else t
                 Button(
-                    onClick = { viewModel.addSampleWine() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Gold)
+                    onClick = { viewModel.typeFilter.value = t },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (typeFilter == t) Gold else BarBg
+                    ),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp)
                 ) {
-                    Text("Add Sample Wine", color = Color.Black)
+                    Text(label, color = if (typeFilter == t) Color.Black else Color.White, fontSize = 9.sp)
                 }
             }
         }
-    } else {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxSize().background(DarkBg)
-        ) {
-            items(wines) { wine ->
-                WineCard(
-                    wine = wine,
-                    onClick = { onWineClick(wine) },
-                    onLongClick = { wineToDelete = wine }
-                )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (wines.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("No wines found", color = Color.Gray, fontSize = 18.sp)
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(wines) { wine ->
+                    WineCard(
+                        wine = wine,
+                        onClick = { onWineClick(wine) },
+                        onLongClick = { wineToDelete = wine }
+                    )
+                }
             }
         }
     }
@@ -122,20 +142,14 @@ fun CellarScreen(
 fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
     val goldBorder = Brush.linearGradient(listOf(Gold, Color(0xFF9A7B3A)))
 
-    // Decode bitmap outside composable scope
     val decodedBitmap: ImageBitmap? = remember(wine.image) {
         if (wine.image != null) {
             try {
-                val base64Data = wine.image.substringAfter(",")
-                val bytes = Base64.decode(base64Data, Base64.DEFAULT)
-                val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                bmp?.asImageBitmap()
-            } catch (e: Exception) {
-                null
-            }
-        } else {
-            null
-        }
+                val data = wine.image.substringAfter(",")
+                val bytes = Base64.decode(data, Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+            } catch (e: Exception) { null }
+        } else null
     }
 
     Card(
@@ -143,80 +157,37 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
             .fillMaxWidth()
             .aspectRatio(0.65f)
             .border(1.dp, goldBorder, RoundedCornerShape(16.dp))
-            .combinedClickable(
-                onClick = { onClick() },
-                onLongClick = { onLongClick() }
-            ),
+            .combinedClickable(onClick = { onClick() }, onLongClick = { onLongClick() }),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A0A0A))
+        colors = CardDefaults.cardColors(containerColor = BarBg)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Image area
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .background(Color.Black),
+                modifier = Modifier.fillMaxWidth().weight(1f).background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
                 if (decodedBitmap != null) {
-                    Image(
-                        bitmap = decodedBitmap,
-                        contentDescription = "Wine",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                    Image(bitmap = decodedBitmap, contentDescription = "Wine",
+                        modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                 } else {
-                    Text(text = "W", fontSize = 40.sp, color = Gold)
+                    Text("W", fontSize = 40.sp, color = Gold)
                 }
             }
-            // Info area
             Column(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .weight(1f),
+                modifier = Modifier.padding(10.dp).weight(1f),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = wine.name,
-                    color = Gold,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    maxLines = 2
-                )
-                Text(
-                    text = wine.region,
-                    color = Color.LightGray,
-                    fontSize = 11.sp,
-                    maxLines = 1
-                )
+                Text(wine.name, color = Gold, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 2)
+                Text(wine.region, color = Color.LightGray, fontSize = 10.sp, maxLines = 1)
                 Spacer(modifier = Modifier.weight(1f))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(text = wine.vintage, color = Color.Gray, fontSize = 11.sp)
-                    Text(text = wine.type, color = Color.Gray, fontSize = 11.sp)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(wine.vintage, color = Color.Gray, fontSize = 10.sp)
+                    Text(wine.type, color = Color.Gray, fontSize = 10.sp)
                 }
-                HorizontalDivider(
-                    color = Gold.copy(alpha = 0.3f),
-                    modifier = Modifier.padding(vertical = 6.dp)
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "E" + wine.price.toInt().toString(),
-                        color = Gold,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
-                    Text(
-                        text = wine.rating.toString() + "pt",
-                        color = Gold,
-                        fontSize = 14.sp
-                    )
+                HorizontalDivider(color = Gold.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 4.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("E" + wine.price.toInt().toString(), color = Gold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(wine.rating.toString() + "pt", color = Gold, fontSize = 13.sp)
                 }
             }
         }

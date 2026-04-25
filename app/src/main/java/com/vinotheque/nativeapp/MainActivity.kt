@@ -1,6 +1,7 @@
 package com.vinotheque.nativeapp
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -26,14 +27,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.vinotheque.nativeapp.data.Wine
 import com.vinotheque.nativeapp.ui.AddWineScreen
 import com.vinotheque.nativeapp.ui.CellarScreen
 import com.vinotheque.nativeapp.ui.DashboardScreen
 import com.vinotheque.nativeapp.ui.SettingsScreen
+import com.vinotheque.nativeapp.ui.WineDetailScreen
 import com.vinotheque.nativeapp.ui.WineViewModel
 
 private val Gold = Color(0xFFD4A54E)
@@ -56,12 +60,30 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun VinothequeApp() {
     val viewModel: WineViewModel = viewModel()
+    val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
     var showAddWine by remember { mutableStateOf(false) }
+    var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
+    // Wine Detail screen
+    if (selectedWine != null) {
+        WineDetailScreen(
+            wine = selectedWine!!,
+            onBack = { selectedWine = null },
+            onDelete = {
+                viewModel.deleteWine(selectedWine!!.reference)
+                Toast.makeText(context, "Wine deleted", Toast.LENGTH_SHORT).show()
+                selectedWine = null
+            }
+        )
+        return
+    }
+
+    // Add Wine screen
     if (showAddWine) {
         AddWineScreen(viewModel = viewModel) {
             showAddWine = false
+            Toast.makeText(context, "Wine saved!", Toast.LENGTH_SHORT).show()
         }
         return
     }
@@ -70,86 +92,60 @@ fun VinothequeApp() {
         containerColor = DarkBg,
         topBar = {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(BarBg)
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().background(BarBg).padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Vinotheque Pro",
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Text("Vinotheque Pro", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             }
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = BarBg,
-                contentColor = Gold
-            ) {
+            NavigationBar(containerColor = BarBg, contentColor = Gold) {
                 NavigationBarItem(
-                    icon = { Text("D") },
-                    label = { Text("Insights") },
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
+                    icon = { Text("D") }, label = { Text("Insights") },
+                    selected = selectedTab == 0, onClick = { selectedTab = 0 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Gold,
-                        unselectedIconColor = Color.Gray,
-                        selectedTextColor = Gold,
-                        unselectedTextColor = Color.Gray,
-                        indicatorColor = Gold.copy(alpha = 0.2f)
-                    )
+                        selectedIconColor = Gold, unselectedIconColor = Color.Gray,
+                        selectedTextColor = Gold, unselectedTextColor = Color.Gray,
+                        indicatorColor = Gold.copy(alpha = 0.2f))
                 )
                 NavigationBarItem(
-                    icon = { Text("C") },
-                    label = { Text("Cellar") },
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
+                    icon = { Text("C") }, label = { Text("Cellar") },
+                    selected = selectedTab == 1, onClick = { selectedTab = 1 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Gold,
-                        unselectedIconColor = Color.Gray,
-                        selectedTextColor = Gold,
-                        unselectedTextColor = Color.Gray,
-                        indicatorColor = Gold.copy(alpha = 0.2f)
-                    )
+                        selectedIconColor = Gold, unselectedIconColor = Color.Gray,
+                        selectedTextColor = Gold, unselectedTextColor = Color.Gray,
+                        indicatorColor = Gold.copy(alpha = 0.2f))
                 )
                 NavigationBarItem(
-                    icon = { Text("S") },
-                    label = { Text("Settings") },
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
+                    icon = { Text("S") }, label = { Text("Settings") },
+                    selected = selectedTab == 2, onClick = { selectedTab = 2 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Gold,
-                        unselectedIconColor = Color.Gray,
-                        selectedTextColor = Gold,
-                        unselectedTextColor = Color.Gray,
-                        indicatorColor = Gold.copy(alpha = 0.2f)
-                    )
+                        selectedIconColor = Gold, unselectedIconColor = Color.Gray,
+                        selectedTextColor = Gold, unselectedTextColor = Color.Gray,
+                        indicatorColor = Gold.copy(alpha = 0.2f))
                 )
             }
         },
         floatingActionButton = {
             if (selectedTab == 1) {
-                FloatingActionButton(
-                    onClick = { showAddWine = true },
-                    containerColor = Gold
-                ) {
-                    Text(text = "+", color = Color.Black, fontSize = 24.sp)
+                FloatingActionButton(onClick = { showAddWine = true }, containerColor = Gold) {
+                    Text("+", color = Color.Black, fontSize = 24.sp)
                 }
             }
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (selectedTab) {
-                0 -> DashboardScreen(viewModel = viewModel)
+                0 -> DashboardScreen(viewModel)
                 1 -> CellarScreen(
                     viewModel = viewModel,
-                    onWineClick = { },
-                    onDeleteWine = { wine -> viewModel.deleteWine(wine.reference) }
+                    onWineClick = { wine -> selectedWine = wine },
+                    onDeleteWine = { wine ->
+                        viewModel.deleteWine(wine.reference)
+                        Toast.makeText(context, "Wine deleted", Toast.LENGTH_SHORT).show()
+                    }
                 )
-                2 -> SettingsScreen(viewModel = viewModel)
+                2 -> SettingsScreen(viewModel)
             }
         }
     }

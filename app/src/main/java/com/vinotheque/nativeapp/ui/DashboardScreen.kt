@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,86 +33,104 @@ private val CardBg = Color(0xFF1A0A0A)
 
 @Composable
 fun DashboardScreen(viewModel: WineViewModel) {
-    val wines by viewModel.wines.collectAsState()
+    val wines by viewModel.allWinesUnfiltered.collectAsState()
 
     val totalBottles = wines.size
-    val totalValue = wines.fold(0.0) { acc, wine -> acc + wine.price }
+    val totalValue = wines.fold(0.0) { acc, w -> acc + w.price }
+    val avgRating = if (wines.isNotEmpty()) wines.sumOf { it.rating } / wines.size else 0
     val redCount = wines.count { it.type.equals("Red", ignoreCase = true) }
     val whiteCount = wines.count { it.type.equals("White", ignoreCase = true) }
+    val roseCount = wines.count { it.type.equals("Rose", ignoreCase = true) }
+    val sparkCount = wines.count { it.type.equals("Sparkling", ignoreCase = true) }
+    val dessertCount = wines.count { it.type.equals("Dessert", ignoreCase = true) }
+    val topWine = wines.maxByOrNull { it.rating }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkBg)
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+        modifier = Modifier.fillMaxSize().background(DarkBg)
+            .verticalScroll(rememberScrollState()).padding(16.dp)
     ) {
-        Text(
-            text = "Cellar Insights",
-            color = Gold,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(24.dp))
+        Text("Cellar Insights", color = Gold, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(20.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            InsightCard(
-                title = "Total Bottles",
-                value = totalBottles.toString(),
-                modifier = Modifier.weight(1f)
-            )
-            InsightCard(
-                title = "Cellar Value",
-                value = "E" + totalValue.toInt().toString(),
-                modifier = Modifier.weight(1f)
-            )
+        // Stats row
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            InsightCard("Bottles", totalBottles.toString(), Modifier.weight(1f))
+            InsightCard("Value", "E" + totalValue.toInt().toString(), Modifier.weight(1f))
+            InsightCard("Avg Rating", avgRating.toString(), Modifier.weight(1f))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
+        Text("Wine Types", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(12.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            InsightCard(
-                title = "Reds",
-                value = redCount.toString(),
-                modifier = Modifier.weight(1f)
-            )
-            InsightCard(
-                title = "Whites",
-                value = whiteCount.toString(),
-                modifier = Modifier.weight(1f)
-            )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TypeChip("Red", redCount, Modifier.weight(1f))
+            TypeChip("White", whiteCount, Modifier.weight(1f))
+            TypeChip("Rose", roseCount, Modifier.weight(1f))
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TypeChip("Sparkling", sparkCount, Modifier.weight(1f))
+            TypeChip("Dessert", dessertCount, Modifier.weight(1f))
+        }
+
+        if (topWine != null) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Text("Top Rated Wine", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth()
+                    .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(16.dp)),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = CardBg)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(topWine.name, color = Gold, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(topWine.region, color = Color.Gray, fontSize = 14.sp)
+                    HorizontalDivider(color = Gold.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 8.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(topWine.rating.toString() + "/100", color = Gold, fontWeight = FontWeight.Bold)
+                        Text("E" + topWine.price.toInt().toString(), color = Gold, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(40.dp))
     }
 }
 
 @Composable
 fun InsightCard(title: String, value: String, modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier
-            .border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(16.dp)),
+        modifier = modifier.border(1.dp, Gold.copy(alpha = 0.4f), RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = CardBg)
     ) {
         Column(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = title, color = Color.Gray, fontSize = 14.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = value,
-                color = Gold,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Text(title, color = Color.Gray, fontSize = 12.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(value, color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun TypeChip(label: String, count: Int, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBg)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(label, color = Color.White, fontSize = 14.sp)
+            Text(count.toString(), color = Gold, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
     }
 }

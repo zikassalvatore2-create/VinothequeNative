@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -16,6 +17,9 @@ interface WineDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(wines: List<Wine>)
+
+    @Update
+    suspend fun updateWine(wine: Wine)
 
     @Query("DELETE FROM wines WHERE reference = :ref")
     suspend fun deleteWine(ref: String)
