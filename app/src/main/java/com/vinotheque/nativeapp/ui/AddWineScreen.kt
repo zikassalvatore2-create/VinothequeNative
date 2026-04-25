@@ -15,18 +15,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -37,14 +42,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vinotheque.nativeapp.ui.theme.TextSecondary
+import com.vinotheque.nativeapp.ui.theme.TextTertiary
+import com.vinotheque.nativeapp.ui.theme.WineCard
+import com.vinotheque.nativeapp.ui.theme.WineDark
+import com.vinotheque.nativeapp.ui.theme.WineGold
+import com.vinotheque.nativeapp.ui.theme.WineSurface
 import java.io.ByteArrayOutputStream
 
-private val Gold = Color(0xFFD4A54E)
-private val DarkBg = Color(0xFF0D0505)
-private val BarBg = Color(0xFF1A0A0A)
+private val fieldColors @Composable get() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = WineGold,
+    unfocusedBorderColor = WineSurface,
+    focusedLabelColor = WineGold,
+    unfocusedLabelColor = TextTertiary,
+    cursorColor = WineGold,
+    focusedTextColor = Color.White,
+    unfocusedTextColor = Color.White
+)
 
 @Composable
 fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
@@ -64,128 +82,125 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
         ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? -> capturedImage = bitmap }
 
-    Column(
-        modifier = Modifier.fillMaxSize().background(DarkBg)
-    ) {
+    Column(modifier = Modifier.fillMaxSize().background(WineDark)) {
         // Top bar
         Row(
-            modifier = Modifier.fillMaxWidth().background(BarBg).padding(horizontal = 8.dp, vertical = 4.dp),
+            modifier = Modifier.fillMaxWidth().background(WineSurface).padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(onClick = onNavigateBack) {
-                Text(text = "< Back", color = Gold, fontSize = 16.sp)
+            IconButton(onClick = onNavigateBack) {
+                Icon(Icons.Default.ArrowBack, "Back", tint = Color.White, modifier = Modifier.size(24.dp))
             }
             Spacer(modifier = Modifier.weight(1f))
-            Text("Add Wine", color = Gold, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Add Wine", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.weight(1f))
-            // Smart Fill button
-            TextButton(onClick = {
+            IconButton(onClick = {
                 val result = viewModel.enrichWine(grape, name)
-                type = result.type
-                dryness = result.dryness
+                type = result.type; dryness = result.dryness
                 if (aroma.isEmpty()) aroma = result.aroma
                 if (foodPairing.isEmpty()) foodPairing = result.foodPairing
             }) {
-                Text("Smart Fill", color = Gold, fontSize = 14.sp)
+                Icon(Icons.Default.AutoAwesome, "Smart Fill", tint = WineGold, modifier = Modifier.size(24.dp))
             }
         }
 
-        Column(
-            modifier = Modifier.weight(1f).padding(16.dp).verticalScroll(rememberScrollState())
-        ) {
-            // Camera
+        Column(modifier = Modifier.weight(1f).padding(16.dp).verticalScroll(rememberScrollState())) {
+            // Camera area
             Box(
-                modifier = Modifier.fillMaxWidth().height(180.dp)
-                    .background(BarBg, RoundedCornerShape(12.dp)),
+                modifier = Modifier.fillMaxWidth().height(160.dp)
+                    .background(WineSurface, RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 if (capturedImage != null) {
                     Image(bitmap = capturedImage!!.asImageBitmap(), contentDescription = "Wine",
-                        modifier = Modifier.fillMaxSize())
+                        modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                 } else {
-                    Button(onClick = { cameraLauncher.launch(null) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Gold)) {
-                        Text("Take Photo", color = Color.Black)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        IconButton(onClick = { cameraLauncher.launch(null) }) {
+                            Icon(Icons.Default.CameraAlt, "Camera", tint = WineGold, modifier = Modifier.size(40.dp))
+                        }
+                        Text("Take Photo", color = TextSecondary, fontSize = 12.sp)
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(value = name, onValueChange = { name = it },
-                label = { Text("Wine Name") }, modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(6.dp))
+                label = { Text("Wine Name") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+            Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = region, onValueChange = { region = it },
-                    label = { Text("Region") }, modifier = Modifier.weight(1f))
+                    label = { Text("Region") }, modifier = Modifier.weight(1f), colors = fieldColors)
                 OutlinedTextField(value = vintage, onValueChange = { vintage = it },
-                    label = { Text("Vintage") }, modifier = Modifier.weight(0.5f))
+                    label = { Text("Vintage") }, modifier = Modifier.weight(0.5f), colors = fieldColors)
             }
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = grape, onValueChange = { grape = it },
-                    label = { Text("Grape") }, modifier = Modifier.weight(1f))
+                    label = { Text("Grape") }, modifier = Modifier.weight(1f), colors = fieldColors)
                 OutlinedTextField(value = price, onValueChange = { price = it },
-                    label = { Text("Price") }, modifier = Modifier.weight(0.5f))
+                    label = { Text("Price") }, modifier = Modifier.weight(0.5f), colors = fieldColors)
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Type selector
-            Text("Type:", color = Color.White, fontSize = 14.sp)
-            Spacer(modifier = Modifier.height(4.dp))
+            // Type
+            Text("Type", color = TextSecondary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Spacer(modifier = Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 listOf("Red", "White", "Rose", "Sparkling", "Dessert").forEach { t ->
                     Button(onClick = { type = t },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (type == t) Gold else BarBg),
-                        modifier = Modifier.weight(1f)
-                    ) { Text(t, color = if (type == t) Color.Black else Color.White, fontSize = 10.sp) }
+                            containerColor = if (type == t) WineGold else WineSurface),
+                        shape = RoundedCornerShape(12.dp), modifier = Modifier.weight(1f)
+                    ) { Text(t, color = if (type == t) Color.Black else TextSecondary, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Dryness selector
-            Text("Dryness:", color = Color.White, fontSize = 14.sp)
-            Spacer(modifier = Modifier.height(4.dp))
+            // Dryness
+            Text("Dryness", color = TextSecondary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Spacer(modifier = Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 listOf("Dry", "Off-Dry", "Sweet", "Brut").forEach { d ->
                     Button(onClick = { dryness = d },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (dryness == d) Gold else BarBg),
-                        modifier = Modifier.weight(1f)
-                    ) { Text(d, color = if (dryness == d) Color.Black else Color.White, fontSize = 10.sp) }
+                            containerColor = if (dryness == d) WineGold else WineSurface),
+                        shape = RoundedCornerShape(12.dp), modifier = Modifier.weight(1f)
+                    ) { Text(d, color = if (dryness == d) Color.Black else TextSecondary, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Rating slider
-            Text("Rating: " + ratingVal.toInt().toString() + "/100", color = Color.White, fontSize = 14.sp)
+            // Rating
+            Text("Rating: " + ratingVal.toInt().toString() + "/100", color = TextSecondary, fontSize = 13.sp)
             Slider(value = ratingVal, onValueChange = { ratingVal = it },
                 valueRange = 50f..100f, steps = 49,
-                colors = SliderDefaults.colors(thumbColor = Gold, activeTrackColor = Gold))
+                colors = SliderDefaults.colors(thumbColor = WineGold, activeTrackColor = WineGold,
+                    inactiveTrackColor = WineSurface))
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(value = aroma, onValueChange = { aroma = it },
-                label = { Text("Aroma Profile") }, modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(6.dp))
+                label = { Text("Aroma Profile") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+            Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(value = foodPairing, onValueChange = { foodPairing = it },
-                label = { Text("Food Pairing") }, modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(20.dp))
+                label = { Text("Food Pairing") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
-                    var base64Img: String? = null
+                    var img: String? = null
                     if (capturedImage != null) {
                         val baos = ByteArrayOutputStream()
                         capturedImage!!.compress(Bitmap.CompressFormat.JPEG, 80, baos)
-                        base64Img = "data:image/jpeg;base64," + Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
+                        img = "data:image/jpeg;base64," + Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
                     }
-                    viewModel.saveWine(name, region, vintage, grape,
-                        price.toDoubleOrNull() ?: 0.0, type, dryness,
-                        ratingVal.toInt(), aroma, foodPairing, base64Img)
+                    viewModel.saveWine(name, region, vintage, grape, price.toDoubleOrNull() ?: 0.0,
+                        type, dryness, ratingVal.toInt(), aroma, foodPairing, img)
                     onNavigateBack()
                 },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Gold)
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = WineGold)
             ) {
                 Text("Save to Cellar", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }

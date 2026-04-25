@@ -1,3 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.VinothequeNative" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.VinothequeNative" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">#C9A96E</item>
+        <item name="android:colorPrimaryDark">#0A0A0A</item>
+        <item name="android:colorAccent">#C9A96E</item>
+        <item name="android:windowBackground">#0A0A0A</item>
+        <item name="android:statusBarColor">#0A0A0A</item>
+        <item name="android:navigationBarColor">#141414</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
 </resources>

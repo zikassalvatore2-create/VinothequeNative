@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,15 +12,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.LocalBar
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,16 +38,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-private val Gold = Color(0xFFD4A54E)
-private val DarkBg = Color(0xFF0D0505)
-private val CardBg = Color(0xFF1A0A0A)
+import com.vinotheque.nativeapp.ui.theme.TextSecondary
+import com.vinotheque.nativeapp.ui.theme.TextTertiary
+import com.vinotheque.nativeapp.ui.theme.WineDark
+import com.vinotheque.nativeapp.ui.theme.WineGold
+import com.vinotheque.nativeapp.ui.theme.WineRed
+import com.vinotheque.nativeapp.ui.theme.WineSurface
 
 @Composable
 fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
@@ -51,144 +62,123 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
     var showUserDialog by remember { mutableStateOf(false) }
     var newUsername by remember { mutableStateOf("") }
 
-    val jsonSaveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) {
-            try { context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.getBackupJson().toByteArray()) }
-                Toast.makeText(context, "JSON backup saved!", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) { Toast.makeText(context, "Backup failed", Toast.LENGTH_SHORT).show() }
-        }
-    }
-    val jsonRestoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            try { val json = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
-                if (json != null) { viewModel.restoreFromJson(json); Toast.makeText(context, "JSON restored!", Toast.LENGTH_SHORT).show() }
-            } catch (e: Exception) { Toast.makeText(context, "Restore failed", Toast.LENGTH_SHORT).show() }
-        }
-    }
-    val csvSaveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
-        if (uri != null) {
-            try { context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.exportCsv().toByteArray()) }
-                Toast.makeText(context, "CSV exported!", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) { Toast.makeText(context, "Export failed", Toast.LENGTH_SHORT).show() }
-        }
-    }
-    val csvImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            try { val csv = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
-                if (csv != null) { viewModel.importCsv(csv); Toast.makeText(context, "CSV imported!", Toast.LENGTH_SHORT).show() }
-            } catch (e: Exception) { Toast.makeText(context, "Import failed", Toast.LENGTH_SHORT).show() }
-        }
-    }
+    val jsonSave = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) { try { context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.getBackupJson().toByteArray()) }
+            Toast.makeText(context, "Backup saved!", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
+    val jsonRestore = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) { try { val j = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
+            if (j != null) { viewModel.restoreFromJson(j); Toast.makeText(context, "Restored!", Toast.LENGTH_SHORT).show() }
+        } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
+    val csvSave = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        if (uri != null) { try { context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.exportCsv().toByteArray()) }
+            Toast.makeText(context, "CSV exported!", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
+    val csvImport = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) { try { val c = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
+            if (c != null) { viewModel.importCsv(c); Toast.makeText(context, "CSV imported!", Toast.LENGTH_SHORT).show() }
+        } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
 
     if (showClearDialog) {
         AlertDialog(onDismissRequest = { showClearDialog = false },
             title = { Text("Clear All Data") },
-            text = { Text("Delete ALL " + wines.size.toString() + " wines? This cannot be undone.") },
-            confirmButton = { TextButton(onClick = {
-                viewModel.clearAll(); showClearDialog = false
+            text = { Text("Permanently delete all " + wines.size.toString() + " wines?") },
+            confirmButton = { TextButton(onClick = { viewModel.clearAll(); showClearDialog = false
                 Toast.makeText(context, "All data cleared", Toast.LENGTH_SHORT).show()
             }) { Text("Delete All", color = Color.Red) } },
             dismissButton = { TextButton(onClick = { showClearDialog = false }) { Text("Cancel") } })
     }
     if (showUserDialog) {
         AlertDialog(onDismissRequest = { showUserDialog = false },
-            title = { Text("Switch User") },
+            title = { Text("Switch Profile") },
             text = { OutlinedTextField(value = newUsername, onValueChange = { newUsername = it }, label = { Text("Username") }) },
-            confirmButton = { TextButton(onClick = {
-                if (newUsername.isNotBlank()) { viewModel.setUser(newUsername); showUserDialog = false }
-            }) { Text("Switch", color = Gold) } },
+            confirmButton = { TextButton(onClick = { if (newUsername.isNotBlank()) { viewModel.setUser(newUsername); showUserDialog = false }
+            }) { Text("Switch", color = WineGold) } },
             dismissButton = { TextButton(onClick = { showUserDialog = false }) { Text("Cancel") } })
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(DarkBg).verticalScroll(rememberScrollState()).padding(16.dp),
+    Column(modifier = Modifier.fillMaxSize().background(WineDark)
+        .verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-        Text("Settings", color = Gold, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text("Settings", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
 
-        // User profile
-        SettingsCard("User Profile") {
-            Text("Current user: " + currentUser, color = Color.White, fontSize = 14.sp)
+        // Profile
+        SettingsCard("Profile", Icons.Default.Person) {
+            Text("Signed in as " + currentUser, color = Color.White, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { newUsername = currentUser; showUserDialog = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Gold)) {
-                Text("Switch User", color = Color.Black, fontWeight = FontWeight.Bold)
-            }
+            SettingsButton("Switch Profile", WineGold) { newUsername = currentUser; showUserDialog = true }
         }
 
-        // JSON Backup
-        SettingsCard("JSON Backup & Restore") {
-            Text(wines.size.toString() + " bottles in cellar", color = Color.Gray, fontSize = 14.sp)
+        // Backup
+        SettingsCard("Backup & Restore", Icons.Default.CloudUpload) {
+            Text(wines.size.toString() + " bottles in cellar", color = TextTertiary, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { jsonSaveLauncher.launch("vinotheque_backup.json") },
-                    modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Gold)) {
-                    Text("Export", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                }
-                Button(onClick = { jsonRestoreLauncher.launch("application/json") },
-                    modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333))) {
-                    Text("Import", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                }
+                SettingsButton("Export JSON", WineGold, Modifier.weight(1f)) { jsonSave.launch("vinotheque_backup.json") }
+                SettingsButton("Import JSON", WineSurface, Modifier.weight(1f)) { jsonRestore.launch("application/json") }
             }
         }
 
         // CSV
-        SettingsCard("CSV Import & Export") {
+        SettingsCard("CSV Import & Export", Icons.Default.CloudDownload) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { csvSaveLauncher.launch("vinotheque_wines.csv") },
-                    modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Gold)) {
-                    Text("Export CSV", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                }
-                Button(onClick = { csvImportLauncher.launch("text/*") },
-                    modifier = Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333))) {
-                    Text("Import CSV", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                }
+                SettingsButton("Export CSV", WineGold, Modifier.weight(1f)) { csvSave.launch("vinotheque_wines.csv") }
+                SettingsButton("Import CSV", WineSurface, Modifier.weight(1f)) { csvImport.launch("text/*") }
             }
         }
 
-        // Sample data
-        SettingsCard("Sample Data") {
-            Button(onClick = { viewModel.loadSampleData()
-                Toast.makeText(context, "10 sample wines loaded!", Toast.LENGTH_SHORT).show() },
-                modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Gold)) {
-                Text("Load Sample Collection", color = Color.Black, fontWeight = FontWeight.Bold)
-            }
+        // Sample Data
+        SettingsCard("Sample Collection", Icons.Default.LocalBar) {
+            SettingsButton("Load 10 Premium Wines", WineGold) {
+                viewModel.loadSampleData(); Toast.makeText(context, "Sample wines loaded!", Toast.LENGTH_SHORT).show() }
         }
 
-        // Admin table
-        SettingsCard("Admin Table") {
-            Text("Bulk edit all wines in spreadsheet view", color = Color.Gray, fontSize = 14.sp)
+        // Admin
+        SettingsCard("Admin Table", Icons.Default.TableChart) {
+            Text("Bulk edit all wines in spreadsheet view", color = TextTertiary, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = onOpenAdmin, modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Gold)) {
-                Text("Open Admin Table", color = Color.Black, fontWeight = FontWeight.Bold)
-            }
+            SettingsButton("Open Admin Table", WineGold) { onOpenAdmin() }
         }
 
-        // Danger zone
-        SettingsCard("Danger Zone") {
-            Button(onClick = { showClearDialog = true }, modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF661111))) {
-                Text("Clear All Data", color = Color.White, fontWeight = FontWeight.Bold)
-            }
+        // Danger
+        SettingsCard("Danger Zone", Icons.Default.DeleteForever) {
+            SettingsButton("Clear All Data", WineRed) { showClearDialog = true }
         }
 
-        SettingsCard("About") {
-            Text("Vinotheque Pro", color = Gold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text("Native Android Edition v1.0", color = Color.Gray, fontSize = 14.sp)
+        // About
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+            Column(modifier = Modifier.padding(20.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("VINOTHEQUE PRO", color = WineGold, fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
+                Text("Native Android Edition v1.0", color = TextTertiary, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Developed by", color = TextTertiary, fontSize = 11.sp)
+                Text("Zakariae BOUZIDI-IDRISSI", color = WineGold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
         }
         Spacer(modifier = Modifier.height(40.dp))
     }
 }
 
 @Composable
-fun SettingsCard(title: String, content: @Composable () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth().border(1.dp, Gold.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = CardBg)) {
+fun SettingsCard(title: String, icon: ImageVector, content: @Composable () -> Unit) {
+    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(title, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, title, tint = WineGold, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.padding(start = 10.dp))
+                Text(title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             content()
         }
+    }
+}
+
+@Composable
+fun SettingsButton(text: String, color: Color, modifier: Modifier = Modifier.fillMaxWidth(), onClick: () -> Unit) {
+    Button(onClick = onClick, modifier = modifier, shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = color)) {
+        Text(text, color = if (color == WineGold) Color.Black else Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     }
 }
