@@ -18,5 +18,6 @@ data class Wine(
     val body: Int,
     val tannin: Int,
     val acidity: Int,
-    val sweetness: Int
+    val sweetness: Int,
+    val image: String? = null // Base64 Native Image
 )

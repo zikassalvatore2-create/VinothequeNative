@@ -20,6 +20,31 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             initialValue = emptyList()
         )
 
+    
+    fun saveWine(name: String, region: String, vintage: String, grape: String, price: Double, type: String, image: String?) {
+        viewModelScope.launch {
+            dao.insertWine(
+                Wine(
+                    reference = "REF${System.currentTimeMillis()}",
+                    name = name.ifEmpty { "Unknown Wine" },
+                    region = region,
+                    vintage = vintage,
+                    grape = grape,
+                    type = type,
+                    price = price,
+                    rating = 90,
+                    peakMaturity = "",
+                    binLocation = "",
+                    body = 3,
+                    tannin = 3,
+                    acidity = 3,
+                    sweetness = 1,
+                    image = image
+                )
+            )
+        }
+    }
+
     fun addSampleWine() {
         viewModelScope.launch {
             dao.insertWine(

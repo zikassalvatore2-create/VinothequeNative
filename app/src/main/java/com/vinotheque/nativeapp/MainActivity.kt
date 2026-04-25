@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
+import com.vinotheque.nativeapp.ui.AddWineScreen
 import com.vinotheque.nativeapp.ui.CellarScreen
 import com.vinotheque.nativeapp.ui.WineViewModel
 
@@ -69,16 +70,31 @@ fun VinothequeApp() {
             }
         }
     ) { innerPadding ->
-        if (selectedTab == 1) {
-            Modifier.padding(innerPadding)
-            CellarScreen(viewModel)
-        } else {
-            // Dashboard placeholder
-            Text(
-                "Dashboard Coming Soon",
-                color = Color.White,
-                modifier = Modifier.padding(innerPadding)
-            )
+        Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+            NavHost(navController = navController, startDestination = "tabs") {
+                composable("tabs") {
+                    if (selectedTab == 1) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            CellarScreen(viewModel)
+                            // Native FAB
+                            FloatingActionButton(
+                                onClick = { navController.navigate("add_wine") },
+                                containerColor = Color(0xFFd4a54e),
+                                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+                            ) {
+                                Text("+", color = Color.Black, fontSize = 24.sp)
+                            }
+                        }
+                    } else {
+                        Text("Dashboard Coming Soon", color = Color.White, modifier = Modifier.padding(16.dp))
+                    }
+                }
+                composable("add_wine") {
+                    AddWineScreen(viewModel) {
+                        navController.popBackStack()
+                    }
+                }
+            }
         }
     }
 }

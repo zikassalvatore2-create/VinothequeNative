@@ -16,6 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import android.graphics.BitmapFactory
+import android.util.Base64
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.data.Wine
@@ -78,7 +83,28 @@ fun WineCard(wine: Wine) {
         colors = CardDefaults.cardColors(containerColor = Color(0x332d1212))
     ) {
         Column(
-            modifier = Modifier.padding(12.dp).fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f).background(Color.Black)) {
+                if (wine.image != null) {
+                    try {
+                        val base64String = wine.image.substringAfter(",")
+                        val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
+                        val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Wine Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } catch (e: Exception) {
+                        Text("🍷", fontSize = 40.sp, modifier = Modifier.align(Alignment.Center))
+                    }
+                } else {
+                    Text("🍷", fontSize = 40.sp, modifier = Modifier.align(Alignment.Center))
+                }
+            }
+            Column(modifier = Modifier.padding(12.dp).weight(1f)) {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Text(wine.name, color = Color(0xFFd4a54e), fontWeight = FontWeight.Bold, fontSize = 18.sp, maxLines = 2)
@@ -98,5 +124,6 @@ fun WineCard(wine: Wine) {
                 Text("★ ${wine.rating}", color = Color(0xFFd4a54e))
             }
         }
+    }
     }
 }
