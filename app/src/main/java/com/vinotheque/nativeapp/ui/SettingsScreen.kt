@@ -43,7 +43,7 @@ private val DarkBg = Color(0xFF0D0505)
 private val CardBg = Color(0xFF1A0A0A)
 
 @Composable
-fun SettingsScreen(viewModel: WineViewModel) {
+fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
     val context = LocalContext.current
     val wines by viewModel.allWinesUnfiltered.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
@@ -152,6 +152,16 @@ fun SettingsScreen(viewModel: WineViewModel) {
                 Toast.makeText(context, "10 sample wines loaded!", Toast.LENGTH_SHORT).show() },
                 modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Gold)) {
                 Text("Load Sample Collection", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        // Admin table
+        SettingsCard("Admin Table") {
+            Text("Bulk edit all wines in spreadsheet view", color = Color.Gray, fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onClick = onOpenAdmin, modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Gold)) {
+                Text("Open Admin Table", color = Color.Black, fontWeight = FontWeight.Bold)
             }
         }
 

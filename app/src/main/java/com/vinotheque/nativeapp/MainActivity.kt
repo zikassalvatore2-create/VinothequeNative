@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -35,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vinotheque.nativeapp.data.Wine
 import com.vinotheque.nativeapp.ui.AddWineScreen
+import com.vinotheque.nativeapp.ui.AdminScreen
 import com.vinotheque.nativeapp.ui.CellarScreen
 import com.vinotheque.nativeapp.ui.DashboardScreen
 import com.vinotheque.nativeapp.ui.FavoritesScreen
@@ -50,11 +50,7 @@ private val BarBg = Color(0xFF1A0A0A)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            MaterialTheme {
-                Surface(color = DarkBg) { VinothequeApp() }
-            }
-        }
+        setContent { MaterialTheme { Surface(color = DarkBg) { VinothequeApp() } } }
     }
 }
 
@@ -65,6 +61,13 @@ fun VinothequeApp() {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showAddWine by remember { mutableStateOf(false) }
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
+    var showAdmin by remember { mutableStateOf(false) }
+
+    // Admin screen (full screen overlay)
+    if (showAdmin) {
+        AdminScreen(viewModel = viewModel, onBack = { showAdmin = false })
+        return
+    }
 
     // Detail screen
     if (selectedWine != null) {
@@ -132,7 +135,7 @@ fun VinothequeApp() {
                     })
                 2 -> PairingScreen(viewModel = viewModel, onWineClick = { wine -> selectedWine = wine })
                 3 -> FavoritesScreen(viewModel = viewModel, onWineClick = { wine -> selectedWine = wine })
-                4 -> SettingsScreen(viewModel)
+                4 -> SettingsScreen(viewModel = viewModel, onOpenAdmin = { showAdmin = true })
             }
         }
     }
