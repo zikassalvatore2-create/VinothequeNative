@@ -30,10 +30,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -82,6 +84,23 @@ fun CellarScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
 @Composable
 fun WineCard(wine: Wine, onClick: () -> Unit) {
     val goldBorder = Brush.linearGradient(listOf(Gold, Color(0xFF9A7B3A)))
+
+    // Decode bitmap OUTSIDE composable scope using remember
+    val decodedBitmap: ImageBitmap? = remember(wine.image) {
+        if (wine.image != null) {
+            try {
+                val base64Data = wine.image.substringAfter(",")
+                val bytes = Base64.decode(base64Data, Base64.DEFAULT)
+                val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                bmp?.asImageBitmap()
+            } catch (e: Exception) {
+                null
+            }
+        } else {
+            null
+        }
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,24 +119,13 @@ fun WineCard(wine: Wine, onClick: () -> Unit) {
                     .background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
-                if (wine.image != null) {
-                    try {
-                        val base64Data = wine.image.substringAfter(",")
-                        val bytes = Base64.decode(base64Data, Base64.DEFAULT)
-                        val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                        if (bmp != null) {
-                            Image(
-                                bitmap = bmp.asImageBitmap(),
-                                contentDescription = "Wine",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Text(text = "W", fontSize = 40.sp, color = Gold)
-                        }
-                    } catch (e: Exception) {
-                        Text(text = "W", fontSize = 40.sp, color = Gold)
-                    }
+                if (decodedBitmap != null) {
+                    Image(
+                        bitmap = decodedBitmap,
+                        contentDescription = "Wine",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
                 } else {
                     Text(text = "W", fontSize = 40.sp, color = Gold)
                 }
