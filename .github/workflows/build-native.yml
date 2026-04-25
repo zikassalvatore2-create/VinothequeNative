@@ -23,7 +23,17 @@ jobs:
         gradle-version: '8.5'
         
     - name: Build with Gradle
-      run: gradle assembleDebug --stacktrace 2>&1 | tail -200
+      run: gradle assembleDebug --stacktrace --info 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+      continue-on-error: true
+        
+    - name: Show Kotlin errors
+      if: always()
+      run: |
+        echo "=== KOTLIN COMPILER ERRORS ==="
+        grep -n "^e:" build.log || echo "No e: lines found"
+        echo ""
+        echo "=== LAST 100 LINES ==="
+        tail -100 build.log
         
     - name: Upload APK
       if: success()
