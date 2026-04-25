@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.asImageBitmap
@@ -124,12 +125,14 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
             // Camera area
             Box(
                 modifier = Modifier.fillMaxWidth().height(160.dp)
+                    .clip(RoundedCornerShape(16.dp))
                     .background(WineSurface, RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 if (capturedImage != null) {
                     Image(bitmap = capturedImage!!.asImageBitmap(), contentDescription = "Wine",
-                        modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)),
+                        contentScale = ContentScale.Crop)
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -214,9 +217,7 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                 onClick = {
                     var img: String? = null
                     if (capturedImage != null) {
-                        val baos = ByteArrayOutputStream()
-                        capturedImage!!.compress(Bitmap.CompressFormat.JPEG, 80, baos)
-                        img = "data:image/jpeg;base64," + Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
+                        img = resizeBitmap(capturedImage!!)
                     }
                     viewModel.saveWine(name, region, vintage, grape, price.toDoubleOrNull() ?: 0.0,
                         type, dryness, ratingVal.toInt(), aroma, foodPairing, img)
