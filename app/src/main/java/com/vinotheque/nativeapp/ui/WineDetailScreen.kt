@@ -18,12 +18,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +41,10 @@ private val DarkBg = Color(0xFF0D0505)
 private val BarBg = Color(0xFF1A0A0A)
 
 @Composable
-fun WineDetailScreen(wine: Wine, onBack: () -> Unit, onDelete: () -> Unit) {
+fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, onDelete: () -> Unit) {
+    val favoriteRefs by viewModel.favoriteRefs.collectAsState()
+    val isFav = favoriteRefs.contains(wine.reference)
+
     val decodedBitmap: ImageBitmap? = remember(wine.image) {
         if (wine.image != null) {
             try {
@@ -53,52 +56,40 @@ fun WineDetailScreen(wine: Wine, onBack: () -> Unit, onDelete: () -> Unit) {
     }
 
     Column(modifier = Modifier.fillMaxSize().background(DarkBg)) {
-        // Top bar
         Row(
             modifier = Modifier.fillMaxWidth().background(BarBg).padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(onClick = onBack) {
-                Text("< Back", color = Gold, fontSize = 16.sp)
-            }
+            TextButton(onClick = onBack) { Text("< Back", color = Gold, fontSize = 16.sp) }
             Spacer(modifier = Modifier.weight(1f))
-            Text("Wine Details", color = Gold, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.weight(1f))
-            TextButton(onClick = onDelete) {
-                Text("Delete", color = Color.Red, fontSize = 14.sp)
+            TextButton(onClick = { viewModel.toggleFavorite(wine.reference) }) {
+                Text(if (isFav) "Unfavorite" else "Favorite", color = if (isFav) Color.Red else Gold, fontSize = 14.sp)
             }
+            TextButton(onClick = onDelete) { Text("Delete", color = Color.Red, fontSize = 14.sp) }
         }
 
-        Column(
-            modifier = Modifier.weight(1f).padding(16.dp).verticalScroll(rememberScrollState())
-        ) {
-            // Image
+        Column(modifier = Modifier.weight(1f).padding(16.dp).verticalScroll(rememberScrollState())) {
             Box(
-                modifier = Modifier.fillMaxWidth().height(250.dp)
-                    .background(Color.Black, RoundedCornerShape(16.dp)),
+                modifier = Modifier.fillMaxWidth().height(250.dp).background(Color.Black, RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 if (decodedBitmap != null) {
-                    Image(bitmap = decodedBitmap, contentDescription = "Wine",
-                        modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    Image(bitmap = decodedBitmap, contentDescription = "Wine", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                 } else {
                     Text("W", fontSize = 60.sp, color = Gold)
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Name and rating
             Text(wine.name, color = Gold, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
-            Row {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(wine.rating.toString() + "/100", color = Gold, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.weight(1f))
                 Text("E" + wine.price.toInt().toString(), color = Gold, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
 
             HorizontalDivider(color = Gold.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 12.dp))
 
-            // Details grid
             DetailRow("Region", wine.region)
             DetailRow("Vintage", wine.vintage)
             DetailRow("Grape", wine.grape)
@@ -112,22 +103,14 @@ fun WineDetailScreen(wine: Wine, onBack: () -> Unit, onDelete: () -> Unit) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(wine.aroma, color = Color.White, fontSize = 14.sp)
             }
-
             if (wine.foodPairing.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text("Food Pairing", color = Gold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(wine.foodPairing, color = Color.White, fontSize = 14.sp)
             }
-
-            if (wine.peakMaturity.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                DetailRow("Peak Maturity", wine.peakMaturity)
-            }
-            if (wine.binLocation.isNotEmpty()) {
-                DetailRow("Bin Location", wine.binLocation)
-            }
-
+            if (wine.peakMaturity.isNotEmpty()) { Spacer(modifier = Modifier.height(12.dp)); DetailRow("Peak Maturity", wine.peakMaturity) }
+            if (wine.binLocation.isNotEmpty()) { DetailRow("Bin Location", wine.binLocation) }
             Spacer(modifier = Modifier.height(40.dp))
         }
     }
@@ -136,10 +119,7 @@ fun WineDetailScreen(wine: Wine, onBack: () -> Unit, onDelete: () -> Unit) {
 @Composable
 fun DetailRow(label: String, value: String) {
     if (value.isEmpty()) return
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, color = Color.Gray, fontSize = 14.sp)
         Text(value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }

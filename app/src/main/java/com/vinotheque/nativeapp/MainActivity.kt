@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -36,6 +37,8 @@ import com.vinotheque.nativeapp.data.Wine
 import com.vinotheque.nativeapp.ui.AddWineScreen
 import com.vinotheque.nativeapp.ui.CellarScreen
 import com.vinotheque.nativeapp.ui.DashboardScreen
+import com.vinotheque.nativeapp.ui.FavoritesScreen
+import com.vinotheque.nativeapp.ui.PairingScreen
 import com.vinotheque.nativeapp.ui.SettingsScreen
 import com.vinotheque.nativeapp.ui.WineDetailScreen
 import com.vinotheque.nativeapp.ui.WineViewModel
@@ -49,9 +52,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                Surface(color = DarkBg) {
-                    VinothequeApp()
-                }
+                Surface(color = DarkBg) { VinothequeApp() }
             }
         }
     }
@@ -65,21 +66,19 @@ fun VinothequeApp() {
     var showAddWine by remember { mutableStateOf(false) }
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
 
-    // Wine Detail screen
+    // Detail screen
     if (selectedWine != null) {
-        WineDetailScreen(
-            wine = selectedWine!!,
+        WineDetailScreen(wine = selectedWine!!, viewModel = viewModel,
             onBack = { selectedWine = null },
             onDelete = {
                 viewModel.deleteWine(selectedWine!!.reference)
                 Toast.makeText(context, "Wine deleted", Toast.LENGTH_SHORT).show()
                 selectedWine = null
-            }
-        )
+            })
         return
     }
 
-    // Add Wine screen
+    // Add screen
     if (showAddWine) {
         AddWineScreen(viewModel = viewModel) {
             showAddWine = false
@@ -88,42 +87,30 @@ fun VinothequeApp() {
         return
     }
 
+    val tabs = listOf("Home", "Cellar", "Pair", "Favs", "More")
+
     Scaffold(
         containerColor = DarkBg,
         topBar = {
-            Row(
-                modifier = Modifier.fillMaxWidth().background(BarBg).padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(modifier = Modifier.fillMaxWidth().background(BarBg).padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically) {
                 Text("Vinotheque Pro", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             }
         },
         bottomBar = {
             NavigationBar(containerColor = BarBg, contentColor = Gold) {
-                NavigationBarItem(
-                    icon = { Text("D") }, label = { Text("Insights") },
-                    selected = selectedTab == 0, onClick = { selectedTab = 0 },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Gold, unselectedIconColor = Color.Gray,
-                        selectedTextColor = Gold, unselectedTextColor = Color.Gray,
-                        indicatorColor = Gold.copy(alpha = 0.2f))
-                )
-                NavigationBarItem(
-                    icon = { Text("C") }, label = { Text("Cellar") },
-                    selected = selectedTab == 1, onClick = { selectedTab = 1 },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Gold, unselectedIconColor = Color.Gray,
-                        selectedTextColor = Gold, unselectedTextColor = Color.Gray,
-                        indicatorColor = Gold.copy(alpha = 0.2f))
-                )
-                NavigationBarItem(
-                    icon = { Text("S") }, label = { Text("Settings") },
-                    selected = selectedTab == 2, onClick = { selectedTab = 2 },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Gold, unselectedIconColor = Color.Gray,
-                        selectedTextColor = Gold, unselectedTextColor = Color.Gray,
-                        indicatorColor = Gold.copy(alpha = 0.2f))
-                )
+                tabs.forEachIndexed { index, label ->
+                    NavigationBarItem(
+                        icon = { Text(label.take(1), fontSize = 14.sp) },
+                        label = { Text(label, fontSize = 10.sp) },
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Gold, unselectedIconColor = Color.Gray,
+                            selectedTextColor = Gold, unselectedTextColor = Color.Gray,
+                            indicatorColor = Gold.copy(alpha = 0.2f))
+                    )
+                }
             }
         },
         floatingActionButton = {
@@ -137,15 +124,15 @@ fun VinothequeApp() {
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (selectedTab) {
                 0 -> DashboardScreen(viewModel)
-                1 -> CellarScreen(
-                    viewModel = viewModel,
+                1 -> CellarScreen(viewModel = viewModel,
                     onWineClick = { wine -> selectedWine = wine },
                     onDeleteWine = { wine ->
                         viewModel.deleteWine(wine.reference)
                         Toast.makeText(context, "Wine deleted", Toast.LENGTH_SHORT).show()
-                    }
-                )
-                2 -> SettingsScreen(viewModel)
+                    })
+                2 -> PairingScreen(viewModel = viewModel, onWineClick = { wine -> selectedWine = wine })
+                3 -> FavoritesScreen(viewModel = viewModel, onWineClick = { wine -> selectedWine = wine })
+                4 -> SettingsScreen(viewModel)
             }
         }
     }
