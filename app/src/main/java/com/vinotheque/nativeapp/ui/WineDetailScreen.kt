@@ -73,11 +73,12 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, o
 
     Column(modifier = Modifier.fillMaxSize().background(WineDark).verticalScroll(rememberScrollState())) {
         // Hero image area
-        Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().height(320.dp)) {
             Box(modifier = Modifier.fillMaxSize().background(WineCard), contentAlignment = Alignment.Center) {
                 if (decodedBitmap != null) {
                     Image(bitmap = decodedBitmap, contentDescription = "Wine",
-                        modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
+                        contentScale = ContentScale.Fit)
                 } else {
                     Icon(Icons.Default.LocalBar, "Wine", tint = WineGoldDim.copy(alpha = 0.2f), modifier = Modifier.size(100.dp))
                 }

@@ -245,8 +245,8 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                 ) {
                     if (thumb != null) {
                         Image(bitmap = thumb, contentDescription = "Wine",
-                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)),
-                            contentScale = ContentScale.Crop)
+                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)).padding(2.dp),
+                            contentScale = ContentScale.Fit)
                     } else {
                         Icon(Icons.Default.LocalBar, "No photo", tint = TextTertiary.copy(alpha = 0.4f),
                             modifier = Modifier.size(24.dp))

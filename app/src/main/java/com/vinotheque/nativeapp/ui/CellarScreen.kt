@@ -194,7 +194,8 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                 ) {
                     if (decodedBitmap != null) {
                         Image(bitmap = decodedBitmap, contentDescription = "Wine",
-                            modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                            modifier = Modifier.fillMaxSize().padding(4.dp),
+                            contentScale = ContentScale.Fit)
                         // Gradient overlay at bottom
                         Box(Modifier.fillMaxSize().background(
                             Brush.verticalGradient(listOf(Color.Transparent, WineSurface.copy(alpha = 0.8f)),

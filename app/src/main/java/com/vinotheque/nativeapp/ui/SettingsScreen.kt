@@ -81,10 +81,18 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
         if (uri != null) { try { context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.exportCsv().toByteArray()) }
             Toast.makeText(context, "CSV exported!", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
-    val csvImport = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) { try { val c = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
-            if (c != null) { viewModel.importCsv(c); Toast.makeText(context, "CSV imported!", Toast.LENGTH_SHORT).show() }
-        } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
+    val csvImport = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        if (uris.isNotEmpty()) {
+            var count = 0
+            for (uri in uris) {
+                try {
+                    val c = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
+                    if (c != null) { viewModel.importCsv(c); count++ }
+                } catch (e: Exception) { /* skip failed file */ }
+            }
+            Toast.makeText(context, count.toString() + " CSV file(s) imported!", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // Clear all confirmation
     if (showClearDialog) {
@@ -165,9 +173,11 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
 
         // CSV
         SettingsCard("CSV Import & Export", Icons.Default.CloudDownload) {
+            Text("Select one or multiple CSV files to import", color = TextTertiary, fontSize = 11.sp)
+            Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SettingsButton("Export CSV", WineGold, Modifier.weight(1f)) { csvSave.launch("vinotheque_wines.csv") }
-                SettingsButton("Import CSV", WineSurface, Modifier.weight(1f)) { csvImport.launch("text/*") }
+                SettingsButton("Import CSV(s)", WineSurface, Modifier.weight(1f)) { csvImport.launch(arrayOf("text/*", "text/csv", "text/comma-separated-values", "application/csv")) }
             }
         }
 
