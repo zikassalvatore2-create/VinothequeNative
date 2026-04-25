@@ -191,11 +191,11 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
 
     fun exportCsv(): String {
         val sb = StringBuilder()
-        sb.appendLine("Name,Region,Vintage,Grape,Type,Dryness,Price,Rating,Aroma,FoodPairing")
+        sb.appendLine("Name,Reference,Region,Vintage,Grape,Price,Type,Dryness,Rating,Aroma,FoodPairing")
         for (w in allWinesUnfiltered.value) {
-            sb.appendLine(csvEscape(w.name) + "," + csvEscape(w.region) + "," + w.vintage + "," +
-                csvEscape(w.grape) + "," + w.type + "," + w.dryness + "," + w.price + "," + w.rating + "," +
-                csvEscape(w.aroma) + "," + csvEscape(w.foodPairing))
+            sb.appendLine(csvEscape(w.name) + "," + csvEscape(w.reference) + "," + csvEscape(w.region) + "," +
+                csvEscape(w.vintage) + "," + csvEscape(w.grape) + "," + w.price + "," + w.type + "," +
+                w.dryness + "," + w.rating + "," + csvEscape(w.aroma) + "," + csvEscape(w.foodPairing))
         }
         return sb.toString()
     }
@@ -203,20 +203,60 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     fun importCsv(csv: String) {
         viewModelScope.launch {
             try {
-                val lines = csv.lines().drop(1).filter { it.isNotBlank() }
+                val allLines = csv.lines().filter { it.isNotBlank() }
+                if (allLines.isEmpty()) return@launch
+                // Parse header row to find column indices
+                val headerLine = allLines.first()
+                val headers = parseCsvLine(headerLine).map { it.lowercase().trim() }
+                val dataLines = allLines.drop(1)
+
+                // Build column index map
+                val nameIdx = headers.indexOfFirst { it.contains("name") }
+                val refIdx = headers.indexOfFirst { it.contains("ref") }
+                val regionIdx = headers.indexOfFirst { it.contains("region") }
+                val vintageIdx = headers.indexOfFirst { it.contains("vintage") || it.contains("year") }
+                val grapeIdx = headers.indexOfFirst { it.contains("grape") || it.contains("varietal") || it.contains("variety") }
+                val priceIdx = headers.indexOfFirst { it.contains("price") }
+                val typeIdx = headers.indexOfFirst { it.contains("type") }
+                val drynessIdx = headers.indexOfFirst { it.contains("dry") }
+                val ratingIdx = headers.indexOfFirst { it.contains("rating") || it.contains("score") || it.contains("point") }
+                val aromaIdx = headers.indexOfFirst { it.contains("aroma") || it.contains("nose") || it.contains("bouquet") }
+                val pairingIdx = headers.indexOfFirst { it.contains("pair") || it.contains("food") }
+
                 val list = mutableListOf<Wine>()
-                for ((idx, line) in lines.withIndex()) {
+                for ((idx, line) in dataLines.withIndex()) {
                     val cols = parseCsvLine(line)
-                    if (cols.size >= 8) {
-                        list.add(Wine(
-                            reference = "CSV" + System.currentTimeMillis().toString() + "_" + idx.toString(),
-                            name = cols.getOrElse(0) { "" }, region = cols.getOrElse(1) { "" },
-                            vintage = cols.getOrElse(2) { "" }, grape = cols.getOrElse(3) { "" },
-                            type = cols.getOrElse(4) { "Red" }, dryness = cols.getOrElse(5) { "Dry" },
-                            price = cols.getOrElse(6) { "0" }.toDoubleOrNull() ?: 0.0,
-                            rating = cols.getOrElse(7) { "90" }.toIntOrNull() ?: 90,
-                            aroma = cols.getOrElse(8) { "" }, foodPairing = cols.getOrElse(9) { "" }))
-                    }
+                    if (cols.size < 2) continue
+
+                    val name = if (nameIdx >= 0 && nameIdx < cols.size) cols[nameIdx] else ""
+                    val ref = if (refIdx >= 0 && refIdx < cols.size && cols[refIdx].isNotBlank()) cols[refIdx]
+                              else "CSV" + System.currentTimeMillis().toString() + "_" + idx.toString()
+                    val region = if (regionIdx >= 0 && regionIdx < cols.size) cols[regionIdx] else ""
+                    val vintage = if (vintageIdx >= 0 && vintageIdx < cols.size) cols[vintageIdx] else ""
+                    val grape = if (grapeIdx >= 0 && grapeIdx < cols.size) cols[grapeIdx] else ""
+                    val priceStr = if (priceIdx >= 0 && priceIdx < cols.size) cols[priceIdx] else "0"
+                    val type = if (typeIdx >= 0 && typeIdx < cols.size && cols[typeIdx].isNotBlank()) cols[typeIdx] else "Red"
+                    val dryness = if (drynessIdx >= 0 && drynessIdx < cols.size && cols[drynessIdx].isNotBlank()) cols[drynessIdx] else "Dry"
+                    val ratingStr = if (ratingIdx >= 0 && ratingIdx < cols.size) cols[ratingIdx] else "90"
+                    val aroma = if (aromaIdx >= 0 && aromaIdx < cols.size) cols[aromaIdx] else ""
+                    val pairing = if (pairingIdx >= 0 && pairingIdx < cols.size) cols[pairingIdx] else ""
+
+                    // Auto-enrich if aroma or pairing are empty
+                    val enriched = if (aroma.isEmpty() || pairing.isEmpty()) enrichWine(grape, name) else null
+
+                    list.add(Wine(
+                        reference = ref,
+                        name = name.ifEmpty { "Unknown Wine" },
+                        region = region,
+                        vintage = vintage,
+                        grape = grape,
+                        type = type,
+                        dryness = dryness,
+                        price = priceStr.replace(",", ".").toDoubleOrNull() ?: 0.0,
+                        rating = ratingStr.toIntOrNull() ?: 90,
+                        aroma = aroma.ifEmpty { enriched?.aroma ?: "" },
+                        foodPairing = pairing.ifEmpty { enriched?.foodPairing ?: "" }
+                    ))
                 }
                 dao.insertAll(list)
             } catch (e: Exception) { e.printStackTrace() }
