@@ -18,39 +18,68 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun DashboardScreen(viewModel: WineViewModel) {
     val wines by viewModel.wines.collectAsState()
-    
+
     val totalBottles = wines.size
     val totalValue = wines.sumOf { it.price }
     val redCount = wines.count { it.type.equals("Red", ignoreCase = true) }
     val whiteCount = wines.count { it.type.equals("White", ignoreCase = true) }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0d0505))
             .verticalScroll(rememberScrollState())
     ) {
-        TopAppBar()
-        
+        VinothequeTopBar()
+
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Cellar Insights", color = Color(0xFFd4a54e), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "Cellar Insights",
+                color = Color(0xFFd4a54e),
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             // Stats Row
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                StatCard(title = "Total Bottles", value = totalBottles.toString(), modifier = Modifier.weight(1f))
-                StatCard(title = "Cellar Value", value = "€${totalValue.toInt()}", modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                StatCard(
+                    title = "Total Bottles",
+                    value = totalBottles.toString(),
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    title = "Cellar Value",
+                    value = "€${totalValue.toInt()}",
+                    modifier = Modifier.weight(1f)
+                )
             }
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             // Distribution
-            Text("Wine Types", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "Wine Types",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            
-            StatCard(title = "Reds", value = redCount.toString(), modifier = Modifier.fillMaxWidth())
+
+            StatCard(
+                title = "Reds",
+                value = redCount.toString(),
+                modifier = Modifier.fillMaxWidth()
+            )
             Spacer(modifier = Modifier.height(8.dp))
-            StatCard(title = "Whites", value = whiteCount.toString(), modifier = Modifier.fillMaxWidth())
+            StatCard(
+                title = "Whites",
+                value = whiteCount.toString(),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -64,7 +93,7 @@ fun StatCard(title: String, value: String, modifier: Modifier = Modifier) {
         colors = CardDefaults.cardColors(containerColor = Color(0x332d1212))
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(20.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {

@@ -1,5 +1,8 @@
 package com.vinotheque.nativeapp.ui
 
+import android.graphics.BitmapFactory
+import android.util.Base64
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -15,12 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import android.graphics.BitmapFactory
-import android.util.Base64
-import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.data.Wine
@@ -30,8 +30,8 @@ fun CellarScreen(viewModel: WineViewModel) {
     val wines by viewModel.wines.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar()
-        
+        VinothequeTopBar()
+
         if (wines.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Button(
@@ -58,7 +58,7 @@ fun CellarScreen(viewModel: WineViewModel) {
 }
 
 @Composable
-fun TopAppBar() {
+fun VinothequeTopBar() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -67,7 +67,12 @@ fun TopAppBar() {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("🍷 Vinothèque Pro", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = "Vinothèque Pro",
+            color = Color.White,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -82,49 +87,84 @@ fun WineCard(wine: Wine) {
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0x332d1212))
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Box(modifier = Modifier.fillMaxWidth().weight(1f).background(Color.Black)) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Image section
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
                 if (wine.image != null) {
                     try {
                         val base64String = wine.image.substringAfter(",")
                         val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
                         val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "Wine Image",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
+                        if (bitmap != null) {
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = "Wine Image",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Text("🍷", fontSize = 40.sp)
+                        }
                     } catch (e: Exception) {
-                        Text("🍷", fontSize = 40.sp, modifier = Modifier.align(Alignment.Center))
+                        Text("🍷", fontSize = 40.sp)
                     }
                 } else {
-                    Text("🍷", fontSize = 40.sp, modifier = Modifier.align(Alignment.Center))
+                    Text("🍷", fontSize = 40.sp)
                 }
             }
+            // Info section
             Column(
-                modifier = Modifier.padding(12.dp).weight(1f),
+                modifier = Modifier
+                    .padding(12.dp)
+                    .weight(1f),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(wine.name, color = Color(0xFFd4a54e), fontWeight = FontWeight.Bold, fontSize = 18.sp, maxLines = 2)
-            Text(wine.region, color = Color.LightGray, fontSize = 12.sp, maxLines = 1)
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text(wine.vintage, color = Color.Gray, fontSize = 12.sp)
-                Text(wine.type, color = Color.Gray, fontSize = 12.sp)
-            }
-            
-            HorizontalDivider(color = Color(0xFFd4a54e).copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 8.dp))
-            
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text("€${wine.price.toInt()}", color = Color(0xFFd4a54e), fontWeight = FontWeight.Bold)
-                Text("★ ${wine.rating}", color = Color(0xFFd4a54e))
+                Text(
+                    text = wine.name,
+                    color = Color(0xFFd4a54e),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    maxLines = 2
+                )
+                Text(
+                    text = wine.region,
+                    color = Color.LightGray,
+                    fontSize = 12.sp,
+                    maxLines = 1
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(wine.vintage, color = Color.Gray, fontSize = 12.sp)
+                    Text(wine.type, color = Color.Gray, fontSize = 12.sp)
+                }
+                HorizontalDivider(
+                    color = Color(0xFFd4a54e).copy(alpha = 0.3f),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "€${wine.price.toInt()}",
+                        color = Color(0xFFd4a54e),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "★ ${wine.rating}",
+                        color = Color(0xFFd4a54e)
+                    )
+                }
             }
         }
-    }
     }
 }

@@ -9,8 +9,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.vinotheque.nativeapp.ui.AddWineScreen
 import com.vinotheque.nativeapp.ui.CellarScreen
 import com.vinotheque.nativeapp.ui.DashboardScreen
@@ -33,9 +37,9 @@ class MainActivity : ComponentActivity() {
 fun VinothequeApp() {
     val navController = rememberNavController()
     val viewModel: WineViewModel = viewModel()
-    
+
     var selectedTab by remember { mutableIntStateOf(0) }
-    
+
     Scaffold(
         containerColor = Color(0xFF0d0505),
         bottomBar = {
@@ -78,19 +82,18 @@ fun VinothequeApp() {
                     if (selectedTab == 1) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             CellarScreen(viewModel)
-                            // Native FAB
                             FloatingActionButton(
                                 onClick = { navController.navigate("add_wine") },
                                 containerColor = Color(0xFFd4a54e),
-                                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(16.dp)
                             ) {
                                 Text("+", color = Color.Black, fontSize = 24.sp)
                             }
                         }
                     } else {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            DashboardScreen(viewModel)
-                        }
+                        DashboardScreen(viewModel)
                     }
                 }
                 composable("add_wine") {
