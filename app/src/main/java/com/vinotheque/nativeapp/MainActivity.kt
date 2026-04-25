@@ -3,15 +3,17 @@ package com.vinotheque.nativeapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
 import com.vinotheque.nativeapp.ui.AddWineScreen
 import com.vinotheque.nativeapp.ui.CellarScreen
+import com.vinotheque.nativeapp.ui.DashboardScreen
 import com.vinotheque.nativeapp.ui.WineViewModel
 
 class MainActivity : ComponentActivity() {
@@ -86,7 +88,9 @@ fun VinothequeApp() {
                             }
                         }
                     } else {
-                        Text("Dashboard Coming Soon", color = Color.White, modifier = Modifier.padding(16.dp))
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            DashboardScreen(viewModel)
+                        }
                     }
                 }
                 composable("add_wine") {
