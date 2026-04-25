@@ -1,6 +1,8 @@
 package com.vinotheque.nativeapp.ui
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -41,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -82,6 +86,18 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
         ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? -> capturedImage = bitmap }
 
+    val context = LocalContext.current
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            try {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                inputStream?.close()
+                capturedImage = bitmap
+            } catch (e: Exception) { /* ignore */ }
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize().background(WineDark)) {
         // Top bar
         Row(
@@ -115,11 +131,19 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                     Image(bitmap = capturedImage!!.asImageBitmap(), contentDescription = "Wine",
                         modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                 } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        IconButton(onClick = { cameraLauncher.launch(null) }) {
-                            Icon(Icons.Default.CameraAlt, "Camera", tint = WineGold, modifier = Modifier.size(40.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            IconButton(onClick = { cameraLauncher.launch(null) }) {
+                                Icon(Icons.Default.CameraAlt, "Camera", tint = WineGold, modifier = Modifier.size(36.dp))
+                            }
+                            Text("Camera", color = TextSecondary, fontSize = 11.sp)
                         }
-                        Text("Take Photo", color = TextSecondary, fontSize = 12.sp)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            IconButton(onClick = { galleryLauncher.launch("image/*") }) {
+                                Icon(Icons.Default.Image, "Gallery", tint = WineGold, modifier = Modifier.size(36.dp))
+                            }
+                            Text("Gallery", color = TextSecondary, fontSize = 11.sp)
+                        }
                     }
                 }
             }

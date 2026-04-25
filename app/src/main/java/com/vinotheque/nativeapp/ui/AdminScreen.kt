@@ -7,6 +7,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.LocalBar
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
@@ -98,11 +101,29 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
             val b64 = "data:image/jpeg;base64," + Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
             val ref = photoTargetRef!!
             val current = edits[ref]
-            if (current != null) {
-                edits[ref] = current.copy(imageBase64 = b64)
-            }
+            if (current != null) { edits[ref] = current.copy(imageBase64 = b64) }
             photoTargetRef = null
             Toast.makeText(context, "Photo captured!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null && photoTargetRef != null) {
+            try {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val bitmap = BitmapFactory.decodeStream(inputStream)
+                inputStream?.close()
+                if (bitmap != null) {
+                    val baos = ByteArrayOutputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos)
+                    val b64 = "data:image/jpeg;base64," + Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
+                    val ref = photoTargetRef!!
+                    val current = edits[ref]
+                    if (current != null) { edits[ref] = current.copy(imageBase64 = b64) }
+                    Toast.makeText(context, "Photo loaded!", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) { Toast.makeText(context, "Failed to load image", Toast.LENGTH_SHORT).show() }
+            photoTargetRef = null
         }
     }
 
@@ -146,6 +167,10 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
                             photoTargetRef = wine.reference
                             cameraLauncher.launch(null)
                         },
+                        onPickGallery = {
+                            photoTargetRef = wine.reference
+                            galleryLauncher.launch("image/*")
+                        },
                         onSave = {
                             edits[wine.reference]?.let {
                                 viewModel.updateWine(it.toWine(wine))
@@ -165,7 +190,7 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
 
 @Composable
 fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
-             onTakePhoto: () -> Unit, onSave: () -> Unit, onDelete: () -> Unit) {
+             onTakePhoto: () -> Unit, onPickGallery: () -> Unit, onSave: () -> Unit, onDelete: () -> Unit) {
     // Decode thumbnail
     val thumb = remember(edit.imageBase64) {
         if (edit.imageBase64 != null) {
@@ -192,9 +217,12 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                         Icon(Icons.Default.LocalBar, "No photo", tint = TextTertiary, modifier = Modifier.size(28.dp))
                     }
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(4.dp))
                 IconButton(onClick = onTakePhoto) {
-                    Icon(Icons.Default.CameraAlt, "Take photo", tint = WineGold, modifier = Modifier.size(28.dp))
+                    Icon(Icons.Default.CameraAlt, "Camera", tint = WineGold, modifier = Modifier.size(24.dp))
+                }
+                IconButton(onClick = onPickGallery) {
+                    Icon(Icons.Default.Image, "Gallery", tint = WineGold, modifier = Modifier.size(24.dp))
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(edit.reference, color = TextTertiary, fontSize = 10.sp)
