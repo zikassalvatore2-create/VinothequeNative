@@ -80,12 +80,12 @@ fun DashboardScreen(viewModel: WineViewModel) {
         // Hero stat cards
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             HeroCard("Bottles", totalBottles.toString(), Icons.Default.LocalBar, WineGold, Modifier.weight(1f))
-            HeroCard("Value", "E" + totalValue.toInt().toString(), Icons.Default.TrendingUp, WineRed, Modifier.weight(1f))
+            HeroCard("Value", "\u20AC" + totalValue.toInt().toString(), Icons.Default.TrendingUp, WineRed, Modifier.weight(1f))
         }
         Spacer(modifier = Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             HeroCard("Avg Rating", avgRating.toString() + "/100", Icons.Default.Star, WineGold, Modifier.weight(1f))
-            HeroCard("Avg Price", "E" + avgPrice.toInt().toString(), Icons.Default.TrendingUp, WineGoldDim, Modifier.weight(1f))
+            HeroCard("Avg Price", "\u20AC" + avgPrice.toInt().toString(), Icons.Default.TrendingUp, WineGoldDim, Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(28.dp))
@@ -112,14 +112,14 @@ fun DashboardScreen(viewModel: WineViewModel) {
             Text("Top Rated", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             HighlightCard(topWine.name, topWine.region, topWine.rating.toString() + "/100",
-                "E" + topWine.price.toInt().toString(), topWine.vintage)
+                "\u20AC" + topWine.price.toInt().toString(), topWine.vintage)
         }
         if (mostExpensive != null && mostExpensive != topWine) {
             Spacer(modifier = Modifier.height(12.dp))
             Text("Most Valuable", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             HighlightCard(mostExpensive.name, mostExpensive.region, mostExpensive.rating.toString() + "/100",
-                "E" + mostExpensive.price.toInt().toString(), mostExpensive.vintage)
+                "\u20AC" + mostExpensive.price.toInt().toString(), mostExpensive.vintage)
         }
 
         Spacer(modifier = Modifier.height(60.dp))

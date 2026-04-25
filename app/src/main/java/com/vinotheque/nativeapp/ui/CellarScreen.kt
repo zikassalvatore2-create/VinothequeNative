@@ -212,7 +212,7 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                     Text(wine.region, color = TextSecondary, fontSize = 10.sp, maxLines = 1)
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("E" + wine.price.toInt().toString(), color = WineGold,
+                        Text("\u20AC" + wine.price.toInt().toString(), color = WineGold,
                             fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Text(wine.vintage, color = TextTertiary, fontSize = 11.sp)
                     }

@@ -77,7 +77,7 @@ fun FavoritesScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
                                 Text(wine.region + " | " + wine.vintage, color = TextSecondary, fontSize = 12.sp)
                                 Text(wine.grape, color = TextTertiary, fontSize = 11.sp)
                             }
-                            Text("E" + wine.price.toInt().toString(), color = WineGold, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text("\u20AC" + wine.price.toInt().toString(), color = WineGold, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
                     }
                 }

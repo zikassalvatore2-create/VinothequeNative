@@ -111,7 +111,7 @@ fun PairingScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
                                         Text(wine.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1)
                                         Text(wine.region + " | " + wine.grape, color = TextSecondary, fontSize = 12.sp)
                                     }
-                                    Text("E" + wine.price.toInt().toString(), color = WineGold, fontWeight = FontWeight.Bold)
+                                    Text("\u20AC" + wine.price.toInt().toString(), color = WineGold, fontWeight = FontWeight.Bold)
                                 }
                                 if (wine.foodPairing.isNotEmpty()) {
                                     HorizontalDivider(color = WineSurface, modifier = Modifier.padding(vertical = 8.dp))

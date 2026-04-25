@@ -133,7 +133,7 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, o
 
             // Price and vintage row
             Row(Modifier.fillMaxWidth()) {
-                InfoChip("Price", "E" + wine.price.toInt().toString(), Modifier.weight(1f))
+                InfoChip("Price", "\u20AC" + wine.price.toInt().toString(), Modifier.weight(1f))
                 Spacer(modifier = Modifier.width(8.dp))
                 InfoChip("Vintage", wine.vintage, Modifier.weight(1f))
                 Spacer(modifier = Modifier.width(8.dp))

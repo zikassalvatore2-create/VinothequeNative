@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.LocalBar
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.AlertDialog
@@ -30,6 +31,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.ui.theme.TextSecondary
@@ -60,11 +63,15 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
     val currentUser by viewModel.currentUser.collectAsState()
     var showClearDialog by remember { mutableStateOf(false) }
     var showUserDialog by remember { mutableStateOf(false) }
+    var showAdminLogin by remember { mutableStateOf(false) }
     var newUsername by remember { mutableStateOf("") }
+    var adminUser by remember { mutableStateOf("") }
+    var adminPass by remember { mutableStateOf("") }
+    var adminError by remember { mutableStateOf(false) }
 
     val jsonSave = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) { try { context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.getBackupJson().toByteArray()) }
-            Toast.makeText(context, "Backup saved!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Backup saved (with images)!", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
     val jsonRestore = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) { try { val j = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
@@ -79,6 +86,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
             if (c != null) { viewModel.importCsv(c); Toast.makeText(context, "CSV imported!", Toast.LENGTH_SHORT).show() }
         } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
 
+    // Clear all confirmation
     if (showClearDialog) {
         AlertDialog(onDismissRequest = { showClearDialog = false },
             title = { Text("Clear All Data") },
@@ -88,6 +96,8 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
             }) { Text("Delete All", color = Color.Red) } },
             dismissButton = { TextButton(onClick = { showClearDialog = false }) { Text("Cancel") } })
     }
+
+    // Switch user dialog
     if (showUserDialog) {
         AlertDialog(onDismissRequest = { showUserDialog = false },
             title = { Text("Switch Profile") },
@@ -95,6 +105,38 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
             confirmButton = { TextButton(onClick = { if (newUsername.isNotBlank()) { viewModel.setUser(newUsername); showUserDialog = false }
             }) { Text("Switch", color = WineGold) } },
             dismissButton = { TextButton(onClick = { showUserDialog = false }) { Text("Cancel") } })
+    }
+
+    // Admin login dialog
+    if (showAdminLogin) {
+        AlertDialog(
+            onDismissRequest = { showAdminLogin = false; adminError = false },
+            title = { Text("Admin Login", fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    if (adminError) {
+                        Text("Invalid credentials", color = Color.Red, fontSize = 13.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    OutlinedTextField(value = adminUser, onValueChange = { adminUser = it; adminError = false },
+                        label = { Text("Username") }, singleLine = true)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(value = adminPass, onValueChange = { adminPass = it; adminError = false },
+                        label = { Text("Password") }, singleLine = true,
+                        visualTransformation = PasswordVisualTransformation())
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (adminUser == "admin" && adminPass == "admin") {
+                        showAdminLogin = false; adminError = false
+                        adminUser = ""; adminPass = ""
+                        onOpenAdmin()
+                    } else { adminError = true }
+                }) { Text("Login", color = WineGold, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = { TextButton(onClick = { showAdminLogin = false; adminError = false; adminUser = ""; adminPass = "" }) { Text("Cancel") } }
+        )
     }
 
     Column(modifier = Modifier.fillMaxSize().background(WineDark)
@@ -110,9 +152,10 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
             SettingsButton("Switch Profile", WineGold) { newUsername = currentUser; showUserDialog = true }
         }
 
-        // Backup
+        // Backup (includes images)
         SettingsCard("Backup & Restore", Icons.Default.CloudUpload) {
             Text(wines.size.toString() + " bottles in cellar", color = TextTertiary, fontSize = 13.sp)
+            Text("Includes wine photos in backup", color = TextTertiary, fontSize = 11.sp)
             Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SettingsButton("Export JSON", WineGold, Modifier.weight(1f)) { jsonSave.launch("vinotheque_backup.json") }
@@ -134,11 +177,12 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
                 viewModel.loadSampleData(); Toast.makeText(context, "Sample wines loaded!", Toast.LENGTH_SHORT).show() }
         }
 
-        // Admin
-        SettingsCard("Admin Table", Icons.Default.TableChart) {
-            Text("Bulk edit all wines in spreadsheet view", color = TextTertiary, fontSize = 13.sp)
+        // Admin (requires login)
+        SettingsCard("Admin Panel", Icons.Default.Lock) {
+            Text("Manage all wines, edit fields, add photos", color = TextTertiary, fontSize = 13.sp)
+            Text("Requires admin credentials", color = TextTertiary, fontSize = 11.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            SettingsButton("Open Admin Table", WineGold) { onOpenAdmin() }
+            SettingsButton("Admin Login", WineGold) { showAdminLogin = true }
         }
 
         // Danger
