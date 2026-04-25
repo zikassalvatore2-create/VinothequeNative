@@ -25,10 +25,12 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocalBar
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -50,7 +52,6 @@ import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.data.Wine
 import com.vinotheque.nativeapp.ui.theme.TextSecondary
 import com.vinotheque.nativeapp.ui.theme.TextTertiary
-import com.vinotheque.nativeapp.ui.theme.WineCard
 import com.vinotheque.nativeapp.ui.theme.WineDark
 import com.vinotheque.nativeapp.ui.theme.WineGold
 import com.vinotheque.nativeapp.ui.theme.WineGoldDim
@@ -72,9 +73,9 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, o
     }
 
     Column(modifier = Modifier.fillMaxSize().background(WineDark).verticalScroll(rememberScrollState())) {
-        // Hero image area
+        // Hero image area — seamless background
         Box(modifier = Modifier.fillMaxWidth().height(320.dp)) {
-            Box(modifier = Modifier.fillMaxSize().background(WineCard), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().background(WineSurface), contentAlignment = Alignment.Center) {
                 if (decodedBitmap != null) {
                     Image(bitmap = decodedBitmap, contentDescription = "Wine",
                         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -130,22 +131,60 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, o
             Spacer(modifier = Modifier.height(4.dp))
             Text(wine.region, color = TextSecondary, fontSize = 15.sp)
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Price and vintage row
-            Row(Modifier.fillMaxWidth()) {
+            // Bin Location (prominent)
+            if (wine.binLocation.isNotEmpty()) {
+                Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = WineGold.copy(alpha = 0.15f))) {
+                    Row(modifier = Modifier.padding(14.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.LocationOn, "Location", tint = WineGold, modifier = Modifier.size(22.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text("Bin Location", color = TextSecondary, fontSize = 11.sp)
+                            Text(wine.binLocation, color = WineGold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            // Stock & Sales row
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 InfoChip("Price", "\u20AC" + wine.price.toInt().toString(), Modifier.weight(1f))
-                Spacer(modifier = Modifier.width(8.dp))
+                InfoChip("Stock", wine.quantity.toString() + " btl", Modifier.weight(1f))
+                InfoChip("Sold", wine.sold.toString() + " btl", Modifier.weight(1f))
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 InfoChip("Vintage", wine.vintage, Modifier.weight(1f))
-                Spacer(modifier = Modifier.width(8.dp))
                 InfoChip("Grape", wine.grape, Modifier.weight(1f))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Sell button
+            if (wine.quantity > 0) {
+                Button(
+                    onClick = { viewModel.sellWine(wine) },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = WineGold)
+                ) {
+                    Icon(Icons.Default.ShoppingCart, "Sell", tint = Color.Black, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Mark as Sold (${wine.quantity} left)", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+            } else {
+                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = WineRed.copy(alpha = 0.3f))) {
+                    Text("Out of Stock", color = WineRed, fontWeight = FontWeight.Bold, fontSize = 14.sp,
+                        modifier = Modifier.padding(16.dp).fillMaxWidth())
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Details
             DetailSection("Reference", wine.reference)
-            DetailSection("Grape Variety", wine.grape)
 
             if (wine.aroma.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(20.dp))
@@ -166,9 +205,6 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, o
             if (wine.peakMaturity.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 DetailSection("Peak Maturity", wine.peakMaturity)
-            }
-            if (wine.binLocation.isNotEmpty()) {
-                DetailSection("Bin Location", wine.binLocation)
             }
             Spacer(modifier = Modifier.height(60.dp))
         }

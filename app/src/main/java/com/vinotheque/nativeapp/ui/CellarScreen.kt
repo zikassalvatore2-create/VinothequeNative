@@ -187,31 +187,31 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Image / placeholder
+                // Image / placeholder — surface-colored bg, no dark contrast
                 Box(
-                    modifier = Modifier.fillMaxWidth().weight(1f).background(WineCard),
+                    modifier = Modifier.fillMaxWidth().weight(1f)
+                        .background(Brush.verticalGradient(listOf(WineSurface, WineSurface))),
                     contentAlignment = Alignment.Center
                 ) {
                     if (decodedBitmap != null) {
                         Image(bitmap = decodedBitmap, contentDescription = "Wine",
-                            modifier = Modifier.fillMaxSize().padding(4.dp),
+                            modifier = Modifier.fillMaxSize().padding(6.dp),
                             contentScale = ContentScale.Fit)
-                        // Gradient overlay at bottom
-                        Box(Modifier.fillMaxSize().background(
-                            Brush.verticalGradient(listOf(Color.Transparent, WineSurface.copy(alpha = 0.8f)),
-                                startY = 100f)))
                     } else {
                         Icon(Icons.Default.LocalBar, "Wine", tint = WineGoldDim.copy(alpha = 0.3f),
                             modifier = Modifier.size(48.dp))
                     }
                 }
                 // Info
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
                     Text(wine.name, color = Color.White, fontWeight = FontWeight.Bold,
                         fontSize = 13.sp, maxLines = 2, lineHeight = 16.sp)
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(wine.region, color = TextSecondary, fontSize = 10.sp, maxLines = 1)
-                    Spacer(modifier = Modifier.height(6.dp))
+                    if (wine.binLocation.isNotEmpty()) {
+                        Text("\uD83D\uDCCD " + wine.binLocation, color = WineGold.copy(alpha = 0.8f), fontSize = 9.sp, maxLines = 1)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("\u20AC" + wine.price.toInt().toString(), color = WineGold,
                             fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -236,6 +236,17 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                     .padding(horizontal = 8.dp, vertical = 3.dp)
             ) {
                 Text(wine.type, color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+            }
+            // Stock badge (bottom right)
+            if (wine.quantity > 0) {
+                Box(
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(WineSurface.copy(alpha = 0.9f))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text("x" + wine.quantity.toString(), color = TextSecondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

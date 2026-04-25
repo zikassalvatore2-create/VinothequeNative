@@ -81,6 +81,8 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
     var ratingVal by remember { mutableFloatStateOf(90f) }
     var aroma by remember { mutableStateOf("") }
     var foodPairing by remember { mutableStateOf("") }
+    var binLocation by remember { mutableStateOf("") }
+    var quantity by remember { mutableStateOf("1") }
     var capturedImage by remember { mutableStateOf<Bitmap?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -211,6 +213,14 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(value = foodPairing, onValueChange = { foodPairing = it },
                 label = { Text("Food Pairing") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = binLocation, onValueChange = { binLocation = it },
+                    label = { Text("Bin Location") }, placeholder = { Text("e.g. A12, Shelf 3", color = TextTertiary) },
+                    modifier = Modifier.weight(1f), colors = fieldColors)
+                OutlinedTextField(value = quantity, onValueChange = { quantity = it },
+                    label = { Text("Qty") }, modifier = Modifier.weight(0.4f), colors = fieldColors)
+            }
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
@@ -220,7 +230,8 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                         img = resizeBitmap(capturedImage!!)
                     }
                     viewModel.saveWine(name, region, vintage, grape, price.toDoubleOrNull() ?: 0.0,
-                        type, dryness, ratingVal.toInt(), aroma, foodPairing, img)
+                        type, dryness, ratingVal.toInt(), aroma, foodPairing, img,
+                        binLocation, quantity.toIntOrNull() ?: 1)
                     onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
