@@ -6,12 +6,28 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,7 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.io.ByteArrayOutputStream
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val Gold = Color(0xFFD4A54E)
+private val DarkBg = Color(0xFF0D0505)
+private val BarBg = Color(0xFF1A0A0A)
+
 @Composable
 fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
     var name by remember { mutableStateOf("") }
@@ -30,43 +49,56 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
     var grape by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("Red") }
-
     var capturedImage by remember { mutableStateOf<Bitmap?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicturePreview()
-    ) { bitmap ->
+    ) { bitmap: Bitmap? ->
         capturedImage = bitmap
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0d0505))
+            .background(DarkBg)
     ) {
-        CenterAlignedTopAppBar(
-            title = { Text("Add New Wine", color = Color(0xFFd4a54e)) },
-            navigationIcon = {
-                TextButton(onClick = onNavigateBack) {
-                    Text("← Back", color = Color(0xFFd4a54e), fontSize = 16.sp)
-                }
-            },
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = Color(0xFF1a0a0a)
+        // Custom top bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(BarBg)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextButton(onClick = onNavigateBack) {
+                Text(text = "< Back", color = Gold, fontSize = 16.sp)
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "Add Wine",
+                color = Gold,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
             )
-        )
+            Spacer(modifier = Modifier.weight(1f))
+            // Invisible spacer for centering
+            TextButton(onClick = {}, enabled = false) {
+                Text(text = "      ", fontSize = 16.sp)
+            }
+        }
 
         Column(
             modifier = Modifier
+                .weight(1f)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Native Camera Section
+            // Camera area
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .background(Color(0x332d1212), RoundedCornerShape(12.dp)),
+                    .background(BarBg, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 if (capturedImage != null) {
@@ -78,9 +110,9 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                 } else {
                     Button(
                         onClick = { cameraLauncher.launch(null) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFd4a54e))
+                        colors = ButtonDefaults.buttonColors(containerColor = Gold)
                     ) {
-                        Text("📸 Take Native Photo", color = Color.Black)
+                        Text("Take Photo", color = Color.Black)
                     }
                 }
             }
@@ -94,6 +126,7 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = region,
                 onValueChange = { region = it },
@@ -101,6 +134,7 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -114,30 +148,50 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                 OutlinedTextField(
                     value = price,
                     onValueChange = { price = it },
-                    label = { Text("Price (€)") },
+                    label = { Text("Price") },
                     modifier = Modifier.weight(1f)
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = grape,
                 onValueChange = { grape = it },
                 label = { Text("Grape Variety") },
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Type selector
+            Text("Type:", color = Color.White, fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Red", "White", "Rose", "Sparkling").forEach { t ->
+                    Button(
+                        onClick = { type = t },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (type == t) Gold else BarBg
+                        )
+                    ) {
+                        Text(
+                            text = t,
+                            color = if (type == t) Color.Black else Color.White,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
                     var base64Img: String? = null
-                    capturedImage?.let { bmp ->
+                    if (capturedImage != null) {
                         val baos = ByteArrayOutputStream()
-                        bmp.compress(Bitmap.CompressFormat.JPEG, 80, baos)
-                        base64Img = "data:image/jpeg;base64," +
-                            Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
+                        capturedImage!!.compress(Bitmap.CompressFormat.JPEG, 80, baos)
+                        base64Img = "data:image/jpeg;base64," + Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
                     }
-
                     viewModel.saveWine(
                         name = name,
                         region = region,
@@ -152,10 +206,10 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFd4a54e))
+                colors = ButtonDefaults.buttonColors(containerColor = Gold)
             ) {
                 Text(
-                    text = "💾 Save to Cellar",
+                    text = "Save to Cellar",
                     color = Color.Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp

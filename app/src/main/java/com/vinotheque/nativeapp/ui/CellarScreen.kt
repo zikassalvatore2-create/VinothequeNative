@@ -5,12 +5,28 @@ import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,70 +41,58 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.data.Wine
 
+private val Gold = Color(0xFFD4A54E)
+private val DarkBg = Color(0xFF0D0505)
+
 @Composable
-fun CellarScreen(viewModel: WineViewModel) {
+fun CellarScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
     val wines by viewModel.wines.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        VinothequeTopBar()
-
-        if (wines.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    if (wines.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(DarkBg),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "Your cellar is empty", color = Color.Gray, fontSize = 18.sp)
+                Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = { viewModel.addSampleWine() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFd4a54e))
+                    colors = ButtonDefaults.buttonColors(containerColor = Gold)
                 ) {
                     Text("Add Sample Wine", color = Color.Black)
                 }
             }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                items(wines) { wine ->
-                    WineCard(wine)
-                }
+        }
+    } else {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxSize().background(DarkBg)
+        ) {
+            items(wines) { wine ->
+                WineCard(wine = wine, onClick = { onWineClick(wine) })
             }
         }
     }
 }
 
 @Composable
-fun VinothequeTopBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF1a0a0a))
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Vinothèque Pro",
-            color = Color.White,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-fun WineCard(wine: Wine) {
-    val goldBorder = Brush.linearGradient(listOf(Color(0xFFd4a54e), Color(0xFF9a7b3a)))
+fun WineCard(wine: Wine, onClick: () -> Unit) {
+    val goldBorder = Brush.linearGradient(listOf(Gold, Color(0xFF9A7B3A)))
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(0.7f)
-            .border(1.dp, goldBorder, RoundedCornerShape(16.dp)),
+            .aspectRatio(0.65f)
+            .border(1.dp, goldBorder, RoundedCornerShape(16.dp))
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0x332d1212))
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A0A0A))
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Image section
+            // Image area
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -98,27 +102,27 @@ fun WineCard(wine: Wine) {
             ) {
                 if (wine.image != null) {
                     try {
-                        val base64String = wine.image.substringAfter(",")
-                        val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
-                        val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-                        if (bitmap != null) {
+                        val base64Data = wine.image.substringAfter(",")
+                        val bytes = Base64.decode(base64Data, Base64.DEFAULT)
+                        val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        if (bmp != null) {
                             Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = "Wine Image",
+                                bitmap = bmp.asImageBitmap(),
+                                contentDescription = "Wine",
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
                         } else {
-                            Text("🍷", fontSize = 40.sp)
+                            Text(text = "W", fontSize = 40.sp, color = Gold)
                         }
                     } catch (e: Exception) {
-                        Text("🍷", fontSize = 40.sp)
+                        Text(text = "W", fontSize = 40.sp, color = Gold)
                     }
                 } else {
-                    Text("🍷", fontSize = 40.sp)
+                    Text(text = "W", fontSize = 40.sp, color = Gold)
                 }
             }
-            // Info section
+            // Info area
             Column(
                 modifier = Modifier
                     .padding(12.dp)
@@ -127,41 +131,43 @@ fun WineCard(wine: Wine) {
             ) {
                 Text(
                     text = wine.name,
-                    color = Color(0xFFd4a54e),
+                    color = Gold,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     maxLines = 2
                 )
                 Text(
                     text = wine.region,
                     color = Color.LightGray,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     maxLines = 1
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(wine.vintage, color = Color.Gray, fontSize = 12.sp)
-                    Text(wine.type, color = Color.Gray, fontSize = 12.sp)
+                    Text(text = wine.vintage, color = Color.Gray, fontSize = 11.sp)
+                    Text(text = wine.type, color = Color.Gray, fontSize = 11.sp)
                 }
                 HorizontalDivider(
-                    color = Color(0xFFd4a54e).copy(alpha = 0.3f),
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    color = Gold.copy(alpha = 0.3f),
+                    modifier = Modifier.padding(vertical = 6.dp)
                 )
                 Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "€${wine.price.toInt()}",
-                        color = Color(0xFFd4a54e),
-                        fontWeight = FontWeight.Bold
+                        text = "E" + wine.price.toInt().toString(),
+                        color = Gold,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
                     )
                     Text(
-                        text = "★ ${wine.rating}",
-                        color = Color(0xFFd4a54e)
+                        text = wine.rating.toString() + "pt",
+                        color = Gold,
+                        fontSize = 14.sp
                     )
                 }
             }

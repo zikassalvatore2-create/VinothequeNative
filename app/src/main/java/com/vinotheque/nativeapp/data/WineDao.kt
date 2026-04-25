@@ -14,6 +14,12 @@ interface WineDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWine(wine: Wine)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(wines: List<Wine>)
+
     @Query("DELETE FROM wines WHERE reference = :ref")
     suspend fun deleteWine(ref: String)
+
+    @Query("DELETE FROM wines")
+    suspend fun deleteAll()
 }

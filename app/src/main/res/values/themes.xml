@@ -1,4 +1,3 @@
-
 <resources>
     <style name="Theme.VinothequeNative" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>
