@@ -5,9 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vinotheque.nativeapp.ui.AddWineScreen
 import com.vinotheque.nativeapp.ui.CellarScreen
 import com.vinotheque.nativeapp.ui.DashboardScreen
+import com.vinotheque.nativeapp.ui.SettingsScreen
 import com.vinotheque.nativeapp.ui.WineViewModel
 
 private val Gold = Color(0xFFD4A54E)
@@ -116,6 +115,19 @@ fun VinothequeApp() {
                         indicatorColor = Gold.copy(alpha = 0.2f)
                     )
                 )
+                NavigationBarItem(
+                    icon = { Text("S") },
+                    label = { Text("Settings") },
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Gold,
+                        unselectedIconColor = Color.Gray,
+                        selectedTextColor = Gold,
+                        unselectedTextColor = Color.Gray,
+                        indicatorColor = Gold.copy(alpha = 0.2f)
+                    )
+                )
             }
         },
         floatingActionButton = {
@@ -132,7 +144,12 @@ fun VinothequeApp() {
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
             when (selectedTab) {
                 0 -> DashboardScreen(viewModel = viewModel)
-                1 -> CellarScreen(viewModel = viewModel, onWineClick = { })
+                1 -> CellarScreen(
+                    viewModel = viewModel,
+                    onWineClick = { },
+                    onDeleteWine = { wine -> viewModel.deleteWine(wine.reference) }
+                )
+                2 -> SettingsScreen(viewModel = viewModel)
             }
         }
     }

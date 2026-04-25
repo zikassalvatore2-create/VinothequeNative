@@ -2,10 +2,11 @@ package com.vinotheque.nativeapp.ui
 
 import android.graphics.BitmapFactory
 import android.util.Base64
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,16 +22,20 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -47,8 +52,35 @@ private val Gold = Color(0xFFD4A54E)
 private val DarkBg = Color(0xFF0D0505)
 
 @Composable
-fun CellarScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
+fun CellarScreen(
+    viewModel: WineViewModel,
+    onWineClick: (Wine) -> Unit,
+    onDeleteWine: (Wine) -> Unit
+) {
     val wines by viewModel.wines.collectAsState()
+    var wineToDelete by remember { mutableStateOf<Wine?>(null) }
+
+    // Delete confirmation dialog
+    if (wineToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { wineToDelete = null },
+            title = { Text("Delete Wine") },
+            text = { Text("Remove " + (wineToDelete?.name ?: "") + " from your cellar?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    wineToDelete?.let { onDeleteWine(it) }
+                    wineToDelete = null
+                }) {
+                    Text("Delete", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { wineToDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     if (wines.isEmpty()) {
         Box(
@@ -75,17 +107,22 @@ fun CellarScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
             modifier = Modifier.fillMaxSize().background(DarkBg)
         ) {
             items(wines) { wine ->
-                WineCard(wine = wine, onClick = { onWineClick(wine) })
+                WineCard(
+                    wine = wine,
+                    onClick = { onWineClick(wine) },
+                    onLongClick = { wineToDelete = wine }
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WineCard(wine: Wine, onClick: () -> Unit) {
+fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
     val goldBorder = Brush.linearGradient(listOf(Gold, Color(0xFF9A7B3A)))
 
-    // Decode bitmap OUTSIDE composable scope using remember
+    // Decode bitmap outside composable scope
     val decodedBitmap: ImageBitmap? = remember(wine.image) {
         if (wine.image != null) {
             try {
@@ -106,7 +143,10 @@ fun WineCard(wine: Wine, onClick: () -> Unit) {
             .fillMaxWidth()
             .aspectRatio(0.65f)
             .border(1.dp, goldBorder, RoundedCornerShape(16.dp))
-            .clickable { onClick() },
+            .combinedClickable(
+                onClick = { onClick() },
+                onLongClick = { onLongClick() }
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1A0A0A))
     ) {
