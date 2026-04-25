@@ -87,29 +87,25 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
             OutlinedTextField(
                 value = name, onValueChange = { name = it },
                 label = { Text("Wine Name", color = Color.Gray) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, focusedBorderColor = Color(0xFFd4a54e))
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = region, onValueChange = { region = it },
                 label = { Text("Region", color = Color.Gray) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, focusedBorderColor = Color(0xFFd4a54e))
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = vintage, onValueChange = { vintage = it },
                     label = { Text("Vintage", color = Color.Gray) },
-                    modifier = Modifier.weight(1f),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, focusedBorderColor = Color(0xFFd4a54e))
+                    modifier = Modifier.weight(1f)
                 )
                 OutlinedTextField(
                     value = price, onValueChange = { price = it },
                     label = { Text("Price (€)", color = Color.Gray) },
-                    modifier = Modifier.weight(1f),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(textColor = Color.White, focusedBorderColor = Color(0xFFd4a54e))
+                    modifier = Modifier.weight(1f)
                 )
             }
             

@@ -104,10 +104,11 @@ fun WineCard(wine: Wine) {
                     Text("🍷", fontSize = 40.sp, modifier = Modifier.align(Alignment.Center))
                 }
             }
-            Column(modifier = Modifier.padding(12.dp).weight(1f)) {
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(wine.name, color = Color(0xFFd4a54e), fontWeight = FontWeight.Bold, fontSize = 18.sp, maxLines = 2)
+            Column(
+                modifier = Modifier.padding(12.dp).weight(1f),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(wine.name, color = Color(0xFFd4a54e), fontWeight = FontWeight.Bold, fontSize = 18.sp, maxLines = 2)
             Text(wine.region, color = Color.LightGray, fontSize = 12.sp, maxLines = 1)
             
             Spacer(modifier = Modifier.weight(1f))
@@ -117,7 +118,7 @@ fun WineCard(wine: Wine) {
                 Text(wine.type, color = Color.Gray, fontSize = 12.sp)
             }
             
-            Divider(color = Color(0xFFd4a54e).copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(color = Color(0xFFd4a54e).copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 8.dp))
             
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Text("€${wine.price.toInt()}", color = Color(0xFFd4a54e), fontWeight = FontWeight.Bold)
