@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -62,7 +63,7 @@ fun FavoritesScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(favorites) { wine ->
-                    Card(onClick = { onWineClick(wine) }, shape = RoundedCornerShape(16.dp),
+                    Card(modifier = Modifier.clickable { onWineClick(wine) }, shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = WineSurface)) {
                         Row(modifier = Modifier.padding(16.dp).fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically) {
