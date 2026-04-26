@@ -135,16 +135,44 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                  type: String, dryness: String, rating: Int, aroma: String, foodPairing: String,
                  image: String?, binLocation: String = "") {
         viewModelScope.launch {
+            // If no image provided, inherit from a same-name wine that already has one
+            val finalImage = image ?: allWines.value
+                .firstOrNull { it.name.equals(name, ignoreCase = true) && it.image != null }?.image
+
             dao.insertWine(Wine(
                 reference = "REF" + System.currentTimeMillis().toString(),
                 name = name.ifEmpty { "Unknown Wine" }, region = region, vintage = vintage,
                 grape = grape, type = type, dryness = dryness, price = price,
-                rating = rating, aroma = aroma, foodPairing = foodPairing, image = image,
+                rating = rating, aroma = aroma, foodPairing = foodPairing, image = finalImage,
                 binLocation = binLocation))
+
+            // If we have an image, propagate to same-name wines that don't have one
+            if (finalImage != null) {
+                propagateImageToSameName(name, finalImage)
+            }
         }
     }
 
-    fun updateWine(wine: Wine) { viewModelScope.launch { dao.updateWine(wine) } }
+    fun updateWine(wine: Wine) {
+        viewModelScope.launch {
+            dao.updateWine(wine)
+            // If this wine has an image, propagate to all same-name wines
+            if (wine.image != null) {
+                propagateImageToSameName(wine.name, wine.image)
+            }
+        }
+    }
+
+    /** Propagate image to all wines with the same name (different vintages) that lack an image or have a different one */
+    private suspend fun propagateImageToSameName(wineName: String, image: String) {
+        val sameNameWines = allWines.value.filter {
+            it.name.equals(wineName, ignoreCase = true) && it.image != image
+        }
+        for (w in sameNameWines) {
+            dao.updateWine(w.copy(image = image))
+        }
+    }
+
     fun deleteWine(ref: String) { viewModelScope.launch { dao.deleteWine(ref) } }
     fun clearAll() { viewModelScope.launch { dao.deleteAll() } }
 
