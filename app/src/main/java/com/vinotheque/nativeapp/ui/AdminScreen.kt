@@ -92,16 +92,6 @@ private val miniFieldColors @Composable get() = OutlinedTextFieldDefaults.colors
     cursorColor = WineGold, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
 
 /** Resize bitmap to max 800px on longest side, PNG format for transparency */
-fun resizeBitmap(bitmap: Bitmap): String {
-    val maxSize = 800
-    val ratio = minOf(maxSize.toFloat() / bitmap.width, maxSize.toFloat() / bitmap.height, 1f)
-    val w = (bitmap.width * ratio).toInt()
-    val h = (bitmap.height * ratio).toInt()
-    val scaled = Bitmap.createScaledBitmap(bitmap, w, h, true)
-    val baos = ByteArrayOutputStream()
-    scaled.compress(Bitmap.CompressFormat.PNG, 100, baos)
-    return "data:image/png;base64," + Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
-}
 
 @Composable
 fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
@@ -258,6 +248,9 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                         }
                         IconButton(onClick = onPickGallery, modifier = Modifier.size(32.dp)) {
                             Icon(Icons.Default.Image, "Gallery", tint = WineGold, modifier = Modifier.size(18.dp))
+                        }
+                        IconButton(onClick = { searchWineImage(context, edit.name) }, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Default.Search, "Search", tint = WineGold, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
