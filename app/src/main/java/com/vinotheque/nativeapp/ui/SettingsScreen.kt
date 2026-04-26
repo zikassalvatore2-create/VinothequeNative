@@ -230,6 +230,18 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
         SettingsCard("Backup & Restore", Icons.Default.CloudUpload) {
             Text(wines.size.toString() + " bottles in cellar", color = TextTertiary, fontSize = 13.sp)
             Text("Includes wine photos in backup", color = TextTertiary, fontSize = 11.sp)
+            // Auto-backup status
+            val lastBackup = viewModel.getLastBackupTime()
+            if (lastBackup > 0) {
+                val ago = (System.currentTimeMillis() - lastBackup) / 1000
+                val timeText = when {
+                    ago < 60 -> "just now"
+                    ago < 3600 -> (ago / 60).toString() + "m ago"
+                    ago < 86400 -> (ago / 3600).toString() + "h ago"
+                    else -> (ago / 86400).toString() + "d ago"
+                }
+                Text("\u2705 Auto-backup: $timeText", color = WineGold.copy(alpha = 0.7f), fontSize = 11.sp)
+            }
             Spacer(modifier = Modifier.height(8.dp))
             if (isBusy) {
                 Text("Processing... please wait", color = WineGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
@@ -241,6 +253,34 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
                 }
                 SettingsButton("Import JSON", WineSurface, Modifier.weight(1f)) {
                     if (!isBusy) jsonRestore.launch("application/json")
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            // Restore from auto-backup
+            SettingsButton("Restore from Auto-Backup", WineSurface) {
+                if (!isBusy) {
+                    isBusy = true
+                    scope.launch(Dispatchers.IO) {
+                        try {
+                            val file = java.io.File(context.filesDir, "auto_backup/vinotheque_auto.json")
+                            if (file.exists()) {
+                                val json = file.readText()
+                                viewModel.restoreFromJson(json)
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(context, "Restored from auto-backup!", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(context, "No auto-backup found", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, "Restore failed", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        withContext(Dispatchers.Main) { isBusy = false }
+                    }
                 }
             }
         }

@@ -1,8 +1,8 @@
 package com.vinotheque.nativeapp.ui
 
-import android.graphics.BitmapFactory
-import android.util.Base64
 import android.widget.Toast
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -67,13 +67,8 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, o
     val typeColor = getTypeColor(wine.type)
     val context = LocalContext.current
 
-    val decodedBitmap: ImageBitmap? = remember(wine.image) {
-        if (wine.image != null) {
-            try { val d = wine.image.substringAfter(","); val b = Base64.decode(d, Base64.DEFAULT)
-                BitmapFactory.decodeByteArray(b, 0, b.size)?.asImageBitmap()
-            } catch (e: Exception) { null }
-        } else null
-    }
+    // Use LRU cache for instant bitmap display
+    val decodedBitmap: ImageBitmap? = remember(wine.image) { BitmapCache.get(wine.image) }
 
     Column(modifier = Modifier.fillMaxSize().background(WineDark).verticalScroll(rememberScrollState())) {
         // Hero image area — seamless background

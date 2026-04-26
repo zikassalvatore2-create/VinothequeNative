@@ -2,12 +2,16 @@ package com.vinotheque.nativeapp.ui
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.vinotheque.nativeapp.data.AppDatabase
 import com.vinotheque.nativeapp.data.Favorite
 import com.vinotheque.nativeapp.data.Wine
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 
 data class EnrichmentResult(val type: String, val dryness: String, val aroma: String, val foodPairing: String)
 
@@ -26,14 +31,17 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = AppDatabase.getDatabase(application).wineDao()
     private val favDao = AppDatabase.getDatabase(application).favoriteDao()
     private val prefs = application.getSharedPreferences("vinotheque_prefs", Context.MODE_PRIVATE)
+    private val appContext = application.applicationContext
+    private var autoBackupJob: Job? = null
 
     val currentUser = MutableStateFlow(prefs.getString("current_user", "default") ?: "default")
     val searchQuery = MutableStateFlow("")
     val typeFilter = MutableStateFlow("")
     val drynessFilter = MutableStateFlow("")
 
+    // Eagerly subscribe with Eagerly so data is always warm in memory
     private val allWines: StateFlow<List<Wine>> = dao.getAllWines()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val wines: StateFlow<List<Wine>> = combine(allWines, searchQuery, typeFilter, drynessFilter) { list, q, t, d ->
         list.filter { w ->
@@ -44,23 +52,68 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             val md = d.isEmpty() || w.dryness.equals(d, true)
             mq && mt && md
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val allWinesUnfiltered: StateFlow<List<Wine>> = allWines
 
-    // Favorites
+    // Favorites — eagerly subscribed
     private val userFavorites: StateFlow<List<Favorite>> = currentUser.flatMapLatest { user ->
         favDao.getFavorites(user)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val favoriteWines: StateFlow<List<Wine>> = combine(allWines, userFavorites) { wines, favs ->
         val favRefs = favs.map { it.wineReference }.toSet()
         wines.filter { it.reference in favRefs }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val favoriteRefs: StateFlow<Set<String>> = userFavorites.map { favs ->
         favs.map { it.wineReference }.toSet()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    init {
+        // Watch for data changes and auto-backup with debounce
+        viewModelScope.launch {
+            allWines.collect { wines ->
+                if (wines.isNotEmpty()) {
+                    scheduleAutoBackup()
+                }
+            }
+        }
+    }
+
+    /** Debounced auto-backup: waits 3s after last change, then saves to internal storage */
+    private fun scheduleAutoBackup() {
+        autoBackupJob?.cancel()
+        autoBackupJob = viewModelScope.launch(Dispatchers.IO) {
+            delay(3000) // Wait 3 seconds for more changes before saving
+            try {
+                val backupDir = File(appContext.filesDir, "auto_backup")
+                if (!backupDir.exists()) backupDir.mkdirs()
+
+                // Write current backup
+                val file = File(backupDir, "vinotheque_auto.json")
+                file.bufferedWriter().use { writer ->
+                    writer.write(getBackupJson())
+                }
+
+                // Keep a rolling backup (previous version)
+                val prev = File(backupDir, "vinotheque_auto_prev.json")
+                if (file.exists() && file.length() > 0) {
+                    val rollFile = File(backupDir, "vinotheque_auto_prev.json")
+                    if (rollFile.exists()) rollFile.delete()
+                    file.copyTo(prev, overwrite = true)
+                }
+
+                prefs.edit().putLong("last_auto_backup", System.currentTimeMillis()).apply()
+                Log.d("Vinotheque", "Auto-backup saved: ${file.length() / 1024}KB")
+            } catch (e: Exception) {
+                Log.e("Vinotheque", "Auto-backup failed", e)
+            }
+        }
+    }
+
+    /** Get timestamp of last auto-backup */
+    fun getLastBackupTime(): Long = prefs.getLong("last_auto_backup", 0)
 
     fun setUser(username: String) {
         currentUser.value = username
@@ -100,26 +153,15 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             dao.updateWine(wine.copy(sold = wine.sold + 1))
         }
-        // Track per-user sales count
         val user = currentUser.value
-        val key = "sales_$user"
-        val current = prefs.getInt(key, 0)
-        prefs.edit().putInt(key, current + 1).apply()
-        // Track per-user revenue
-        val revKey = "revenue_$user"
-        val currentRev = prefs.getFloat(revKey, 0f)
-        prefs.edit().putFloat(revKey, currentRev + wine.price.toFloat()).apply()
+        prefs.edit()
+            .putInt("sales_$user", prefs.getInt("sales_$user", 0) + 1)
+            .putFloat("revenue_$user", prefs.getFloat("revenue_$user", 0f) + wine.price.toFloat())
+            .apply()
     }
 
-    /** Get current user's sales count */
-    fun getUserSalesCount(): Int {
-        return prefs.getInt("sales_${currentUser.value}", 0)
-    }
-
-    /** Get current user's revenue */
-    fun getUserRevenue(): Double {
-        return prefs.getFloat("revenue_${currentUser.value}", 0f).toDouble()
-    }
+    fun getUserSalesCount(): Int = prefs.getInt("sales_${currentUser.value}", 0)
+    fun getUserRevenue(): Double = prefs.getFloat("revenue_${currentUser.value}", 0f).toDouble()
 
     fun getWinesByPairing(dish: String): List<Wine> {
         val d = dish.lowercase()
@@ -204,7 +246,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun restoreFromJson(json: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val arr = JSONArray(json)
                 val list = mutableListOf<Wine>()
@@ -237,7 +279,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun importCsv(csv: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val allLines = csv.lines().filter { it.isNotBlank() }
                 if (allLines.isEmpty()) return@launch

@@ -227,15 +227,7 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
 @Composable
 fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
              onTakePhoto: () -> Unit, onPickGallery: () -> Unit, onSave: () -> Unit, onDelete: () -> Unit) {
-    val thumb = remember(edit.imageBase64) {
-        if (edit.imageBase64 != null) {
-            try {
-                val d = edit.imageBase64!!.substringAfter(",")
-                val bytes = Base64.decode(d, Base64.DEFAULT)
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
-            } catch (e: Exception) { null }
-        } else null
-    }
+    val thumb = remember(edit.imageBase64) { BitmapCache.get(edit.imageBase64) }
 
     Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
         Column(modifier = Modifier.padding(12.dp)) {

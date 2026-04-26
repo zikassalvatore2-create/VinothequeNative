@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -238,15 +240,17 @@ fun VinothequeApp() {
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-            when (selectedTab) {
-                0 -> DashboardScreen(viewModel)
-                1 -> CellarScreen(viewModel = viewModel,
-                    onWineClick = { selectedWine = it },
-                    onDeleteWine = { viewModel.deleteWine(it.reference)
-                        Toast.makeText(context, "Wine removed", Toast.LENGTH_SHORT).show() })
-                2 -> PairingScreen(viewModel = viewModel, onWineClick = { selectedWine = it })
-                3 -> FavoritesScreen(viewModel = viewModel, onWineClick = { selectedWine = it })
-                4 -> SettingsScreen(viewModel = viewModel, onOpenAdmin = { showAdmin = true })
+            Crossfade(targetState = selectedTab, animationSpec = tween(300), label = "tabFade") { tab ->
+                when (tab) {
+                    0 -> DashboardScreen(viewModel)
+                    1 -> CellarScreen(viewModel = viewModel,
+                        onWineClick = { selectedWine = it },
+                        onDeleteWine = { viewModel.deleteWine(it.reference)
+                            Toast.makeText(context, "Wine removed", Toast.LENGTH_SHORT).show() })
+                    2 -> PairingScreen(viewModel = viewModel, onWineClick = { selectedWine = it })
+                    3 -> FavoritesScreen(viewModel = viewModel, onWineClick = { selectedWine = it })
+                    4 -> SettingsScreen(viewModel = viewModel, onOpenAdmin = { showAdmin = true })
+                }
             }
         }
     }

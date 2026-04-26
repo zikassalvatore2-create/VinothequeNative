@@ -79,7 +79,20 @@ fun DashboardScreen(viewModel: WineViewModel) {
         // Header
         Text("Your Cellar", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text("at a glance", color = TextSecondary, fontSize = 16.sp, fontWeight = FontWeight.Light)
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+        // Auto-backup indicator
+        val lastBackup = viewModel.getLastBackupTime()
+        if (lastBackup > 0) {
+            val ago = (System.currentTimeMillis() - lastBackup) / 1000
+            val timeText = when {
+                ago < 60 -> "just now"
+                ago < 3600 -> (ago / 60).toString() + "m ago"
+                ago < 86400 -> (ago / 3600).toString() + "h ago"
+                else -> (ago / 86400).toString() + "d ago"
+            }
+            Text("\u2601 Auto-saved $timeText", color = WineGold.copy(alpha = 0.5f), fontSize = 11.sp)
+        }
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Hero stat cards
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
