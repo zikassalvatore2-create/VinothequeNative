@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -147,6 +148,12 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                                 Icon(Icons.Default.Image, "Gallery", tint = WineGold, modifier = Modifier.size(36.dp))
                             }
                             Text("Gallery", color = TextSecondary, fontSize = 11.sp)
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            IconButton(onClick = { searchWineImage(context, name) }) {
+                                Icon(Icons.Default.Search, "Search", tint = WineGold, modifier = Modifier.size(36.dp))
+                            }
+                            Text("Search", color = TextSecondary, fontSize = 11.sp)
                         }
                     }
                 }
