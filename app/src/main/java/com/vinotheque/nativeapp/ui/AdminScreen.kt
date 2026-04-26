@@ -217,6 +217,7 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
 @Composable
 fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
              onTakePhoto: () -> Unit, onPickGallery: () -> Unit, onSave: () -> Unit, onDelete: () -> Unit) {
+    val context = LocalContext.current
 
     Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
         Column(modifier = Modifier.padding(12.dp)) {
