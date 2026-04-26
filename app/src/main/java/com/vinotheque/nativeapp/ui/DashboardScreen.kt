@@ -66,7 +66,7 @@ fun DashboardScreen(viewModel: WineViewModel) {
     val currentUser by viewModel.currentUser.collectAsState()
     val redCount = wines.count { it.type.equals("Red", ignoreCase = true) }
     val whiteCount = wines.count { it.type.equals("White", ignoreCase = true) }
-    val roseCount = wines.count { it.type.equals("Rose", ignoreCase = true) }
+    val roseCount = wines.count { it.type.replace("é", "e", ignoreCase = true).equals("Rose", ignoreCase = true) }
     val sparkCount = wines.count { it.type.equals("Sparkling", ignoreCase = true) }
     val dessertCount = wines.count { it.type.equals("Dessert", ignoreCase = true) }
     val topWine = wines.maxByOrNull { it.rating }

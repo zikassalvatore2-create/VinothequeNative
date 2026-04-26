@@ -73,7 +73,7 @@ import com.vinotheque.nativeapp.ui.theme.WineGold
 import com.vinotheque.nativeapp.ui.theme.WineGoldDim
 import com.vinotheque.nativeapp.ui.theme.WineSurface
 
-fun getTypeColor(type: String): Color = when (type.lowercase()) {
+fun getTypeColor(type: String): Color = when (type.lowercase().replace("é", "e")) {
     "red" -> RedWineColor
     "white" -> WhiteWineColor
     "rose" -> RoseWineColor

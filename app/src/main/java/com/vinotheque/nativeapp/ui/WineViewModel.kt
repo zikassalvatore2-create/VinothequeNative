@@ -49,7 +49,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             val mq = q.isEmpty() || w.name.contains(q, true) || w.grape.contains(q, true) ||
                 w.region.contains(q, true) || w.reference.contains(q, true) ||
                 w.binLocation.contains(q, true)
-            val mt = t.isEmpty() || w.type.equals(t, true)
+            val mt = t.isEmpty() || w.type.replace("é", "e", true).equals(t.replace("é", "e", true), true)
             val md = d.isEmpty() || w.dryness.equals(d, true)
             mq && mt && md
         }
@@ -196,7 +196,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
         val d = dish.lowercase()
         return allWines.value.filter { w ->
             val fp = w.foodPairing.lowercase()
-            val wt = w.type.lowercase()
+            val wt = w.type.lowercase().replace("é", "e")
             when {
                 d.contains("beef") || d.contains("steak") || d.contains("lamb") ->
                     fp.contains("beef") || fp.contains("lamb") || fp.contains("steak") ||
@@ -217,7 +217,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun enrichWine(grape: String, name: String): EnrichmentResult {
-        val g = grape.lowercase(); val n = name.lowercase()
+        val g = grape.lowercase().replace("é", "e"); val n = name.lowercase().replace("é", "e")
         return when {
             g.contains("cabernet") || g.contains("merlot") || g.contains("malbec") || g.contains("syrah") ||
             g.contains("shiraz") || g.contains("tempranillo") || g.contains("sangiovese") ||
