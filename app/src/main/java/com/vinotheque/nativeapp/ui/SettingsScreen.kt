@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.LocalBar
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,7 +30,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,12 +54,16 @@ import com.vinotheque.nativeapp.ui.theme.WineDark
 import com.vinotheque.nativeapp.ui.theme.WineGold
 import com.vinotheque.nativeapp.ui.theme.WineRed
 import com.vinotheque.nativeapp.ui.theme.WineSurface
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
     val context = LocalContext.current
     val wines by viewModel.allWinesUnfiltered.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
+    val scope = rememberCoroutineScope()
     var showClearDialog by remember { mutableStateOf(false) }
     var showUserDialog by remember { mutableStateOf(false) }
     var showAdminLogin by remember { mutableStateOf(false) }
@@ -68,29 +71,92 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
     var adminUser by remember { mutableStateOf("") }
     var adminPass by remember { mutableStateOf("") }
     var adminError by remember { mutableStateOf(false) }
+    var isBusy by remember { mutableStateOf(false) }
 
+    // All file operations run on Dispatchers.IO to prevent UI thread crash
     val jsonSave = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) { try { context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.getBackupJson().toByteArray()) }
-            Toast.makeText(context, "Backup saved (with images)!", Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
+        if (uri != null) {
+            isBusy = true
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val json = viewModel.getBackupJson()
+                    context.contentResolver.openOutputStream(uri)?.use { stream ->
+                        stream.bufferedWriter().use { writer -> writer.write(json) }
+                    }
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Backup saved!", Toast.LENGTH_SHORT).show()
+                        isBusy = false
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Backup failed: " + e.message, Toast.LENGTH_SHORT).show()
+                        isBusy = false
+                    }
+                }
+            }
+        }
+    }
+
     val jsonRestore = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) { try { val j = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
-            if (j != null) { viewModel.restoreFromJson(j); Toast.makeText(context, "Restored!", Toast.LENGTH_SHORT).show() }
-        } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
+        if (uri != null) {
+            isBusy = true
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val json = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
+                    if (json != null) {
+                        viewModel.restoreFromJson(json)
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "Restored!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Restore failed: " + e.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                withContext(Dispatchers.Main) { isBusy = false }
+            }
+        }
+    }
+
     val csvSave = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
-        if (uri != null) { try { context.contentResolver.openOutputStream(uri)?.use { it.write(viewModel.exportCsv().toByteArray()) }
-            Toast.makeText(context, "CSV exported!", Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) { Toast.makeText(context, "Failed", Toast.LENGTH_SHORT).show() } } }
+        if (uri != null) {
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val csv = viewModel.exportCsv()
+                    context.contentResolver.openOutputStream(uri)?.use { stream ->
+                        stream.bufferedWriter().use { writer -> writer.write(csv) }
+                    }
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "CSV exported!", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Export failed", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
     val csvImport = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         if (uris.isNotEmpty()) {
-            var count = 0
-            for (uri in uris) {
-                try {
-                    val c = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
-                    if (c != null) { viewModel.importCsv(c); count++ }
-                } catch (e: Exception) { /* skip failed file */ }
+            isBusy = true
+            scope.launch(Dispatchers.IO) {
+                var count = 0
+                for (uri in uris) {
+                    try {
+                        val c = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
+                        if (c != null) { viewModel.importCsv(c); count++ }
+                    } catch (e: Exception) { /* skip failed file */ }
+                }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, count.toString() + " CSV file(s) imported!", Toast.LENGTH_SHORT).show()
+                    isBusy = false
+                }
             }
-            Toast.makeText(context, count.toString() + " CSV file(s) imported!", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -165,9 +231,17 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
             Text(wines.size.toString() + " bottles in cellar", color = TextTertiary, fontSize = 13.sp)
             Text("Includes wine photos in backup", color = TextTertiary, fontSize = 11.sp)
             Spacer(modifier = Modifier.height(8.dp))
+            if (isBusy) {
+                Text("Processing... please wait", color = WineGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SettingsButton("Export JSON", WineGold, Modifier.weight(1f)) { jsonSave.launch("vinotheque_backup.json") }
-                SettingsButton("Import JSON", WineSurface, Modifier.weight(1f)) { jsonRestore.launch("application/json") }
+                SettingsButton("Export JSON", if (isBusy) WineSurface else WineGold, Modifier.weight(1f)) {
+                    if (!isBusy) jsonSave.launch("vinotheque_backup.json")
+                }
+                SettingsButton("Import JSON", WineSurface, Modifier.weight(1f)) {
+                    if (!isBusy) jsonRestore.launch("application/json")
+                }
             }
         }
 

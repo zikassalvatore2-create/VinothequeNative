@@ -184,8 +184,10 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getBackupJson(): String {
-        val arr = JSONArray()
-        for (w in allWinesUnfiltered.value) {
+        val sb = StringBuilder()
+        sb.append("[\n")
+        val wineList = allWinesUnfiltered.value
+        for ((index, w) in wineList.withIndex()) {
             val o = JSONObject()
             o.put("reference", w.reference); o.put("name", w.name); o.put("region", w.region)
             o.put("vintage", w.vintage); o.put("grape", w.grape); o.put("type", w.type)
@@ -194,9 +196,11 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             o.put("peakMaturity", w.peakMaturity); o.put("binLocation", w.binLocation)
             o.put("sold", w.sold)
             if (w.image != null) o.put("image", w.image)
-            arr.put(o)
+            sb.append(o.toString())
+            if (index < wineList.size - 1) sb.append(",\n")
         }
-        return arr.toString(2)
+        sb.append("\n]")
+        return sb.toString()
     }
 
     fun restoreFromJson(json: String) {
