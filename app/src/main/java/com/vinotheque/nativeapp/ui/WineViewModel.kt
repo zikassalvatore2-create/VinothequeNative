@@ -23,6 +23,9 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import kotlinx.coroutines.flow.first
+import android.util.Base64
+import java.io.FileOutputStream
 
 data class EnrichmentResult(val type: String, val dryness: String, val aroma: String, val foodPairing: String)
 
@@ -71,7 +74,42 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
         favs.map { it.wineReference }.toSet()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
+    private fun saveBase64ToFile(base64: String, reference: String): String {
+        if (!base64.startsWith("data:image")) return base64
+        return try {
+            val imageDir = File(appContext.filesDir, "wine_images")
+            if (!imageDir.exists()) imageDir.mkdirs()
+            val data = base64.substringAfter(",")
+            val bytes = Base64.decode(data, Base64.DEFAULT)
+            val file = File(imageDir, "img_$reference.png")
+            FileOutputStream(file).use { it.write(bytes) }
+            file.absolutePath
+        } catch (e: Exception) {
+            base64
+        }
+    }
+
+    private fun runImageMigration() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val winesList = allWines.first()
+                var migratedCount = 0
+                for (wine in winesList) {
+                    if (wine.image != null && wine.image.startsWith("data:image")) {
+                        val path = saveBase64ToFile(wine.image, wine.reference)
+                        if (path != wine.image) {
+                            dao.updateWine(wine.copy(image = path))
+                            migratedCount++
+                        }
+                    }
+                }
+                if (migratedCount > 0) Log.d("Vinotheque", "Migrated $migratedCount Base64 images to file system")
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+    }
+
     init {
+        runImageMigration()
         // Watch for data changes and auto-backup with debounce
         viewModelScope.launch {
             allWines.collect { wines ->
@@ -137,11 +175,13 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                  image: String?, binLocation: String = "") {
         viewModelScope.launch {
             // If no image provided, inherit from a same-name wine that already has one
-            val finalImage = image ?: allWines.value
+            val newRef = "REF" + System.currentTimeMillis().toString()
+            val fileImage = if (image != null && image.startsWith("data:image")) saveBase64ToFile(image, newRef) else image
+            val finalImage = fileImage ?: allWines.value
                 .firstOrNull { it.name.equals(name, ignoreCase = true) && it.image != null }?.image
 
             dao.insertWine(Wine(
-                reference = "REF" + System.currentTimeMillis().toString(),
+                reference = newRef,
                 name = name.ifEmpty { "Unknown Wine" }, region = region, vintage = vintage,
                 grape = grape, type = type, dryness = dryness, price = price,
                 rating = rating, aroma = aroma, foodPairing = foodPairing, image = finalImage,
@@ -156,10 +196,14 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateWine(wine: Wine) {
         viewModelScope.launch {
-            dao.updateWine(wine)
+            val updatedWine = if (wine.image != null && wine.image.startsWith("data:image")) {
+                wine.copy(image = saveBase64ToFile(wine.image, wine.reference))
+            } else wine
+            
+            dao.updateWine(updatedWine)
             // If this wine has an image, propagate to all same-name wines
-            if (wine.image != null) {
-                propagateImageToSameName(wine.name, wine.image)
+            if (updatedWine.image != null) {
+                propagateImageToSameName(updatedWine.name, updatedWine.image)
             }
         }
     }
@@ -281,14 +325,20 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 val list = mutableListOf<Wine>()
                 for (i in 0 until arr.length()) {
                     val o = arr.getJSONObject(i)
+                    val importedImage = if (o.has("image")) o.getString("image") else null
+                    val ref = o.optString("reference", "IMP" + System.currentTimeMillis().toString() + "_" + i.toString())
+                    val finalImage = if (importedImage != null && importedImage.startsWith("data:image")) {
+                        saveBase64ToFile(importedImage, ref)
+                    } else importedImage
+
                     list.add(Wine(
-                        o.optString("reference", "IMP" + System.currentTimeMillis().toString() + "_" + i.toString()),
+                        ref,
                         o.optString("name"), o.optString("region"), o.optString("vintage"),
                         o.optString("grape"), o.optString("type", "Red"), o.optString("dryness", "Dry"),
                         o.optDouble("price", 0.0), o.optInt("rating", 90), o.optString("aroma"),
                         o.optString("foodPairing"), o.optString("peakMaturity"), o.optString("binLocation"),
                         sold = o.optInt("sold", 0),
-                        image = if (o.has("image")) o.getString("image") else null))
+                        image = finalImage))
                 }
                 dao.insertAll(list)
             } catch (e: Exception) { e.printStackTrace() }
@@ -388,3 +438,4 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
         return result
     }
 }
+

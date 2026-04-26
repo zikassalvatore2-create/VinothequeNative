@@ -67,20 +67,19 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
     val typeColor = getTypeColor(wine.type)
     val context = LocalContext.current
 
-    // Use LRU cache for instant bitmap display
-    val decodedBitmap: ImageBitmap? = remember(wine.image) { BitmapCache.get(wine.image) }
-
     Column(modifier = Modifier.fillMaxSize().background(WineDark).verticalScroll(rememberScrollState())) {
         // Hero image area — seamless background
         Box(modifier = Modifier.fillMaxWidth().height(320.dp)) {
             Box(modifier = Modifier.fillMaxSize().background(WineSurface), contentAlignment = Alignment.Center) {
-                if (decodedBitmap != null) {
-                    Image(bitmap = decodedBitmap, contentDescription = "Wine",
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
-                        contentScale = ContentScale.Fit)
-                } else {
-                    Icon(Icons.Default.LocalBar, "Wine", tint = WineGoldDim.copy(alpha = 0.2f), modifier = Modifier.size(100.dp))
-                }
+                AsyncWineImage(
+                    imageData = wine.image,
+                    contentDescription = "Wine",
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
+                    contentScale = ContentScale.Fit,
+                    placeholder = {
+                        Icon(Icons.Default.LocalBar, "Wine", tint = WineGoldDim.copy(alpha = 0.2f), modifier = Modifier.size(100.dp))
+                    }
+                )
             }
             // Gradient overlay
             Box(Modifier.fillMaxSize().background(
@@ -225,3 +224,4 @@ fun DetailSection(label: String, value: String) {
         Text(value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }
 }
+

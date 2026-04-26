@@ -194,8 +194,6 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
-    // Use global LRU cache instead of per-recomposition decoding
-    val decodedBitmap: ImageBitmap? = remember(wine.image) { BitmapCache.get(wine.image) }
     val typeColor = getTypeColor(wine.type)
 
     // Fade-in animation
@@ -212,7 +210,7 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Image â€” elegant gradient background
+                // Image — elegant gradient background
                 Box(
                     modifier = Modifier.fillMaxWidth().weight(1f)
                         .background(Brush.verticalGradient(listOf(
@@ -222,18 +220,18 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                         ))),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (decodedBitmap != null) {
-                        Image(bitmap = decodedBitmap, contentDescription = wine.name,
-                            modifier = Modifier.fillMaxSize().padding(6.dp),
-                            contentScale = ContentScale.Fit)
-                    } else {
-                        // Elegant placeholder with type-tinted glass
-                        Icon(Icons.Default.LocalBar, wine.name,
-                            tint = typeColor.copy(alpha = 0.15f),
-                            modifier = Modifier.size(48.dp))
-                    }
-                }
-                // Info section
+                    AsyncWineImage(
+                        imageData = wine.image,
+                        contentDescription = wine.name,
+                        modifier = Modifier.fillMaxSize().padding(6.dp),
+                        contentScale = ContentScale.Fit,
+                        placeholder = {
+                            Icon(Icons.Default.LocalBar, wine.name,
+                                tint = typeColor.copy(alpha = 0.15f),
+                                modifier = Modifier.size(48.dp))
+                        }
+                    )
+                }                // Info section
                 Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
                     Text(wine.name, color = Color.White, fontWeight = FontWeight.SemiBold,
                         fontSize = 12.sp, maxLines = 2, lineHeight = 15.sp)
@@ -287,7 +285,6 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WineListRow(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
-    val decodedBitmap: ImageBitmap? = remember(wine.image) { BitmapCache.get(wine.image) }
     val typeColor = getTypeColor(wine.type)
 
     Card(
@@ -301,13 +298,16 @@ fun WineListRow(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                 modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)).background(typeColor.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                if (decodedBitmap != null) {
-                    Image(bitmap = decodedBitmap, contentDescription = wine.name, modifier = Modifier.fillMaxSize().padding(4.dp), contentScale = ContentScale.Fit)
-                } else {
-                    Icon(Icons.Default.LocalBar, wine.name, tint = typeColor.copy(alpha = 0.3f), modifier = Modifier.size(28.dp))
-                }
-            }
-            Spacer(modifier = Modifier.width(12.dp))
+                AsyncWineImage(
+                    imageData = wine.image,
+                    contentDescription = wine.name,
+                    modifier = Modifier.fillMaxSize().padding(4.dp),
+                    contentScale = ContentScale.Fit,
+                    placeholder = {
+                        Icon(Icons.Default.LocalBar, wine.name, tint = typeColor.copy(alpha = 0.3f), modifier = Modifier.size(28.dp))
+                    }
+                )
+            }            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(wine.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
                 Spacer(modifier = Modifier.height(2.dp))
@@ -334,3 +334,4 @@ fun WineListRow(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
         }
     }
 }
+

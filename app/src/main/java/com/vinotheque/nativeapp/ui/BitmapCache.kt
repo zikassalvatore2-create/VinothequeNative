@@ -5,10 +5,11 @@ import android.util.Base64
 import android.util.LruCache
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import java.io.File
 
 /**
  * Global LRU bitmap cache — uses 1/4 of available heap for maximum performance.
- * Decoded bitmaps are cached by their base64 hash to avoid redundant decoding.
+ * Decoded bitmaps are cached by their string hash to avoid redundant decoding.
  */
 object BitmapCache {
     private val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt()
@@ -20,19 +21,34 @@ object BitmapCache {
         }
     }
 
-    fun get(base64Image: String?): ImageBitmap? {
-        if (base64Image == null) return null
-        val key = base64Image.hashCode()
+    /** Fast synchronous check for already cached images */
+    fun getFromMemory(imageData: String?): ImageBitmap? {
+        if (imageData == null) return null
+        return cache.get(imageData.hashCode())
+    }
+
+    /** Decodes image (Base64 or File path) and caches it. Should be called on IO thread. */
+    fun get(imageData: String?): ImageBitmap? {
+        if (imageData == null) return null
+        val key = imageData.hashCode()
 
         cache.get(key)?.let { return it }
 
         return try {
-            val data = base64Image.substringAfter(",")
-            val bytes = Base64.decode(data, Base64.DEFAULT)
             val opts = BitmapFactory.Options().apply {
                 inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888
             }
-            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+            val bitmap = if (imageData.startsWith("data:image")) {
+                val data = imageData.substringAfter(",")
+                val bytes = Base64.decode(data, Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+            } else {
+                val file = File(imageData)
+                if (file.exists()) {
+                    BitmapFactory.decodeFile(file.absolutePath, opts)
+                } else null
+            }
+            
             bitmap?.asImageBitmap()?.also { cache.put(key, it) }
         } catch (e: Exception) {
             null

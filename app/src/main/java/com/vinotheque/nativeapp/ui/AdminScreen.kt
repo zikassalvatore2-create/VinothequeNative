@@ -227,7 +227,6 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
 @Composable
 fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
              onTakePhoto: () -> Unit, onPickGallery: () -> Unit, onSave: () -> Unit, onDelete: () -> Unit) {
-    val thumb = remember(edit.imageBase64) { BitmapCache.get(edit.imageBase64) }
 
     Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -240,6 +239,17 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                         .background(WineDark),
                     contentAlignment = Alignment.Center
                 ) {
+                    AsyncWineImage(
+                        imageData = edit.imageBase64,
+                        contentDescription = "Wine",
+                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)).padding(2.dp),
+                        contentScale = ContentScale.Fit,
+                        placeholder = {
+                            Icon(Icons.Default.LocalBar, "No photo", tint = TextTertiary.copy(alpha = 0.4f),
+                                modifier = Modifier.size(24.dp))
+                        }
+                    )
+                } {
                     if (thumb != null) {
                         Image(bitmap = thumb, contentDescription = "Wine",
                             modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)).padding(2.dp),
@@ -312,3 +322,4 @@ fun MiniField(label: String, value: String, modifier: Modifier = Modifier.fillMa
         modifier = modifier.padding(vertical = 2.dp), singleLine = true, colors = miniFieldColors,
         textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp))
 }
+
