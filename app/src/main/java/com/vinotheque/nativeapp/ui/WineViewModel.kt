@@ -89,6 +89,19 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun imagePathToBase64(path: String?): String? {
+        if (path == null) return null
+        if (path.startsWith("data:image")) return path
+        return try {
+            val file = File(path)
+            if (file.exists()) {
+                val bytes = file.readBytes()
+                val b64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+                "data:image/png;base64,$b64"
+            } else null
+        } catch (e: Exception) { null }
+    }
+
     private fun runImageMigration() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -310,7 +323,10 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             o.put("aroma", w.aroma); o.put("foodPairing", w.foodPairing)
             o.put("peakMaturity", w.peakMaturity); o.put("binLocation", w.binLocation)
             o.put("sold", w.sold)
-            if (w.image != null) o.put("image", w.image)
+            if (w.image != null) {
+                val b64 = imagePathToBase64(w.image)
+                if (b64 != null) o.put("image", b64)
+            }
             sb.append(o.toString())
             if (index < wineList.size - 1) sb.append(",\n")
         }
