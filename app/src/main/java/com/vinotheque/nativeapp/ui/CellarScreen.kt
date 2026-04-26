@@ -36,6 +36,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items as lazyColumnItems
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -77,11 +82,12 @@ fun getTypeColor(type: String): Color = when (type.lowercase()) {
 }
 
 @Composable
-fun CellarScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit, onDeleteWine: (Wine) -> Unit) {
+fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine) -> Unit, onDeleteWine: (Wine) -> Unit) {
     val wines by viewModel.wines.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val typeFilter by viewModel.typeFilter.collectAsState()
     var wineToDelete by remember { mutableStateOf<Wine?>(null) }
+    var isListView by remember { mutableStateOf(false) }
 
     if (wineToDelete != null) {
         AlertDialog(onDismissRequest = { wineToDelete = null },
@@ -93,25 +99,31 @@ fun CellarScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit, onDelete
     }
 
     Column(modifier = Modifier.fillMaxSize().background(WineDark)) {
-        // Search bar with subtle glow
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { viewModel.searchQuery.value = it },
-            placeholder = { Text("Search wines, bins, regions...", color = TextTertiary) },
-            leadingIcon = { Icon(Icons.Default.Search, "Search", tint = WineGold.copy(alpha = 0.6f)) },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            singleLine = true,
-            shape = RoundedCornerShape(20.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = WineGold.copy(alpha = 0.5f),
-                unfocusedBorderColor = WineSurface,
-                focusedContainerColor = WineSurface,
-                unfocusedContainerColor = WineSurface,
-                cursorColor = WineGold,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.searchQuery.value = it },
+                placeholder = { Text("Search wines, bins, regions...", color = TextTertiary) },
+                leadingIcon = { Icon(Icons.Default.Search, "Search", tint = WineGold.copy(alpha = 0.6f)) },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                shape = RoundedCornerShape(20.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = WineGold.copy(alpha = 0.5f),
+                    unfocusedBorderColor = WineSurface,
+                    focusedContainerColor = WineSurface,
+                    unfocusedContainerColor = WineSurface,
+                    cursorColor = WineGold,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                )
             )
-        )
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(onClick = { isListView = !isListView }) {
+                Icon(if (isListView) Icons.Default.GridView else Icons.Default.ViewList, "Toggle View", tint = WineGold)
+            }
+        }
 
         // Filter chips
         Row(
@@ -153,14 +165,25 @@ fun CellarScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit, onDelete
                 }
             }
         } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(wines, key = { it.reference }) { wine ->
-                    WineCard(wine, onClick = { onWineClick(wine) }, onLongClick = { wineToDelete = wine })
+            if (isListView) {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    lazyColumnItems(wines, key = { it.reference }) { wine ->
+                        WineListRow(wine, onClick = { onWineClick(wine) }, onLongClick = { if (isAdmin) wineToDelete = wine })
+                    }
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(wines, key = { it.reference }) { wine ->
+                        WineCard(wine, onClick = { onWineClick(wine) }, onLongClick = { if (isAdmin) wineToDelete = wine })
+                    }
                 }
             }
         }
@@ -254,6 +277,57 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
                     Text(wine.sold.toString() + " sold", color = WineGold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun WineListRow(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
+    val decodedBitmap: ImageBitmap? = remember(wine.image) { BitmapCache.get(wine.image) }
+    val typeColor = getTypeColor(wine.type)
+
+    Card(
+        modifier = Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = WineSurface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier.size(56.dp).clip(RoundedCornerShape(8.dp)).background(typeColor.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (decodedBitmap != null) {
+                    Image(bitmap = decodedBitmap, contentDescription = wine.name, modifier = Modifier.fillMaxSize().padding(4.dp), contentScale = ContentScale.Fit)
+                } else {
+                    Icon(Icons.Default.LocalBar, wine.name, tint = typeColor.copy(alpha = 0.3f), modifier = Modifier.size(28.dp))
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(wine.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(if (wine.region.isEmpty()) "No Region" else wine.region, color = if (wine.region.isEmpty()) Color.Red else TextSecondary, fontSize = 11.sp, maxLines = 1)
+                    Text(" | ", color = TextTertiary, fontSize = 11.sp)
+                    Text(if (wine.vintage.isEmpty()) "No Vintage" else wine.vintage, color = if (wine.vintage.isEmpty()) Color.Red else TextSecondary, fontSize = 11.sp)
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(if (wine.grape.isEmpty()) "No Grape" else wine.grape, color = if (wine.grape.isEmpty()) Color.Red else TextTertiary, fontSize = 10.sp)
+                if (wine.rating == 0) {
+                    Text("No Rating", color = Color.Red, fontSize = 10.sp)
+                }
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(horizontalAlignment = Alignment.End) {
+                Text("\u20AC" + wine.price.toInt().toString(), color = WineGold, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                if (wine.binLocation.isEmpty()) {
+                    Text("No Bin", color = Color.Red, fontSize = 10.sp)
+                } else {
+                    Text("Bin " + wine.binLocation, color = WineGold.copy(alpha = 0.8f), fontSize = 11.sp)
                 }
             }
         }

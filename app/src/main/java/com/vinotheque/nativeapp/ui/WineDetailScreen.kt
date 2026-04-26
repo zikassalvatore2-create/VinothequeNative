@@ -61,7 +61,7 @@ import com.vinotheque.nativeapp.ui.theme.WineRed
 import com.vinotheque.nativeapp.ui.theme.WineSurface
 
 @Composable
-fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, onDelete: () -> Unit) {
+fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onBack: () -> Unit, onDelete: () -> Unit) {
     val favoriteRefs by viewModel.favoriteRefs.collectAsState()
     val isFav = favoriteRefs.contains(wine.reference)
     val typeColor = getTypeColor(wine.type)
@@ -95,8 +95,10 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, o
                         Icon(if (isFav) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             "Favorite", tint = if (isFav) Color.Red else Color.White, modifier = Modifier.size(28.dp))
                     }
-                    IconButton(onClick = onDelete) {
-                        Icon(Icons.Default.Delete, "Delete", tint = Color.Red.copy(alpha = 0.7f), modifier = Modifier.size(28.dp))
+                    if (isAdmin) {
+                        IconButton(onClick = onDelete) {
+                            Icon(Icons.Default.Delete, "Delete", tint = Color.Red.copy(alpha = 0.7f), modifier = Modifier.size(28.dp))
+                        }
                     }
                 }
             }
