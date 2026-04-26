@@ -307,7 +307,8 @@ fun WineListRow(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                         Icon(Icons.Default.LocalBar, wine.name, tint = typeColor.copy(alpha = 0.3f), modifier = Modifier.size(28.dp))
                     }
                 )
-            }            Spacer(modifier = Modifier.width(12.dp))
+            }
+            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(wine.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
                 Spacer(modifier = Modifier.height(2.dp))
@@ -334,4 +335,5 @@ fun WineListRow(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
         }
     }
 }
+
 

@@ -249,16 +249,6 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                                 modifier = Modifier.size(24.dp))
                         }
                     )
-                } {
-                    if (thumb != null) {
-                        Image(bitmap = thumb, contentDescription = "Wine",
-                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)).padding(2.dp),
-                            contentScale = ContentScale.Fit)
-                    } else {
-                        Icon(Icons.Default.LocalBar, "No photo", tint = TextTertiary.copy(alpha = 0.4f),
-                            modifier = Modifier.size(24.dp))
-                    }
-                }
                 Spacer(modifier = Modifier.width(8.dp))
                 // Camera & gallery buttons
                 Column {
@@ -322,4 +312,5 @@ fun MiniField(label: String, value: String, modifier: Modifier = Modifier.fillMa
         modifier = modifier.padding(vertical = 2.dp), singleLine = true, colors = miniFieldColors,
         textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp))
 }
+
 
