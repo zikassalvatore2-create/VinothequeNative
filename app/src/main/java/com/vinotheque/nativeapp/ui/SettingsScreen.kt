@@ -63,6 +63,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
     val context = LocalContext.current
     val wines by viewModel.allWinesUnfiltered.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
+    val isAdmin by viewModel.isAdmin.collectAsState()
     val scope = rememberCoroutineScope()
     var showClearDialog by remember { mutableStateOf(false) }
     var showUserDialog by remember { mutableStateOf(false) }
@@ -205,6 +206,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
                     if (adminUser == "admin" && adminPass == "admin") {
                         showAdminLogin = false; adminError = false
                         adminUser = ""; adminPass = ""
+                        viewModel.setAdmin(true)
                         onOpenAdmin()
                     } else { adminError = true }
                 }) { Text("Login", color = WineGold, fontWeight = FontWeight.Bold) }
@@ -306,7 +308,14 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
             Text("Manage all wines, edit fields, add photos", color = TextTertiary, fontSize = 13.sp)
             Text("Requires admin credentials", color = TextTertiary, fontSize = 11.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            SettingsButton("Admin Login", WineGold) { showAdminLogin = true }
+            if (isAdmin) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SettingsButton("Admin Panel", WineGold, Modifier.weight(1f)) { onOpenAdmin() }
+                    SettingsButton("Logout", WineRed, Modifier.weight(1f)) { viewModel.setAdmin(false) }
+                }
+            } else {
+                SettingsButton("Admin Login", WineGold) { showAdminLogin = true }
+            }
         }
 
         // Danger

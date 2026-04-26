@@ -73,17 +73,19 @@ data class EditableWine(
     var price: String, var rating: String,
     var aroma: String, var foodPairing: String,
     var binLocation: String, var sold: String,
+    var glassType: String,
     var imageBase64: String?
 )
 
 fun Wine.toEditable() = EditableWine(reference, name, region, vintage, grape, type, dryness,
-    price.toString(), rating.toString(), aroma, foodPairing, binLocation, sold.toString(), image)
+    price.toString(), rating.toString(), aroma, foodPairing, binLocation, sold.toString(), glassType, image)
 
 fun EditableWine.toWine(original: Wine) = original.copy(
     name = name, region = region, vintage = vintage, grape = grape, type = type, dryness = dryness,
     price = price.toDoubleOrNull() ?: original.price, rating = rating.toIntOrNull() ?: original.rating,
     aroma = aroma, foodPairing = foodPairing, binLocation = binLocation,
     sold = sold.toIntOrNull() ?: original.sold,
+    glassType = glassType,
     image = imageBase64)
 
 private val miniFieldColors @Composable get() = OutlinedTextFieldDefaults.colors(
@@ -279,6 +281,7 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
             }
             MiniField("Aroma", edit.aroma) { onFieldChange("aroma", it) }
             MiniField("Pairing", edit.foodPairing) { onFieldChange("foodPairing", it) }
+            MiniField("Recommended Glass", edit.glassType) { onFieldChange("glassType", it) }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 MiniField("Bin/Location", edit.binLocation, Modifier.weight(1f)) { onFieldChange("binLocation", it) }
                 MiniField("Sold", edit.sold, Modifier.weight(0.4f)) { onFieldChange("sold", it) }

@@ -23,5 +23,6 @@ data class Wine(
     val acidity: Int = 3,
     val sweetness: Int = 1,
     val sold: Int = 0,
+    val glassType: String = "",
     val image: String? = null
 )

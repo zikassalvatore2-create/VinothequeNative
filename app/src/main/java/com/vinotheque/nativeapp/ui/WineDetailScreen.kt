@@ -198,6 +198,10 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                 Spacer(modifier = Modifier.height(12.dp))
                 DetailSection("Peak Maturity", wine.peakMaturity)
             }
+            if (wine.glassType.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                DetailSection("Recommended Glass", wine.glassType)
+            }
             Spacer(modifier = Modifier.height(60.dp))
         }
     }

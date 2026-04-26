@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.first
 import android.util.Base64
 import java.io.FileOutputStream
 
-data class EnrichmentResult(val type: String, val dryness: String, val aroma: String, val foodPairing: String)
+data class EnrichmentResult(val type: String, val dryness: String, val aroma: String, val foodPairing: String, val glass: String)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WineViewModel(application: Application) : AndroidViewModel(application) {
@@ -38,7 +38,12 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     private var autoBackupJob: Job? = null
 
     val currentUser = MutableStateFlow(prefs.getString("current_user", "default") ?: "default")
-    val isAdmin = MutableStateFlow(false)
+    val isAdmin = MutableStateFlow(prefs.getBoolean("is_admin", false))
+
+    fun setAdmin(status: Boolean) {
+        isAdmin.value = status
+        prefs.edit().putBoolean("is_admin", status).apply()
+    }
     val searchQuery = MutableStateFlow("")
     val typeFilter = MutableStateFlow("")
     val drynessFilter = MutableStateFlow("")
@@ -198,7 +203,8 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 name = name.ifEmpty { "Unknown Wine" }, region = region, vintage = vintage,
                 grape = grape, type = type, dryness = dryness, price = price,
                 rating = rating, aroma = aroma, foodPairing = foodPairing, image = finalImage,
-                binLocation = binLocation))
+                binLocation = binLocation,
+                glassType = enrichWine(grape, name).glass))
 
             // If we have an image, propagate to same-name wines that don't have one
             if (finalImage != null) {
@@ -279,18 +285,20 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             g.contains("cabernet") || g.contains("merlot") || g.contains("malbec") || g.contains("syrah") ||
             g.contains("shiraz") || g.contains("tempranillo") || g.contains("sangiovese") ||
             g.contains("nebbiolo") || g.contains("pinot noir") || g.contains("grenache") || g.contains("zinfandel") ->
-                EnrichmentResult("Red", "Dry", "Dark fruits, oak, spice", "Beef, lamb, aged cheese")
+                EnrichmentResult("Red", "Dry", "Dark fruits, oak, spice", "Beef, lamb, aged cheese", 
+                    if (g.contains("pinot noir") || g.contains("nebbiolo")) "Burgundy Glass" else "Bordeaux Glass")
             g.contains("chardonnay") || g.contains("sauvignon blanc") || g.contains("pinot grigio") ||
             g.contains("viognier") || g.contains("albarino") || g.contains("gruner") || g.contains("chenin") ->
-                EnrichmentResult("White", "Dry", "Citrus, green apple, floral", "Seafood, poultry, salads")
-            g.contains("riesling") -> EnrichmentResult("White", "Off-Dry", "Peach, lime, mineral", "Asian cuisine, pork, spicy dishes")
+                EnrichmentResult("White", "Dry", "Citrus, green apple, floral", "Seafood, poultry, salads",
+                    if (g.contains("chardonnay")) "Oaked White Glass" else "White Wine Glass")
+            g.contains("riesling") -> EnrichmentResult("White", "Off-Dry", "Peach, lime, mineral", "Asian cuisine, pork, spicy dishes", "White Wine Glass")
             g.contains("moscato") || g.contains("muscat") || g.contains("tokaji") || n.contains("port") ->
-                EnrichmentResult("Dessert", "Sweet", "Honey, apricot, caramel", "Desserts, blue cheese, foie gras")
+                EnrichmentResult("Dessert", "Sweet", "Honey, apricot, caramel", "Desserts, blue cheese, foie gras", "Dessert Glass")
             g.contains("rose") || n.contains("rose") ->
-                EnrichmentResult("Rose", "Dry", "Strawberry, melon, herbs", "Salads, seafood, light pasta")
+                EnrichmentResult("Rose", "Dry", "Strawberry, melon, herbs", "Salads, seafood, light pasta", "White Wine Glass")
             n.contains("champagne") || n.contains("prosecco") || n.contains("cava") || n.contains("sparkling") || n.contains("brut") ->
-                EnrichmentResult("Sparkling", "Brut", "Citrus, toast, green apple", "Appetizers, seafood, celebration")
-            else -> EnrichmentResult("Red", "Dry", "Fruit, earth, spice", "Grilled meats, pasta, cheese")
+                EnrichmentResult("Sparkling", "Brut", "Citrus, toast, green apple", "Appetizers, seafood, celebration", "Champagne Flute")
+            else -> EnrichmentResult("Red", "Dry", "Fruit, earth, spice", "Grilled meats, pasta, cheese", "Bordeaux Glass")
         }
     }
 
@@ -322,7 +330,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             o.put("dryness", w.dryness); o.put("price", w.price); o.put("rating", w.rating)
             o.put("aroma", w.aroma); o.put("foodPairing", w.foodPairing)
             o.put("peakMaturity", w.peakMaturity); o.put("binLocation", w.binLocation)
-            o.put("sold", w.sold)
+            o.put("sold", w.sold); o.put("glassType", w.glassType)
             if (w.image != null) {
                 val b64 = imagePathToBase64(w.image)
                 if (b64 != null) o.put("image", b64)
@@ -354,6 +362,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                         o.optDouble("price", 0.0), o.optInt("rating", 90), o.optString("aroma"),
                         o.optString("foodPairing"), o.optString("peakMaturity"), o.optString("binLocation"),
                         sold = o.optInt("sold", 0),
+                        glassType = o.optString("glassType", ""),
                         image = finalImage))
                 }
                 dao.insertAll(list)
