@@ -237,15 +237,15 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
             ) {
                 Text(wine.type, color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             }
-            // Stock badge (bottom right)
-            if (wine.quantity > 0) {
+            // Sold badge (bottom right)
+            if (wine.sold > 0) {
                 Box(
                     modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(WineSurface.copy(alpha = 0.9f))
+                        .background(WineGold.copy(alpha = 0.2f))
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
-                    Text("x" + wine.quantity.toString(), color = TextSecondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    Text(wine.sold.toString() + " sold", color = WineGold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

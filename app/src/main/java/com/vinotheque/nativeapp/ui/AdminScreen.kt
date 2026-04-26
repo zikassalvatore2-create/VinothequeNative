@@ -72,18 +72,18 @@ data class EditableWine(
     var grape: String, var type: String, var dryness: String,
     var price: String, var rating: String,
     var aroma: String, var foodPairing: String,
-    var binLocation: String, var quantity: String, var sold: String,
+    var binLocation: String, var sold: String,
     var imageBase64: String?
 )
 
 fun Wine.toEditable() = EditableWine(reference, name, region, vintage, grape, type, dryness,
-    price.toString(), rating.toString(), aroma, foodPairing, binLocation, quantity.toString(), sold.toString(), image)
+    price.toString(), rating.toString(), aroma, foodPairing, binLocation, sold.toString(), image)
 
 fun EditableWine.toWine(original: Wine) = original.copy(
     name = name, region = region, vintage = vintage, grape = grape, type = type, dryness = dryness,
     price = price.toDoubleOrNull() ?: original.price, rating = rating.toIntOrNull() ?: original.rating,
     aroma = aroma, foodPairing = foodPairing, binLocation = binLocation,
-    quantity = quantity.toIntOrNull() ?: original.quantity, sold = sold.toIntOrNull() ?: original.sold,
+    sold = sold.toIntOrNull() ?: original.sold,
     image = imageBase64)
 
 private val miniFieldColors @Composable get() = OutlinedTextFieldDefaults.colors(
@@ -91,7 +91,7 @@ private val miniFieldColors @Composable get() = OutlinedTextFieldDefaults.colors
     focusedLabelColor = WineGold, unfocusedLabelColor = TextTertiary,
     cursorColor = WineGold, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
 
-/** Resize bitmap to max 800px on longest side, JPEG compress at 90% quality */
+/** Resize bitmap to max 800px on longest side, PNG format for transparency */
 fun resizeBitmap(bitmap: Bitmap): String {
     val maxSize = 800
     val ratio = minOf(maxSize.toFloat() / bitmap.width, maxSize.toFloat() / bitmap.height, 1f)
@@ -99,8 +99,8 @@ fun resizeBitmap(bitmap: Bitmap): String {
     val h = (bitmap.height * ratio).toInt()
     val scaled = Bitmap.createScaledBitmap(bitmap, w, h, true)
     val baos = ByteArrayOutputStream()
-    scaled.compress(Bitmap.CompressFormat.JPEG, 90, baos)
-    return "data:image/jpeg;base64," + Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
+    scaled.compress(Bitmap.CompressFormat.PNG, 100, baos)
+    return "data:image/png;base64," + Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
 }
 
 @Composable
@@ -200,7 +200,7 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
                                 "price" -> u.copy(price = v); "rating" -> u.copy(rating = v)
                                 "aroma" -> u.copy(aroma = v); "foodPairing" -> u.copy(foodPairing = v)
                                 "binLocation" -> u.copy(binLocation = v)
-                                "quantity" -> u.copy(quantity = v); "sold" -> u.copy(sold = v)
+                                "sold" -> u.copy(sold = v)
                                 else -> u
                             }
                         },
@@ -295,7 +295,6 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
             MiniField("Pairing", edit.foodPairing) { onFieldChange("foodPairing", it) }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 MiniField("Bin/Location", edit.binLocation, Modifier.weight(1f)) { onFieldChange("binLocation", it) }
-                MiniField("Qty", edit.quantity, Modifier.weight(0.4f)) { onFieldChange("quantity", it) }
                 MiniField("Sold", edit.sold, Modifier.weight(0.4f)) { onFieldChange("sold", it) }
             }
             Spacer(modifier = Modifier.height(8.dp))

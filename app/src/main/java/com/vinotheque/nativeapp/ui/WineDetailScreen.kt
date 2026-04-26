@@ -2,6 +2,7 @@ package com.vinotheque.nativeapp.ui
 
 import android.graphics.BitmapFactory
 import android.util.Base64
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -63,6 +65,7 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, o
     val favoriteRefs by viewModel.favoriteRefs.collectAsState()
     val isFav = favoriteRefs.contains(wine.reference)
     val typeColor = getTypeColor(wine.type)
+    val context = LocalContext.current
 
     val decodedBitmap: ImageBitmap? = remember(wine.image) {
         if (wine.image != null) {
@@ -148,37 +151,30 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, onBack: () -> Unit, o
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // Stock & Sales row
+            // Price & Sales info
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 InfoChip("Price", "\u20AC" + wine.price.toInt().toString(), Modifier.weight(1f))
-                InfoChip("Stock", wine.quantity.toString() + " btl", Modifier.weight(1f))
+                InfoChip("Vintage", wine.vintage, Modifier.weight(1f))
                 InfoChip("Sold", wine.sold.toString() + " btl", Modifier.weight(1f))
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                InfoChip("Vintage", wine.vintage, Modifier.weight(1f))
-                InfoChip("Grape", wine.grape, Modifier.weight(1f))
-            }
+            InfoChip("Grape", wine.grape, Modifier.fillMaxWidth())
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Sell button
-            if (wine.quantity > 0) {
-                Button(
-                    onClick = { viewModel.sellWine(wine) },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = WineGold)
-                ) {
-                    Icon(Icons.Default.ShoppingCart, "Sell", tint = Color.Black, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Mark as Sold (${wine.quantity} left)", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                }
-            } else {
-                Card(shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = WineRed.copy(alpha = 0.3f))) {
-                    Text("Out of Stock", color = WineRed, fontWeight = FontWeight.Bold, fontSize = 14.sp,
-                        modifier = Modifier.padding(16.dp).fillMaxWidth())
-                }
+            Button(
+                onClick = {
+                    viewModel.sellWine(wine)
+                    Toast.makeText(context, "Sale recorded! Total: " + (wine.sold + 1).toString(), Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = WineGold)
+            ) {
+                Icon(Icons.Default.ShoppingCart, "Sell", tint = Color.Black, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Record Sale", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -3,6 +3,7 @@ package com.vinotheque.nativeapp
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -47,7 +48,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -61,10 +61,8 @@ import com.vinotheque.nativeapp.ui.PairingScreen
 import com.vinotheque.nativeapp.ui.SettingsScreen
 import com.vinotheque.nativeapp.ui.WineDetailScreen
 import com.vinotheque.nativeapp.ui.WineViewModel
-import com.vinotheque.nativeapp.ui.theme.WineCard
 import com.vinotheque.nativeapp.ui.theme.WineDark
 import com.vinotheque.nativeapp.ui.theme.WineGold
-import com.vinotheque.nativeapp.ui.theme.WineGoldDim
 import com.vinotheque.nativeapp.ui.theme.WineRed
 import com.vinotheque.nativeapp.ui.theme.WineSurface
 import com.vinotheque.nativeapp.ui.theme.TextSecondary
@@ -159,18 +157,32 @@ fun VinothequeApp() {
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
     var showAdmin by remember { mutableStateOf(false) }
 
+    // Back button: navigate back through overlay screens, then to Home tab, then do nothing
+    BackHandler {
+        when {
+            showAdmin -> showAdmin = false
+            selectedWine != null -> selectedWine = null
+            showAddWine -> showAddWine = false
+            selectedTab != 0 -> selectedTab = 0
+            // On home tab, do nothing (don't exit)
+        }
+    }
+
     if (showAdmin) {
         AdminScreen(viewModel = viewModel, onBack = { showAdmin = false })
         return
     }
     if (selectedWine != null) {
-        WineDetailScreen(wine = selectedWine!!, viewModel = viewModel,
-            onBack = { selectedWine = null },
-            onDelete = {
-                viewModel.deleteWine(selectedWine!!.reference)
-                Toast.makeText(context, "Wine removed from cellar", Toast.LENGTH_SHORT).show()
-                selectedWine = null
-            })
+        val wine = selectedWine
+        if (wine != null) {
+            WineDetailScreen(wine = wine, viewModel = viewModel,
+                onBack = { selectedWine = null },
+                onDelete = {
+                    viewModel.deleteWine(wine.reference)
+                    Toast.makeText(context, "Wine removed from cellar", Toast.LENGTH_SHORT).show()
+                    selectedWine = null
+                })
+        }
         return
     }
     if (showAddWine) {

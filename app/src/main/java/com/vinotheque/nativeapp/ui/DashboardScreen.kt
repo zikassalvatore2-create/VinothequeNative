@@ -57,12 +57,13 @@ fun DashboardScreen(viewModel: WineViewModel) {
     val wines by viewModel.allWinesUnfiltered.collectAsState()
 
     val totalBottles = wines.size
-    val totalValue = wines.fold(0.0) { acc, w -> acc + w.price * w.quantity }
-    val avgRating = if (wines.isNotEmpty()) wines.sumOf { it.rating } / wines.size else 0
-    val avgPrice = if (wines.isNotEmpty()) wines.fold(0.0) { acc, w -> acc + w.price } / wines.size else 0.0
-    val totalStock = wines.sumOf { it.quantity }
+    val totalValue = wines.fold(0.0) { acc, w -> acc + w.price }
+    val avgPrice = if (wines.isNotEmpty()) totalValue / wines.size else 0.0
     val totalSold = wines.sumOf { it.sold }
     val salesRevenue = wines.fold(0.0) { acc, w -> acc + w.price * w.sold }
+    val userSales = viewModel.getUserSalesCount()
+    val userRevenue = viewModel.getUserRevenue()
+    val currentUser by viewModel.currentUser.collectAsState()
     val redCount = wines.count { it.type.equals("Red", ignoreCase = true) }
     val whiteCount = wines.count { it.type.equals("White", ignoreCase = true) }
     val roseCount = wines.count { it.type.equals("Rose", ignoreCase = true) }
@@ -82,18 +83,19 @@ fun DashboardScreen(viewModel: WineViewModel) {
 
         // Hero stat cards
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            HeroCard("Stock", totalStock.toString() + " btl", Icons.Default.LocalBar, WineGold, Modifier.weight(1f))
+            HeroCard("Wines", totalBottles.toString(), Icons.Default.LocalBar, WineGold, Modifier.weight(1f))
             HeroCard("Value", "\u20AC" + totalValue.toInt().toString(), Icons.Default.TrendingUp, WineRed, Modifier.weight(1f))
         }
         Spacer(modifier = Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            HeroCard("Sold", totalSold.toString() + " btl", Icons.Default.Star, WineGold, Modifier.weight(1f))
+            HeroCard("Total Sold", totalSold.toString() + " btl", Icons.Default.Star, WineGold, Modifier.weight(1f))
             HeroCard("Revenue", "\u20AC" + salesRevenue.toInt().toString(), Icons.Default.TrendingUp, WineGoldDim, Modifier.weight(1f))
         }
         Spacer(modifier = Modifier.height(12.dp))
+        // Per-user sales
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            HeroCard("Wines", totalBottles.toString(), Icons.Default.LocalBar, WineGoldDim, Modifier.weight(1f))
-            HeroCard("Avg Price", "\u20AC" + avgPrice.toInt().toString(), Icons.Default.TrendingUp, WineGoldDim, Modifier.weight(1f))
+            HeroCard("Your Sales", userSales.toString() + " btl", Icons.Default.Star, WineRed, Modifier.weight(1f))
+            HeroCard("Your Revenue", "\u20AC" + userRevenue.toInt().toString(), Icons.Default.TrendingUp, WineRed, Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(28.dp))
