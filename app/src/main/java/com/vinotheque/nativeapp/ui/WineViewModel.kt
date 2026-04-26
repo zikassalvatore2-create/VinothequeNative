@@ -35,6 +35,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     private var autoBackupJob: Job? = null
 
     val currentUser = MutableStateFlow(prefs.getString("current_user", "default") ?: "default")
+    val isAdmin = MutableStateFlow(false)
     val searchQuery = MutableStateFlow("")
     val typeFilter = MutableStateFlow("")
     val drynessFilter = MutableStateFlow("")

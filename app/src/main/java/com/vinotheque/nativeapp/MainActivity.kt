@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -158,6 +159,7 @@ fun VinothequeApp() {
     var showAddWine by remember { mutableStateOf(false) }
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
     var showAdmin by remember { mutableStateOf(false) }
+    val isAdmin by viewModel.isAdmin.collectAsState()
 
     // Back button: navigate back through overlay screens, then to Home tab, then do nothing
     BackHandler {
@@ -178,11 +180,14 @@ fun VinothequeApp() {
         val wine = selectedWine
         if (wine != null) {
             WineDetailScreen(wine = wine, viewModel = viewModel,
+                isAdmin = isAdmin,
                 onBack = { selectedWine = null },
                 onDelete = {
-                    viewModel.deleteWine(wine.reference)
-                    Toast.makeText(context, "Wine removed from cellar", Toast.LENGTH_SHORT).show()
-                    selectedWine = null
+                    if (isAdmin) {
+                        viewModel.deleteWine(wine.reference)
+                        Toast.makeText(context, "Wine removed from cellar", Toast.LENGTH_SHORT).show()
+                        selectedWine = null
+                    }
                 })
         }
         return
@@ -228,7 +233,8 @@ fun VinothequeApp() {
             }
         },
         floatingActionButton = {
-            if (selectedTab == 1) {
+            // Only admin can add wines
+            if (selectedTab == 1 && isAdmin) {
                 FloatingActionButton(
                     onClick = { showAddWine = true },
                     containerColor = WineGold,
@@ -244,12 +250,20 @@ fun VinothequeApp() {
                 when (tab) {
                     0 -> DashboardScreen(viewModel)
                     1 -> CellarScreen(viewModel = viewModel,
+                        isAdmin = isAdmin,
                         onWineClick = { selectedWine = it },
-                        onDeleteWine = { viewModel.deleteWine(it.reference)
-                            Toast.makeText(context, "Wine removed", Toast.LENGTH_SHORT).show() })
+                        onDeleteWine = {
+                            if (isAdmin) {
+                                viewModel.deleteWine(it.reference)
+                                Toast.makeText(context, "Wine removed", Toast.LENGTH_SHORT).show()
+                            }
+                        })
                     2 -> PairingScreen(viewModel = viewModel, onWineClick = { selectedWine = it })
                     3 -> FavoritesScreen(viewModel = viewModel, onWineClick = { selectedWine = it })
-                    4 -> SettingsScreen(viewModel = viewModel, onOpenAdmin = { showAdmin = true })
+                    4 -> SettingsScreen(viewModel = viewModel, onOpenAdmin = {
+                        viewModel.isAdmin.value = true
+                        showAdmin = true
+                    })
                 }
             }
         }
