@@ -245,10 +245,10 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                         modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)).padding(2.dp),
                         contentScale = ContentScale.Fit,
                         placeholder = {
-                            Icon(Icons.Default.LocalBar, "No photo", tint = TextTertiary.copy(alpha = 0.4f),
-                                modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.LocalBar, "No photo", tint = TextTertiary.copy(alpha = 0.4f), modifier = Modifier.size(24.dp))
                         }
                     )
+                }
                 Spacer(modifier = Modifier.width(8.dp))
                 // Camera & gallery buttons
                 Column {
