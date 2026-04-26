@@ -83,6 +83,7 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
     var aroma by remember { mutableStateOf("") }
     var foodPairing by remember { mutableStateOf("") }
     var binLocation by remember { mutableStateOf("") }
+    var glassType by remember { mutableStateOf("") }
     var capturedImage by remember { mutableStateOf<Bitmap?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -116,6 +117,7 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
             IconButton(onClick = {
                 val result = viewModel.enrichWine(grape, name)
                 type = result.type; dryness = result.dryness
+                glassType = result.glass
                 if (aroma.isEmpty()) aroma = result.aroma
                 if (foodPairing.isEmpty()) foodPairing = result.foodPairing
             }) {
@@ -220,6 +222,9 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
             OutlinedTextField(value = foodPairing, onValueChange = { foodPairing = it },
                 label = { Text("Food Pairing") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(value = glassType, onValueChange = { glassType = it },
+                label = { Text("Recommended Glass") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+            Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = binLocation, onValueChange = { binLocation = it },
                     label = { Text("Bin Location") }, placeholder = { Text("e.g. A12, Shelf 3", color = TextTertiary) },
@@ -235,7 +240,7 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                     }
                     viewModel.saveWine(name, region, vintage, grape, price.toDoubleOrNull() ?: 0.0,
                         type, dryness, ratingVal.toInt(), aroma, foodPairing, img,
-                        binLocation)
+                        binLocation, glassType.ifBlank { null })
                     onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),

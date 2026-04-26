@@ -190,7 +190,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
 
     fun saveWine(name: String, region: String, vintage: String, grape: String, price: Double,
                  type: String, dryness: String, rating: Int, aroma: String, foodPairing: String,
-                 image: String?, binLocation: String = "") {
+                 image: String?, binLocation: String = "", glassType: String? = null) {
         viewModelScope.launch {
             // If no image provided, inherit from a same-name wine that already has one
             val newRef = "REF" + System.currentTimeMillis().toString()
@@ -198,13 +198,15 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             val finalImage = fileImage ?: allWines.value
                 .firstOrNull { it.name.equals(name, ignoreCase = true) && it.image != null }?.image
 
+            val calculatedGlass = glassType ?: enrichWine(grape, name).glass
+            
             dao.insertWine(Wine(
                 reference = newRef,
                 name = name.ifEmpty { "Unknown Wine" }, region = region, vintage = vintage,
                 grape = grape, type = type, dryness = dryness, price = price,
                 rating = rating, aroma = aroma, foodPairing = foodPairing, image = finalImage,
                 binLocation = binLocation,
-                glassType = enrichWine(grape, name).glass))
+                glassType = calculatedGlass))
 
             // If we have an image, propagate to same-name wines that don't have one
             if (finalImage != null) {
