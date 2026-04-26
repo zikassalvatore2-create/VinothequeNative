@@ -357,14 +357,19 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                         saveBase64ToFile(importedImage, ref)
                     } else importedImage
 
+                    val grape = o.optString("grape")
+                    val name = o.optString("name")
+                    val importedGlass = o.optString("glassType", "")
+                    val glassToUse = if (importedGlass.isBlank()) enrichWine(grape, name).glass else importedGlass
+
                     list.add(Wine(
                         ref,
-                        o.optString("name"), o.optString("region"), o.optString("vintage"),
-                        o.optString("grape"), o.optString("type", "Red"), o.optString("dryness", "Dry"),
+                        name, o.optString("region"), o.optString("vintage"),
+                        grape, o.optString("type", "Red"), o.optString("dryness", "Dry"),
                         o.optDouble("price", 0.0), o.optInt("rating", 90), o.optString("aroma"),
                         o.optString("foodPairing"), o.optString("peakMaturity"), o.optString("binLocation"),
                         sold = o.optInt("sold", 0),
-                        glassType = o.optString("glassType", ""),
+                        glassType = glassToUse,
                         image = finalImage))
                 }
                 dao.insertAll(list)
@@ -425,7 +430,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                     val pairing = if (pairingIdx >= 0 && pairingIdx < cols.size) cols[pairingIdx] else ""
                     val bin = if (binIdx >= 0 && binIdx < cols.size) cols[binIdx] else ""
 
-                    val enriched = if (aroma.isEmpty() || pairing.isEmpty()) enrichWine(grape, name) else null
+                    val enriched = enrichWine(grape, name)
 
                     list.add(Wine(
                         reference = ref,
@@ -434,9 +439,10 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                         type = type, dryness = dryness,
                         price = priceStr.replace(",", ".").toDoubleOrNull() ?: 0.0,
                         rating = ratingStr.toIntOrNull() ?: 90,
-                        aroma = aroma.ifEmpty { enriched?.aroma ?: "" },
-                        foodPairing = pairing.ifEmpty { enriched?.foodPairing ?: "" },
-                        binLocation = bin
+                        aroma = aroma.ifEmpty { enriched.aroma },
+                        foodPairing = pairing.ifEmpty { enriched.foodPairing },
+                        binLocation = bin,
+                        glassType = enriched.glass
                     ))
                 }
                 dao.insertAll(list)
