@@ -120,9 +120,11 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
                     unfocusedTextColor = Color.White
                 )
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            IconButton(onClick = { isListView = !isListView }) {
-                Icon(if (isListView) Icons.Default.GridView else Icons.Default.ViewList, "Toggle View", tint = WineGold)
+            if (isAdmin) {
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(onClick = { isListView = !isListView }) {
+                    Icon(if (isListView) Icons.Default.GridView else Icons.Default.ViewList, "Toggle View", tint = WineGold)
+                }
             }
         }
 
@@ -210,7 +212,7 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Image — elegant gradient background
+                // Image  elegant gradient background
                 Box(
                     modifier = Modifier.fillMaxWidth().weight(1f)
                         .background(Brush.verticalGradient(listOf(
@@ -334,6 +336,6 @@ fun WineListRow(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
             }
         }
     }
-}
-
-
+}
+
+

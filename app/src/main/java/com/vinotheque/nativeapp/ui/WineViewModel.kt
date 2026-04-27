@@ -35,12 +35,14 @@ data class EnrichmentResult(val type: String, val dryness: String, val aroma: St
 class WineViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = AppDatabase.getDatabase(application).wineDao()
     private val favDao = AppDatabase.getDatabase(application).favoriteDao()
+    private val saleDao = AppDatabase.getDatabase(application).saleDao()
     private val prefs = application.getSharedPreferences("vinotheque_prefs", Context.MODE_PRIVATE)
     private val appContext = application.applicationContext
     private var autoBackupJob: Job? = null
 
     val currentUser = MutableStateFlow(prefs.getString("current_user", "default") ?: "default")
     val isAdmin = MutableStateFlow(prefs.getBoolean("is_admin", false))
+    val allSales = saleDao.getAllSales().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun setAdmin(status: Boolean) {
         isAdmin.value = status
@@ -285,18 +287,25 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun deleteWine(ref: String) { viewModelScope.launch { dao.deleteWine(ref) } }
-    fun clearAll() { viewModelScope.launch { dao.deleteAll() } }
+    fun clearAll() { 
+        viewModelScope.launch { 
+            dao.deleteAll()
+            saleDao.clearAllSales()
+        } 
+    }
 
     /** Record a sale: increment wine sold counter and track per-user sales */
     fun sellWine(wine: Wine) {
         viewModelScope.launch {
             dao.updateWine(wine.copy(sold = wine.sold + 1))
+            saleDao.insertSale(com.vinotheque.nativeapp.data.Sale(
+                wineReference = wine.reference,
+                wineName = wine.name,
+                username = currentUser.value,
+                timestamp = System.currentTimeMillis(),
+                price = wine.price
+            ))
         }
-        val user = currentUser.value
-        prefs.edit()
-            .putInt("sales_$user", prefs.getInt("sales_$user", 0) + 1)
-            .putFloat("revenue_$user", prefs.getFloat("revenue_$user", 0f) + wine.price.toFloat())
-            .apply()
     }
 
     fun getUserSalesCount(): Int = prefs.getInt("sales_${currentUser.value}", 0)
@@ -367,10 +376,10 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getBackupJson(): String {
-        val sb = StringBuilder()
-        sb.append("[\n")
+        val root = JSONObject()
+        val wineArr = JSONArray()
         val wineList = allWinesUnfiltered.value
-        for ((index, w) in wineList.withIndex()) {
+        for (w in wineList) {
             val o = JSONObject()
             o.put("reference", w.reference); o.put("name", w.name); o.put("region", w.region)
             o.put("vintage", w.vintage); o.put("grape", w.grape); o.put("type", w.type)
@@ -382,20 +391,33 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 val b64 = imagePathToBase64(w.image)
                 if (b64 != null) o.put("image", b64)
             }
-            sb.append(o.toString())
-            if (index < wineList.size - 1) sb.append(",\n")
+            wineArr.put(o)
         }
-        sb.append("\n]")
-        return sb.toString()
+        root.put("wines", wineArr)
+        
+        val salesArr = JSONArray()
+        allSales.value.forEach { s ->
+            val so = JSONObject()
+            so.put("ref", s.wineReference); so.put("name", s.wineName)
+            so.put("user", s.username); so.put("time", s.timestamp)
+            so.put("price", s.price)
+            salesArr.put(so)
+        }
+        root.put("sales", salesArr)
+        root.put("currentUser", currentUser.value)
+        
+        return root.toString()
     }
 
     fun restoreFromJson(json: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val arr = JSONArray(json)
+                val root = JSONObject(json)
+                val wineArr = if (root.has("wines")) root.getJSONArray("wines") else JSONArray(json) // Backwards compatibility
+                
                 val list = mutableListOf<Wine>()
-                for (i in 0 until arr.length()) {
-                    val o = arr.getJSONObject(i)
+                for (i in 0 until wineArr.length()) {
+                    val o = wineArr.getJSONObject(i)
                     val importedImage = if (o.has("image")) o.getString("image") else null
                     val ref = o.optString("reference", "IMP" + System.currentTimeMillis().toString() + "_" + i.toString())
                     val finalImage = if (importedImage != null && importedImage.startsWith("data:image")) {
@@ -417,7 +439,30 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                         glassType = glassToUse,
                         image = finalImage))
                 }
+                dao.deleteAll()
                 dao.insertAll(list)
+                
+                if (root.has("sales")) {
+                    val salesArr = root.getJSONArray("sales")
+                    val sList = mutableListOf<com.vinotheque.nativeapp.data.Sale>()
+                    for (i in 0 until salesArr.length()) {
+                        val so = salesArr.getJSONObject(i)
+                        sList.add(com.vinotheque.nativeapp.data.Sale(
+                            wineReference = so.optString("ref"),
+                            wineName = so.optString("name"),
+                            username = so.optString("user"),
+                            timestamp = so.optLong("time"),
+                            price = so.optDouble("price")
+                        ))
+                    }
+                    saleDao.clearAllSales()
+                    saleDao.insertAll(sList)
+                }
+                
+                if (root.has("currentUser")) {
+                    val user = root.getString("currentUser")
+                    launch(Dispatchers.Main) { setUser(user) }
+                }
             } catch (e: Exception) { e.printStackTrace() }
         }
     }

@@ -62,6 +62,7 @@ import com.vinotheque.nativeapp.ui.DashboardScreen
 import com.vinotheque.nativeapp.ui.FavoritesScreen
 import com.vinotheque.nativeapp.ui.PairingScreen
 import com.vinotheque.nativeapp.ui.SettingsScreen
+import com.vinotheque.nativeapp.ui.SalesAnalyticsScreen
 import com.vinotheque.nativeapp.ui.WineDetailScreen
 import com.vinotheque.nativeapp.ui.WineViewModel
 import com.vinotheque.nativeapp.ui.theme.WineDark
@@ -159,11 +160,13 @@ fun VinothequeApp() {
     var showAddWine by remember { mutableStateOf(false) }
     var selectedWine by remember { mutableStateOf<Wine?>(null) }
     var showAdmin by remember { mutableStateOf(false) }
+    var showSales by remember { mutableStateOf(false) }
     val isAdmin by viewModel.isAdmin.collectAsState()
 
     // Back button: navigate back through overlay screens, then to Home tab, then do nothing
     BackHandler {
         when {
+            showSales -> showSales = false
             showAdmin -> showAdmin = false
             selectedWine != null -> selectedWine = null
             showAddWine -> showAddWine = false
@@ -172,8 +175,12 @@ fun VinothequeApp() {
         }
     }
 
+    if (showSales) {
+        SalesAnalyticsScreen(viewModel = viewModel, onBack = { showSales = false })
+        return
+    }
     if (showAdmin) {
-        AdminScreen(viewModel = viewModel, onBack = { showAdmin = false })
+        AdminScreen(viewModel = viewModel, onBack = { showAdmin = false }, onOpenSales = { showSales = true })
         return
     }
     if (selectedWine != null) {

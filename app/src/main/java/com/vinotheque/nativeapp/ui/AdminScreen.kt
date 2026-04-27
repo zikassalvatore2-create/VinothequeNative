@@ -96,7 +96,7 @@ private val miniFieldColors @Composable get() = OutlinedTextFieldDefaults.colors
 /** Resize bitmap to max 800px on longest side, PNG format for transparency */
 
 @Composable
-fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
+fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () -> Unit = {}) {
     val wines by viewModel.allWinesUnfiltered.collectAsState()
     val context = LocalContext.current
     val edits = remember { mutableStateMapOf<String, EditableWine>() }
@@ -156,6 +156,9 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
             if (isRepairing) {
                 Text("Repairing...  ", color = WineGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             } else {
+                IconButton(onClick = onOpenSales) {
+                    Icon(Icons.Default.TrendingUp, "Sales", tint = WineGold, modifier = Modifier.size(20.dp))
+                }
                 IconButton(onClick = {
                     isRepairing = true
                     viewModel.repairAllImages { count ->

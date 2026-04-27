@@ -319,8 +319,10 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
         }
 
         // Danger
-        SettingsCard("Danger Zone", Icons.Default.DeleteForever) {
-            SettingsButton("Clear All Data", WineRed) { showClearDialog = true }
+        if (isAdmin) {
+            SettingsCard("Danger Zone", Icons.Default.DeleteForever) {
+                SettingsButton("Clear All Data", WineRed) { showClearDialog = true }
+            }
         }
 
         // About
