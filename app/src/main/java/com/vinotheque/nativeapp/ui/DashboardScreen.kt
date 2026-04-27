@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,21 +57,21 @@ import com.vinotheque.nativeapp.ui.theme.WineSurface
 fun DashboardScreen(viewModel: WineViewModel) {
     val wines by viewModel.allWinesUnfiltered.collectAsState()
 
-    val totalBottles = wines.size
-    val totalValue = wines.fold(0.0) { acc, w -> acc + w.price }
-    val avgPrice = if (wines.isNotEmpty()) totalValue / wines.size else 0.0
-    val totalSold = wines.sumOf { it.sold }
-    val salesRevenue = wines.fold(0.0) { acc, w -> acc + w.price * w.sold }
+    val totalBottles = remember(wines) { wines.size }
+    val totalValue = remember(wines) { wines.fold(0.0) { acc, w -> acc + w.price } }
+    val avgPrice = remember(wines, totalValue) { if (wines.isNotEmpty()) totalValue / wines.size else 0.0 }
+    val totalSold = remember(wines) { wines.sumOf { it.sold } }
+    val salesRevenue = remember(wines) { wines.fold(0.0) { acc, w -> acc + w.price * w.sold } }
     val userSales = viewModel.getUserSalesCount()
     val userRevenue = viewModel.getUserRevenue()
     val currentUser by viewModel.currentUser.collectAsState()
-    val redCount = wines.count { it.type.equals("Red", ignoreCase = true) }
-    val whiteCount = wines.count { it.type.equals("White", ignoreCase = true) }
-    val roseCount = wines.count { it.type.replace("é", "e", ignoreCase = true).equals("Rose", ignoreCase = true) }
-    val sparkCount = wines.count { it.type.equals("Sparkling", ignoreCase = true) }
-    val dessertCount = wines.count { it.type.equals("Dessert", ignoreCase = true) }
-    val topWine = wines.maxByOrNull { it.rating }
-    val mostExpensive = wines.maxByOrNull { it.price }
+    val redCount = remember(wines) { wines.count { it.type.equals("Red", ignoreCase = true) } }
+    val whiteCount = remember(wines) { wines.count { it.type.equals("White", ignoreCase = true) } }
+    val roseCount = remember(wines) { wines.count { it.type.replace("é", "e", ignoreCase = true).equals("Rose", ignoreCase = true) } }
+    val sparkCount = remember(wines) { wines.count { it.type.equals("Sparkling", ignoreCase = true) } }
+    val dessertCount = remember(wines) { wines.count { it.type.equals("Dessert", ignoreCase = true) } }
+    val topWine = remember(wines) { wines.maxByOrNull { it.rating } }
+    val mostExpensive = remember(wines) { wines.maxByOrNull { it.price } }
 
     Column(
         modifier = Modifier.fillMaxSize().background(WineDark)

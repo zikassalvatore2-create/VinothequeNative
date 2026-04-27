@@ -412,8 +412,21 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     fun restoreFromJson(json: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val root = JSONObject(json)
-                val wineArr = if (root.has("wines")) root.getJSONArray("wines") else JSONArray(json) // Backwards compatibility
+                val trimmed = json.trim()
+                if (trimmed.isEmpty()) return@launch
+                
+                val wineArr: JSONArray
+                var salesArr: JSONArray? = null
+                var restoredUser: String? = null
+
+                if (trimmed.startsWith("{")) {
+                    val root = JSONObject(trimmed)
+                    wineArr = root.optJSONArray("wines") ?: JSONArray()
+                    salesArr = root.optJSONArray("sales")
+                    restoredUser = if (root.has("currentUser")) root.getString("currentUser") else null
+                } else {
+                    wineArr = JSONArray(trimmed)
+                }
                 
                 val list = mutableListOf<Wine>()
                 for (i in 0 until wineArr.length()) {
@@ -442,8 +455,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 dao.deleteAll()
                 dao.insertAll(list)
                 
-                if (root.has("sales")) {
-                    val salesArr = root.getJSONArray("sales")
+                if (salesArr != null) {
                     val sList = mutableListOf<com.vinotheque.nativeapp.data.Sale>()
                     for (i in 0 until salesArr.length()) {
                         val so = salesArr.getJSONObject(i)
@@ -459,9 +471,8 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                     saleDao.insertAll(sList)
                 }
                 
-                if (root.has("currentUser")) {
-                    val user = root.getString("currentUser")
-                    launch(Dispatchers.Main) { setUser(user) }
+                if (restoredUser != null) {
+                    launch(Dispatchers.Main) { setUser(restoredUser) }
                 }
             } catch (e: Exception) { e.printStackTrace() }
         }
