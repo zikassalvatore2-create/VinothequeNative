@@ -26,6 +26,8 @@ import java.io.File
 import kotlinx.coroutines.flow.first
 import android.util.Base64
 import java.io.FileOutputStream
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 
 data class EnrichmentResult(val type: String, val dryness: String, val aroma: String, val foodPairing: String, val glass: String)
 
@@ -102,7 +104,9 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             if (file.exists()) {
                 val bytes = file.readBytes()
                 val b64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
-                "data:image/png;base64,$b64"
+                val ext = path.substringAfterLast(".", "png").lowercase()
+                val mime = if (ext == "jpg" || ext == "jpeg") "jpeg" else if (ext == "webp") "webp" else "png"
+                "data:image/$mime;base64,$b64"
             } else null
         } catch (e: Exception) { null }
     }
@@ -134,6 +138,47 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 if (wines.isNotEmpty()) {
                     scheduleAutoBackup()
                 }
+            }
+        }
+    }
+
+    /** 
+     * Iterates through all wine images, detects black backgrounds,
+     * and makes them transparent using the fixBlackBackground utility.
+     */
+    fun repairAllImages(onComplete: (Int) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            var repairedCount = 0
+            try {
+                val winesList = allWines.first()
+                for (wine in winesList) {
+                    val path = wine.image ?: continue
+                    if (path.startsWith("data:image")) continue // Skip non-migrated
+                    
+                    val file = File(path)
+                    if (file.exists()) {
+                        val bitmap = BitmapFactory.decodeFile(file.absolutePath) ?: continue
+                        
+                        // Check if it's likely to have a black background (JPEG usually)
+                        // Or just process everything to be safe
+                        val fixedBitmap = fixBlackBackground(bitmap)
+                        
+                        // Save the fixed version back as WEBP (supports transparency)
+                        FileOutputStream(file).use { out ->
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                                fixedBitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 85, out)
+                            } else {
+                                @Suppress("DEPRECATION")
+                                fixedBitmap.compress(Bitmap.CompressFormat.WEBP, 85, out)
+                            }
+                        }
+                        repairedCount++
+                    }
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+            
+            launch(Dispatchers.Main) {
+                onComplete(repairedCount)
             }
         }
     }

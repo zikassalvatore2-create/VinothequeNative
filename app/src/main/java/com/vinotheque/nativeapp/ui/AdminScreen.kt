@@ -102,6 +102,7 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
     val edits = remember { mutableStateMapOf<String, EditableWine>() }
     var photoTargetRef by remember { mutableStateOf<String?>(null) }
     var searchQuery by remember { mutableStateOf("") }
+    var isRepairing by remember { mutableStateOf(false) }
 
     // Filter wines by search
     val filteredWines = if (searchQuery.isBlank()) wines else {
@@ -149,8 +150,22 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit) {
                 Icon(Icons.Default.ArrowBack, "Back", tint = Color.White, modifier = Modifier.size(24.dp))
             }
             Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
             Text("Admin Table", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.weight(1f))
+            if (isRepairing) {
+                Text("Repairing...  ", color = WineGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            } else {
+                IconButton(onClick = {
+                    isRepairing = true
+                    viewModel.repairAllImages { count ->
+                        isRepairing = false
+                        Toast.makeText(context, "Repaired $count images!", Toast.LENGTH_LONG).show()
+                    }
+                }) {
+                    Icon(Icons.Default.LocalBar, "Repair", tint = WineGold, modifier = Modifier.size(20.dp))
+                }
+            }
             Text(filteredWines.size.toString() + "/" + wines.size.toString() + "  ", color = TextSecondary, fontSize = 13.sp)
         }
 
