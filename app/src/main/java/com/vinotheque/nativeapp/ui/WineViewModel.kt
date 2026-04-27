@@ -86,7 +86,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             if (!imageDir.exists()) imageDir.mkdirs()
             val data = base64.substringAfter(",")
             val bytes = Base64.decode(data, Base64.DEFAULT)
-            val file = File(imageDir, "img_$reference.png")
+            val file = File(imageDir, "img_$reference.webp")
             FileOutputStream(file).use { it.write(bytes) }
             file.absolutePath
         } catch (e: Exception) {

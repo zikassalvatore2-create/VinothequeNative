@@ -20,11 +20,16 @@ fun resizeBitmap(bitmap: Bitmap): String {
     val scaled = Bitmap.createScaledBitmap(bitmap, w, h, true)
     val baos = ByteArrayOutputStream()
     
-    // JPEG 75% offers the best balance between quality and file size for mobile screens
-    scaled.compress(Bitmap.CompressFormat.JPEG, 75, baos)
+    // WEBP 75% preserves transparency while keeping the file size very small
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+        scaled.compress(Bitmap.CompressFormat.WEBP_LOSSY, 75, baos)
+    } else {
+        @Suppress("DEPRECATION")
+        scaled.compress(Bitmap.CompressFormat.WEBP, 75, baos)
+    }
     
     val bytes = baos.toByteArray()
-    return "data:image/jpeg;base64," + Base64.encodeToString(bytes, Base64.NO_WRAP)
+    return "data:image/webp;base64," + Base64.encodeToString(bytes, Base64.NO_WRAP)
 }
 
 /** Opens a web search for the wine label image */
