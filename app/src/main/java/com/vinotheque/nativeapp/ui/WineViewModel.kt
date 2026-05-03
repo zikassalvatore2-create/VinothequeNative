@@ -51,6 +51,12 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     fun checkPin(pin: String): Boolean = pin == getAdminPin()
     fun isFirstLaunch(): Boolean = !prefs.contains("user_name_set")
     fun setNameSet() { prefs.edit().putBoolean("user_name_set", true).apply() }
+    
+    val imageQuality = MutableStateFlow(prefs.getInt("image_quality", 75))
+    fun setImageQuality(q: Int) {
+        imageQuality.value = q
+        prefs.edit().putInt("image_quality", q).apply()
+    }
 
     fun setAdmin(status: Boolean) {
         isAdmin.value = status
@@ -251,15 +257,16 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
 
     fun saveWine(name: String, region: String, vintage: String, grape: String, price: Double,
                  type: String, dryness: String, rating: Int, aroma: String, foodPairing: String,
-                 image: String?, binLocation: String = "", glassType: String? = null) {
+                 image: String?, binLocation: String = "", glassType: String? = null,
+                 tastingNotes: String = "", decanting: String = "", servingTemp: String = "",
+                 ratingSource: String = "", keywords: String = "") {
         viewModelScope.launch {
-            // If no image provided, inherit from a same-name wine that already has one
             val newRef = "REF" + System.currentTimeMillis().toString()
             val fileImage = if (image != null && image.startsWith("data:image")) saveBase64ToFile(image, newRef) else image
             val finalImage = fileImage ?: allWines.value
                 .firstOrNull { it.name.equals(name, ignoreCase = true) && it.image != null }?.image
 
-            val calculatedGlass = glassType ?: enrichWine(grape, name).glass
+            val enriched = enrichWine(grape, name)
             
             dao.insertWine(Wine(
                 reference = newRef,
@@ -267,7 +274,12 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 grape = grape, type = type, dryness = dryness, price = price,
                 rating = rating, aroma = aroma, foodPairing = foodPairing, image = finalImage,
                 binLocation = binLocation,
-                glassType = calculatedGlass))
+                glassType = glassType ?: enriched.glass,
+                tastingNotes = tastingNotes,
+                decanting = decanting.ifEmpty { enriched.decanting },
+                servingTemp = servingTemp.ifEmpty { enriched.servingTemp },
+                ratingSource = ratingSource,
+                keywords = keywords.ifEmpty { enriched.keywords }))
 
             // If we have an image, propagate to same-name wines that don't have one
             if (finalImage != null) {
@@ -393,16 +405,16 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     fun loadSampleData() {
         viewModelScope.launch {
             dao.insertAll(listOf(
-                Wine("SAM001", "Chateau Margaux 2015", "Margaux, Bordeaux", "2015", "Cabernet Sauvignon", "Red", "Dry", 650.0, 98, "Blackcurrant, violet, cedar", "Prime ribeye, lamb rack", "2025-2040", "A1, Shelf 1"),
-                Wine("SAM002", "Dom Perignon 2012", "Champagne, France", "2012", "Chardonnay/Pinot Noir", "Sparkling", "Brut", 220.0, 96, "Citrus, brioche, almond", "Oysters, caviar, lobster", binLocation = "A2, Shelf 2"),
-                Wine("SAM003", "Sassicaia 2018", "Bolgheri, Tuscany", "2018", "Cabernet Sauvignon", "Red", "Dry", 280.0, 97, "Black cherry, herbs, tobacco", "Florentine steak, wild boar", binLocation = "B1, Shelf 1"),
-                Wine("SAM004", "Cloudy Bay Sauvignon Blanc", "Marlborough, NZ", "2022", "Sauvignon Blanc", "White", "Dry", 28.0, 90, "Passion fruit, lime, herbs", "Grilled fish, goat cheese", binLocation = "C1, Shelf 3"),
-                Wine("SAM005", "Opus One 2019", "Napa Valley, USA", "2019", "Cabernet Sauvignon", "Red", "Dry", 420.0, 97, "Cassis, dark plum, vanilla", "Filet mignon, truffle risotto", binLocation = "A3, Shelf 1"),
-                Wine("SAM006", "Whispering Angel Rose", "Provence, France", "2023", "Grenache/Cinsault", "Rose", "Dry", 22.0, 88, "Strawberry, peach, herbs", "Mediterranean salad, grilled shrimp", binLocation = "D1, Shelf 2"),
-                Wine("SAM007", "Penfolds Grange 2017", "South Australia", "2017", "Shiraz", "Red", "Dry", 750.0, 99, "Plum, chocolate, spice", "Wagyu beef, dark chocolate dessert", binLocation = "A1, Shelf 2"),
-                Wine("SAM008", "Chateau d'Yquem 2015", "Sauternes, Bordeaux", "2015", "Semillon/Sauvignon Blanc", "Dessert", "Sweet", 380.0, 98, "Honey, apricot, saffron", "Foie gras, creme brulee", binLocation = "B2, Shelf 1"),
-                Wine("SAM009", "Barolo Giacomo Conterno", "Piedmont, Italy", "2016", "Nebbiolo", "Red", "Dry", 320.0, 96, "Rose, tar, cherry, truffle", "Braised veal, mushroom risotto", binLocation = "B1, Shelf 2"),
-                Wine("SAM010", "Puligny-Montrachet 2020", "Burgundy, France", "2020", "Chardonnay", "White", "Dry", 85.0, 93, "Lemon, hazelnut, mineral", "Lobster thermidor, white fish", binLocation = "C2, Shelf 1")
+                Wine("SAM001", "Chateau Margaux 2015", "Margaux, Bordeaux", "2015", "Cabernet Sauvignon", "Red", "Dry", 650.0, 98, "Blackcurrant, violet, cedar", foodPairing = "Prime ribeye, lamb rack", peakMaturity = "2025-2040", binLocation = "A1-01", glassType = "Bordeaux Glass", decanting = "Decant 1-2h", servingTemp = "16-18°C", keywords = "Powerful. Structured. Dark fruit."),
+                Wine("SAM002", "Dom Perignon 2012", "Champagne, France", "2012", "Chardonnay/Pinot Noir", "Sparkling", "Brut", 220.0, 96, "Citrus, brioche, almond", foodPairing = "Oysters, caviar, lobster", binLocation = "A2-01", glassType = "Champagne Flute", decanting = "No decanting", servingTemp = "6-8°C", keywords = "Festive. Crisp. Bubbles."),
+                Wine("SAM003", "Sassicaia 2018", "Bolgheri, Tuscany", "2018", "Cabernet Sauvignon", "Red", "Dry", 280.0, 97, "Black cherry, herbs, tobacco", foodPairing = "Florentine steak, wild boar", binLocation = "B1-01", glassType = "Bordeaux Glass", decanting = "Decant 1-2h", servingTemp = "16-18°C", keywords = "Powerful. Structured. Dark fruit."),
+                Wine("SAM004", "Cloudy Bay Sauvignon Blanc", "Marlborough, NZ", "2022", "Sauvignon Blanc", "White", "Dry", 28.0, 90, "Passion fruit, lime, herbs", foodPairing = "Grilled fish, goat cheese", binLocation = "C1-03", glassType = "White Wine Glass", decanting = "No decanting", servingTemp = "8-12°C", keywords = "Crisp. Fresh. Citrus."),
+                Wine("SAM005", "Opus One 2019", "Napa Valley, USA", "2019", "Cabernet Sauvignon", "Red", "Dry", 420.0, 97, "Cassis, dark plum, vanilla", foodPairing = "Filet mignon, truffle risotto", binLocation = "A3-01", glassType = "Bordeaux Glass", decanting = "Decant 1-2h", servingTemp = "16-18°C", keywords = "Powerful. Structured. Dark fruit."),
+                Wine("SAM006", "Whispering Angel Rose", "Provence, France", "2023", "Grenache/Cinsault", "Rose", "Dry", 22.0, 88, "Strawberry, peach, herbs", foodPairing = "Mediterranean salad, grilled shrimp", binLocation = "D1-02", glassType = "White Wine Glass", decanting = "No decanting", servingTemp = "8-10°C", keywords = "Fresh. Summery. Delicate."),
+                Wine("SAM007", "Penfolds Grange 2017", "South Australia", "2017", "Shiraz", "Red", "Dry", 750.0, 99, "Plum, chocolate, spice", foodPairing = "Wagyu beef, dark chocolate dessert", binLocation = "A1-02", glassType = "Bordeaux Glass", decanting = "Decant 1-2h", servingTemp = "16-18°C", keywords = "Bold. Rich. Spice."),
+                Wine("SAM008", "Chateau d'Yquem 2015", "Sauternes, Bordeaux", "2015", "Semillon/Sauvignon Blanc", "Dessert", "Sweet", 380.0, 98, "Honey, apricot, saffron", foodPairing = "Foie gras, creme brulee", binLocation = "B2-01", glassType = "Dessert Glass", decanting = "No decanting", servingTemp = "10-14°C", keywords = "Luscious. Sweet. Golden."),
+                Wine("SAM009", "Barolo Giacomo Conterno", "Piedmont, Italy", "2016", "Nebbiolo", "Red", "Dry", 320.0, 96, "Rose, tar, cherry, truffle", foodPairing = "Braised veal, mushroom risotto", binLocation = "B1-02", glassType = "Burgundy Glass", decanting = "Decant 1-2h", servingTemp = "16-18°C", keywords = "Complex. Tannic. Roses."),
+                Wine("SAM010", "Puligny-Montrachet 2020", "Burgundy, France", "2020", "Chardonnay", "White", "Dry", 85.0, 93, "Lemon, hazelnut, mineral", foodPairing = "Lobster thermidor, white fish", binLocation = "C2-01", glassType = "Oaked White Glass", decanting = "No decanting", servingTemp = "8-12°C", keywords = "Buttery. Oaky. Rich.")
             ))
         }
     }
@@ -419,6 +431,9 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             o.put("aroma", w.aroma); o.put("foodPairing", w.foodPairing)
             o.put("peakMaturity", w.peakMaturity); o.put("binLocation", w.binLocation)
             o.put("sold", w.sold); o.put("glassType", w.glassType)
+            o.put("tastingNotes", w.tastingNotes); o.put("decanting", w.decanting)
+            o.put("servingTemp", w.servingTemp); o.put("ratingSource", w.ratingSource)
+            o.put("keywords", w.keywords)
             if (w.image != null) {
                 val b64 = imagePathToBase64(w.image)
                 if (b64 != null) o.put("image", b64)
@@ -432,7 +447,7 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             val so = JSONObject()
             so.put("ref", s.wineReference); so.put("name", s.wineName)
             so.put("user", s.username); so.put("time", s.timestamp)
-            so.put("price", s.price)
+            so.put("price", s.price); so.put("qty", s.quantity)
             salesArr.put(so)
         }
         root.put("sales", salesArr)
@@ -472,16 +487,22 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                     val grape = o.optString("grape")
                     val name = o.optString("name")
                     val importedGlass = o.optString("glassType", "")
-                    val glassToUse = if (importedGlass.isBlank()) enrichWine(grape, name).glass else importedGlass
+                    val enriched = enrichWine(grape, name)
 
                     list.add(Wine(
                         ref,
                         name, o.optString("region"), o.optString("vintage"),
                         grape, o.optString("type", "Red"), o.optString("dryness", "Dry"),
                         o.optDouble("price", 0.0), o.optInt("rating", 90), o.optString("aroma"),
-                        o.optString("foodPairing"), o.optString("peakMaturity"), o.optString("binLocation"),
+                        tastingNotes = o.optString("tastingNotes"),
+                        foodPairing = o.optString("foodPairing"), peakMaturity = o.optString("peakMaturity"),
+                        binLocation = o.optString("binLocation"),
                         sold = o.optInt("sold", 0),
-                        glassType = glassToUse,
+                        glassType = if (importedGlass.isBlank()) enriched.glass else importedGlass,
+                        decanting = o.optString("decanting").ifEmpty { enriched.decanting },
+                        servingTemp = o.optString("servingTemp").ifEmpty { enriched.servingTemp },
+                        ratingSource = o.optString("ratingSource"),
+                        keywords = o.optString("keywords").ifEmpty { enriched.keywords },
                         image = finalImage))
                 }
                 dao.deleteAll()
@@ -496,7 +517,8 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                             wineName = so.optString("name"),
                             username = so.optString("user"),
                             timestamp = so.optLong("time"),
-                            price = so.optDouble("price")
+                            price = so.optDouble("price"),
+                            quantity = so.optInt("qty", 1)
                         ))
                     }
                     saleDao.clearAllSales()
@@ -512,17 +534,19 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
 
     fun exportCsv(): String {
         val sb = StringBuilder()
-        sb.appendLine("Name,Reference,Region,Vintage,Grape,Price,Type,Dryness,Rating,Aroma,FoodPairing,BinLocation,Sold")
+        sb.appendLine("Name,Reference,Region,Vintage,Grape,Price,Type,Dryness,Rating,Aroma,TastingNotes,FoodPairing,BinLocation,GlassType,Decanting,ServingTemp,Keywords,RatingSource,Sold")
         for (w in allWinesUnfiltered.value) {
             sb.appendLine(csvEscape(w.name) + "," + csvEscape(w.reference) + "," + csvEscape(w.region) + "," +
                 csvEscape(w.vintage) + "," + csvEscape(w.grape) + "," + w.price + "," + w.type + "," +
-                w.dryness + "," + w.rating + "," + csvEscape(w.aroma) + "," + csvEscape(w.foodPairing) + "," +
-                csvEscape(w.binLocation) + "," + w.sold)
+                w.dryness + "," + w.rating + "," + csvEscape(w.aroma) + "," + csvEscape(w.tastingNotes) + "," +
+                csvEscape(w.foodPairing) + "," + csvEscape(w.binLocation) + "," + csvEscape(w.glassType) + "," +
+                csvEscape(w.decanting) + "," + csvEscape(w.servingTemp) + "," + csvEscape(w.keywords) + "," +
+                csvEscape(w.ratingSource) + "," + w.sold)
         }
         return sb.toString()
     }
 
-    fun importCsv(csv: String) {
+    fun importCsv(csv: String, onResult: (added: Int, updated: Int, unchanged: Int) -> Unit = { _, _, _ -> }) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val allLines = csv.lines().filter { it.isNotBlank() }
@@ -543,8 +567,13 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 val aromaIdx = headers.indexOfFirst { it.contains("aroma") || it.contains("nose") || it.contains("bouquet") }
                 val pairingIdx = headers.indexOfFirst { it.contains("pair") || it.contains("food") }
                 val binIdx = headers.indexOfFirst { it.contains("bin") || it.contains("location") || it.contains("shelf") }
+                val keywordsIdx = headers.indexOfFirst { it.contains("keyword") || it.contains("selling") }
+                val notesIdx = headers.indexOfFirst { it.contains("tasting") || it.contains("notes") }
 
-                val list = mutableListOf<Wine>()
+                // Build a map of existing wines for upsert
+                val existingWines = allWines.value.associateBy { it.reference }
+                var added = 0; var updated = 0; var unchanged = 0
+
                 for ((idx, line) in dataLines.withIndex()) {
                     val cols = parseCsvLine(line)
                     if (cols.size < 2) continue
@@ -552,33 +581,42 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                     val name = if (nameIdx >= 0 && nameIdx < cols.size) cols[nameIdx] else ""
                     val ref = if (refIdx >= 0 && refIdx < cols.size && cols[refIdx].isNotBlank()) cols[refIdx]
                               else "CSV" + System.currentTimeMillis().toString() + "_" + idx.toString()
-                    val region = if (regionIdx >= 0 && regionIdx < cols.size) cols[regionIdx] else ""
-                    val vintage = if (vintageIdx >= 0 && vintageIdx < cols.size) cols[vintageIdx] else ""
-                    val grape = if (grapeIdx >= 0 && grapeIdx < cols.size) cols[grapeIdx] else ""
-                    val priceStr = if (priceIdx >= 0 && priceIdx < cols.size) cols[priceIdx] else "0"
-                    val type = if (typeIdx >= 0 && typeIdx < cols.size && cols[typeIdx].isNotBlank()) cols[typeIdx] else "Red"
-                    val dryness = if (drynessIdx >= 0 && drynessIdx < cols.size && cols[drynessIdx].isNotBlank()) cols[drynessIdx] else "Dry"
-                    val ratingStr = if (ratingIdx >= 0 && ratingIdx < cols.size) cols[ratingIdx] else "90"
-                    val aroma = if (aromaIdx >= 0 && aromaIdx < cols.size) cols[aromaIdx] else ""
-                    val pairing = if (pairingIdx >= 0 && pairingIdx < cols.size) cols[pairingIdx] else ""
-                    val bin = if (binIdx >= 0 && binIdx < cols.size) cols[binIdx] else ""
 
-                    val enriched = enrichWine(grape, name)
+                    fun col(i: Int) = if (i >= 0 && i < cols.size) cols[i] else ""
 
-                    list.add(Wine(
+                    val existing = existingWines[ref]
+                    val enriched = enrichWine(col(grapeIdx), name)
+
+                    fun merge(csvVal: String, existingVal: String, fallback: String = ""): String =
+                        csvVal.ifBlank { existingVal.ifBlank { fallback } }
+
+                    val wine = Wine(
                         reference = ref,
-                        name = name.ifEmpty { "Unknown Wine" },
-                        region = region, vintage = vintage, grape = grape,
-                        type = type, dryness = dryness,
-                        price = priceStr.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                        rating = ratingStr.toIntOrNull() ?: 90,
-                        aroma = aroma.ifEmpty { enriched.aroma },
-                        foodPairing = pairing.ifEmpty { enriched.foodPairing },
-                        binLocation = bin,
-                        glassType = enriched.glass
-                    ))
+                        name = merge(name, existing?.name ?: "").ifEmpty { "Unknown Wine" },
+                        region = merge(col(regionIdx), existing?.region ?: ""),
+                        vintage = merge(col(vintageIdx), existing?.vintage ?: ""),
+                        grape = merge(col(grapeIdx), existing?.grape ?: ""),
+                        type = merge(col(typeIdx), existing?.type ?: "", "Red"),
+                        dryness = merge(col(drynessIdx), existing?.dryness ?: "", "Dry"),
+                        price = col(priceIdx).replace(",", ".").toDoubleOrNull() ?: existing?.price ?: 0.0,
+                        rating = col(ratingIdx).toIntOrNull() ?: existing?.rating ?: 90,
+                        aroma = merge(col(aromaIdx), existing?.aroma ?: "", enriched.aroma),
+                        foodPairing = merge(col(pairingIdx), existing?.foodPairing ?: "", enriched.foodPairing),
+                        binLocation = merge(col(binIdx), existing?.binLocation ?: ""),
+                        glassType = existing?.glassType?.ifBlank { null } ?: enriched.glass,
+                        decanting = existing?.decanting?.ifBlank { null } ?: enriched.decanting,
+                        servingTemp = existing?.servingTemp?.ifBlank { null } ?: enriched.servingTemp,
+                        keywords = merge(col(keywordsIdx), existing?.keywords ?: "", enriched.keywords),
+                        tastingNotes = merge(col(notesIdx), existing?.tastingNotes ?: ""),
+                        sold = existing?.sold ?: 0,
+                        image = existing?.image
+                    )
+
+                    if (existing != null) {
+                        if (wine != existing) { dao.updateWine(wine); updated++ } else unchanged++
+                    } else { dao.insertWine(wine); added++ }
                 }
-                dao.insertAll(list)
+                launch(Dispatchers.Main) { onResult(added, updated, unchanged) }
             } catch (e: Exception) { e.printStackTrace() }
         }
     }

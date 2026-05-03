@@ -25,8 +25,8 @@ import java.util.*
 fun SalesAnalyticsScreen(viewModel: WineViewModel, onBack: () -> Unit) {
     val sales by viewModel.allSales.collectAsState()
     
-    val totalRevenue = sales.sumOf { it.price }
-    val totalCount = sales.size
+    val totalRevenue = remember(sales) { sales.sumOf { it.price * it.quantity } }
+    val totalCount = remember(sales) { sales.sumOf { it.quantity } }
     
     val now = System.currentTimeMillis()
     val dayMillis = 24 * 60 * 60 * 1000L
@@ -34,14 +34,14 @@ fun SalesAnalyticsScreen(viewModel: WineViewModel, onBack: () -> Unit) {
     val monthMillis = 30 * dayMillis
     val yearMillis = 365 * dayMillis
     
-    val dailySales = sales.filter { now - it.timestamp < dayMillis }
-    val weeklySales = sales.filter { now - it.timestamp < weekMillis }
-    val monthlySales = sales.filter { now - it.timestamp < monthMillis }
-    val yearlySales = sales.filter { now - it.timestamp < yearMillis }
+    val dailySales = remember(sales) { sales.filter { now - it.timestamp < dayMillis } }
+    val weeklySales = remember(sales) { sales.filter { now - it.timestamp < weekMillis } }
+    val monthlySales = remember(sales) { sales.filter { now - it.timestamp < monthMillis } }
+    val yearlySales = remember(sales) { sales.filter { now - it.timestamp < yearMillis } }
     
-    val userSales = sales.groupBy { it.username }.mapValues { entry ->
-        entry.value.size to entry.value.sumOf { it.price }
-    }
+    val userSales = remember(sales) { sales.groupBy { it.username }.mapValues { entry ->
+        entry.value.sumOf { it.quantity } to entry.value.sumOf { it.price * it.quantity }
+    }}
 
     Column(modifier = Modifier.fillMaxSize().background(WineDark)) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -54,24 +54,24 @@ fun SalesAnalyticsScreen(viewModel: WineViewModel, onBack: () -> Unit) {
         LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
             item {
                 AnalyticsCard("Overall Summary") {
-                    StatRow("Total Sales", totalCount.toString())
-                    StatRow("Total Revenue", "€${totalRevenue.toInt()}")
+                    StatRow("Total Bottles", totalCount.toString())
+                    StatRow("Total Revenue", "\u20AC${totalRevenue.toInt()}")
                 }
             }
             
             item {
                 AnalyticsCard("Time Periods") {
-                    StatRow("Today", "€${dailySales.sumOf { it.price }.toInt()} (${dailySales.size})")
-                    StatRow("This Week", "€${weeklySales.sumOf { it.price }.toInt()} (${weeklySales.size})")
-                    StatRow("This Month", "€${monthlySales.sumOf { it.price }.toInt()} (${monthlySales.size})")
-                    StatRow("This Year", "€${yearlySales.sumOf { it.price }.toInt()} (${yearlySales.size})")
+                    StatRow("Today", "\u20AC${dailySales.sumOf { it.price * it.quantity }.toInt()} (${dailySales.sumOf { it.quantity }} btl)")
+                    StatRow("This Week", "\u20AC${weeklySales.sumOf { it.price * it.quantity }.toInt()} (${weeklySales.sumOf { it.quantity }} btl)")
+                    StatRow("This Month", "\u20AC${monthlySales.sumOf { it.price * it.quantity }.toInt()} (${monthlySales.sumOf { it.quantity }} btl)")
+                    StatRow("This Year", "\u20AC${yearlySales.sumOf { it.price * it.quantity }.toInt()} (${yearlySales.sumOf { it.quantity }} btl)")
                 }
             }
             
             item {
                 AnalyticsCard("Sales by User") {
                     userSales.forEach { (user, stats) ->
-                        StatRow(user, "€${stats.second.toInt()} (${stats.first})")
+                        StatRow(user, "\u20AC${stats.second.toInt()} (${stats.first} btl)")
                     }
                 }
             }
@@ -98,7 +98,7 @@ fun AnalyticsCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(title, color = WineGold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Divider(modifier = Modifier.padding(vertical = 8.dp), color = TextTertiary.copy(alpha = 0.2f))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = TextTertiary.copy(alpha = 0.2f))
             content()
         }
     }
@@ -124,10 +124,10 @@ fun SaleItem(sale: Sale) {
             Icon(Icons.Default.TrendingUp, null, tint = WineGold, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(sale.wineName, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Text("by ${sale.username} • ${sdf.format(Date(sale.timestamp))}", color = TextTertiary, fontSize = 11.sp)
+                Text("${sale.quantity}\u00D7 ${sale.wineName}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("by ${sale.username} \u2022 ${sdf.format(Date(sale.timestamp))}", color = TextTertiary, fontSize = 11.sp)
             }
-            Text("€${sale.price.toInt()}", color = WineGold, fontWeight = FontWeight.Bold)
+            Text("\u20AC${(sale.price * sale.quantity).toInt()}", color = WineGold, fontWeight = FontWeight.Bold)
         }
     }
 }

@@ -11,8 +11,8 @@ import java.io.ByteArrayOutputStream
  * Resizes a bitmap to a maximum dimension and compresses it into a JPEG Base64 string.
  * Using JPEG instead of PNG significantly reduces file size and backup time.
  */
-fun resizeBitmap(bitmap: Bitmap): String {
-    val maxSize = 600
+fun resizeBitmap(bitmap: Bitmap, quality: Int = 75): String {
+    val maxSize = 800
     val ratio = minOf(maxSize.toFloat() / bitmap.width, maxSize.toFloat() / bitmap.height, 1f)
     val w = (bitmap.width * ratio).toInt()
     val h = (bitmap.height * ratio).toInt()
@@ -20,12 +20,12 @@ fun resizeBitmap(bitmap: Bitmap): String {
     val scaled = Bitmap.createScaledBitmap(bitmap, w, h, true)
     val baos = ByteArrayOutputStream()
     
-    // WEBP 75% preserves transparency while keeping the file size very small
+    // Use the dynamic quality parameter
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-        scaled.compress(Bitmap.CompressFormat.WEBP_LOSSY, 75, baos)
+        scaled.compress(Bitmap.CompressFormat.WEBP_LOSSY, quality.coerceIn(10, 100), baos)
     } else {
         @Suppress("DEPRECATION")
-        scaled.compress(Bitmap.CompressFormat.WEBP, 75, baos)
+        scaled.compress(Bitmap.CompressFormat.WEBP, quality.coerceIn(10, 100), baos)
     }
     
     val bytes = baos.toByteArray()

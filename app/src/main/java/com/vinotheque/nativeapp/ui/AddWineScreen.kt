@@ -84,6 +84,11 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
     var foodPairing by remember { mutableStateOf("") }
     var binLocation by remember { mutableStateOf("") }
     var glassType by remember { mutableStateOf("") }
+    var tastingNotes by remember { mutableStateOf("") }
+    var decanting by remember { mutableStateOf("") }
+    var servingTemp by remember { mutableStateOf("") }
+    var keywords by remember { mutableStateOf("") }
+    var ratingSource by remember { mutableStateOf("") }
     var capturedImage by remember { mutableStateOf<Bitmap?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -120,6 +125,9 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                 glassType = result.glass
                 if (aroma.isEmpty()) aroma = result.aroma
                 if (foodPairing.isEmpty()) foodPairing = result.foodPairing
+                if (decanting.isEmpty()) decanting = result.decanting
+                if (servingTemp.isEmpty()) servingTemp = result.servingTemp
+                if (keywords.isEmpty()) keywords = result.keywords
             }) {
                 Icon(Icons.Default.AutoAwesome, "Smart Fill", tint = WineGold, modifier = Modifier.size(24.dp))
             }
@@ -225,22 +233,39 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
             OutlinedTextField(value = glassType, onValueChange = { glassType = it },
                 label = { Text("Recommended Glass") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(value = binLocation, onValueChange = { binLocation = it },
+                label = { Text("Bin Location") }, placeholder = { Text("e.g. A12, Shelf 3", color = TextTertiary) },
+                modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(value = keywords, onValueChange = { keywords = it },
+                label = { Text("Selling Keywords (3 words)") }, placeholder = { Text("e.g. Bold. Rich. Spice.", color = TextTertiary) },
+                modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+            Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = binLocation, onValueChange = { binLocation = it },
-                    label = { Text("Bin Location") }, placeholder = { Text("e.g. A12, Shelf 3", color = TextTertiary) },
-                    modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+                OutlinedTextField(value = decanting, onValueChange = { decanting = it },
+                    label = { Text("Decanting") }, modifier = Modifier.weight(1f), colors = fieldColors)
+                OutlinedTextField(value = servingTemp, onValueChange = { servingTemp = it },
+                    label = { Text("Temp") }, modifier = Modifier.weight(1f), colors = fieldColors)
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(value = tastingNotes, onValueChange = { tastingNotes = it },
+                label = { Text("Tasting Notes") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(value = ratingSource, onValueChange = { ratingSource = it },
+                label = { Text("Rating Source") }, placeholder = { Text("e.g. James Suckling, Vivino", color = TextTertiary) },
+                modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
                     var img: String? = null
                     if (capturedImage != null) {
-                        img = resizeBitmap(capturedImage!!)
+                        img = resizeBitmap(capturedImage!!, viewModel.imageQuality.value)
                     }
                     viewModel.saveWine(name, region, vintage, grape, price.toDoubleOrNull() ?: 0.0,
                         type, dryness, ratingVal.toInt(), aroma, foodPairing, img,
-                        binLocation, glassType.ifBlank { null })
+                        binLocation, glassType.ifBlank { null },
+                        tastingNotes, decanting, servingTemp, ratingSource, keywords)
                     onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth().height(52.dp),

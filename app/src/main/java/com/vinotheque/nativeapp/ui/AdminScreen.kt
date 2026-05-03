@@ -75,11 +75,15 @@ data class EditableWine(
     var aroma: String, var foodPairing: String,
     var binLocation: String, var sold: String,
     var glassType: String,
+    var decanting: String, var servingTemp: String,
+    var keywords: String, var tastingNotes: String,
+    var ratingSource: String,
     var imageBase64: String?
 )
 
 fun Wine.toEditable() = EditableWine(reference, name, region, vintage, grape, type, dryness,
-    price.toString(), rating.toString(), aroma, foodPairing, binLocation, sold.toString(), glassType, image)
+    price.toString(), rating.toString(), aroma, foodPairing, binLocation, sold.toString(), glassType,
+    decanting, servingTemp, keywords, tastingNotes, ratingSource, image)
 
 fun EditableWine.toWine(original: Wine) = original.copy(
     name = name, region = region, vintage = vintage, grape = grape, type = type, dryness = dryness,
@@ -87,6 +91,11 @@ fun EditableWine.toWine(original: Wine) = original.copy(
     aroma = aroma, foodPairing = foodPairing, binLocation = binLocation,
     sold = sold.toIntOrNull() ?: original.sold,
     glassType = glassType,
+    decanting = decanting,
+    servingTemp = servingTemp,
+    keywords = keywords,
+    tastingNotes = tastingNotes,
+    ratingSource = ratingSource,
     image = imageBase64)
 
 private val miniFieldColors @Composable get() = OutlinedTextFieldDefaults.colors(
@@ -116,7 +125,7 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
         if (bitmap != null && photoTargetRef != null) {
-            val b64 = resizeBitmap(bitmap)
+            val b64 = resizeBitmap(bitmap, viewModel.imageQuality.value)
             val ref = photoTargetRef!!
             val current = edits[ref]
             if (current != null) { edits[ref] = current.copy(imageBase64 = b64) }
@@ -132,7 +141,7 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
                 val bitmap = BitmapFactory.decodeStream(inputStream)
                 inputStream?.close()
                 if (bitmap != null) {
-                    val b64 = resizeBitmap(bitmap)
+                    val b64 = resizeBitmap(bitmap, viewModel.imageQuality.value)
                     val ref = photoTargetRef!!
                     val current = edits[ref]
                     if (current != null) { edits[ref] = current.copy(imageBase64 = b64) }
@@ -212,6 +221,12 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
                                 "aroma" -> u.copy(aroma = v); "foodPairing" -> u.copy(foodPairing = v)
                                 "binLocation" -> u.copy(binLocation = v)
                                 "sold" -> u.copy(sold = v)
+                                "decanting" -> u.copy(decanting = v)
+                                "servingTemp" -> u.copy(servingTemp = v)
+                                "keywords" -> u.copy(keywords = v)
+                                "tastingNotes" -> u.copy(tastingNotes = v)
+                                "ratingSource" -> u.copy(ratingSource = v)
+                                "glassType" -> u.copy(glassType = v)
                                 else -> u
                             }
                         },
@@ -305,6 +320,13 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                 MiniField("Bin/Location", edit.binLocation, Modifier.weight(1f)) { onFieldChange("binLocation", it) }
                 MiniField("Sold", edit.sold, Modifier.weight(0.4f)) { onFieldChange("sold", it) }
             }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                MiniField("Decant", edit.decanting, Modifier.weight(1f)) { onFieldChange("decanting", it) }
+                MiniField("Temp", edit.servingTemp, Modifier.weight(1f)) { onFieldChange("servingTemp", it) }
+            }
+            MiniField("Keywords", edit.keywords) { onFieldChange("keywords", it) }
+            MiniField("Tasting Notes", edit.tastingNotes) { onFieldChange("tastingNotes", it) }
+            MiniField("Rating Source", edit.ratingSource) { onFieldChange("ratingSource", it) }
             Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onSave, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp),

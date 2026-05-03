@@ -59,19 +59,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
+fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onShowPinDialog: () -> Unit = {}, onShowNamePrompt: () -> Unit = {}, onShowShiftSummary: () -> Unit = {}) {
     val context = LocalContext.current
     val wines by viewModel.allWinesUnfiltered.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     val isAdmin by viewModel.isAdmin.collectAsState()
     val scope = rememberCoroutineScope()
     var showClearDialog by remember { mutableStateOf(false) }
-    var showUserDialog by remember { mutableStateOf(false) }
-    var showAdminLogin by remember { mutableStateOf(false) }
-    var newUsername by remember { mutableStateOf("") }
-    var adminUser by remember { mutableStateOf("") }
-    var adminPass by remember { mutableStateOf("") }
-    var adminError by remember { mutableStateOf(false) }
+    var showChangePinDialog by remember { mutableStateOf(false) }
     var isBusy by remember { mutableStateOf(false) }
 
     // All file operations run on Dispatchers.IO to prevent UI thread crash
@@ -172,48 +167,25 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
             dismissButton = { TextButton(onClick = { showClearDialog = false }) { Text("Cancel") } })
     }
 
-    // Switch user dialog
-    if (showUserDialog) {
-        AlertDialog(onDismissRequest = { showUserDialog = false },
-            title = { Text("Switch Profile") },
-            text = { OutlinedTextField(value = newUsername, onValueChange = { newUsername = it }, label = { Text("Username") }) },
-            confirmButton = { TextButton(onClick = { if (newUsername.isNotBlank()) { viewModel.setUser(newUsername); showUserDialog = false }
-            }) { Text("Switch", color = WineGold) } },
-            dismissButton = { TextButton(onClick = { showUserDialog = false }) { Text("Cancel") } })
-    }
-
-    // Admin login dialog
-    if (showAdminLogin) {
-        AlertDialog(
-            onDismissRequest = { showAdminLogin = false; adminError = false },
-            title = { Text("Admin Login", fontWeight = FontWeight.Bold) },
+    // Change PIN dialog
+    if (showChangePinDialog) {
+        var newPin by remember { mutableStateOf("") }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showChangePinDialog = false },
+            title = { Text("Change Admin PIN") },
             text = {
-                Column {
-                    if (adminError) {
-                        Text("Invalid credentials", color = Color.Red, fontSize = 13.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    OutlinedTextField(value = adminUser, onValueChange = { adminUser = it; adminError = false },
-                        label = { Text("Username") }, singleLine = true)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(value = adminPass, onValueChange = { adminPass = it; adminError = false },
-                        label = { Text("Password") }, singleLine = true,
-                        visualTransformation = PasswordVisualTransformation())
-                }
+                OutlinedTextField(value = newPin, onValueChange = { if (it.length <= 4 && it.all { c -> c.isDigit() }) newPin = it },
+                    label = { Text("New 4-digit PIN") }, singleLine = true)
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (adminUser == "admin" && adminPass == "admin") {
-                        showAdminLogin = false; adminError = false
-                        adminUser = ""; adminPass = ""
-                        viewModel.setAdmin(true)
-                        onOpenAdmin()
-                    } else { adminError = true }
-                }) { Text("Login", color = WineGold, fontWeight = FontWeight.Bold) }
-            },
-            dismissButton = { TextButton(onClick = { showAdminLogin = false; adminError = false; adminUser = ""; adminPass = "" }) { Text("Cancel") } }
+            confirmButton = { TextButton(onClick = {
+                if (newPin.length == 4) { viewModel.setAdminPin(newPin); showChangePinDialog = false
+                    Toast.makeText(context, "PIN changed", Toast.LENGTH_SHORT).show() }
+            }) { Text("Save", color = WineGold) } },
+            dismissButton = { TextButton(onClick = { showChangePinDialog = false }) { Text("Cancel") } }
         )
     }
+
+
 
     Column(modifier = Modifier.fillMaxSize().background(WineDark)
         .verticalScroll(rememberScrollState()).padding(20.dp),
@@ -223,9 +195,31 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
 
         // Profile
         SettingsCard("Profile", Icons.Default.Person) {
-            Text("Signed in as " + currentUser, color = Color.White, fontSize = 14.sp)
+            Text("Serving as: " + currentUser, color = Color.White, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            SettingsButton("Switch Profile", WineGold) { newUsername = currentUser; showUserDialog = true }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SettingsButton("Change Name", WineGold, Modifier.weight(1f)) { onShowNamePrompt() }
+                SettingsButton("Shift Summary", WineSurface, Modifier.weight(1f)) { onShowShiftSummary() }
+            }
+        }
+
+        // Image Sharpness Slider
+        val currentQuality by viewModel.imageQuality.collectAsState()
+        SettingsCard("Image Quality & Performance", Icons.Default.CameraAlt) {
+            Text("Sharpness: ${currentQuality}%", color = Color.White, fontSize = 14.sp)
+            Text("Higher sharpness increases backup size", color = TextTertiary, fontSize = 11.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Slider(
+                value = currentQuality.toFloat(),
+                onValueChange = { viewModel.setImageQuality(it.toInt()) },
+                valueRange = 10f..100f,
+                steps = 8,
+                colors = SliderDefaults.colors(
+                    thumbColor = WineGold,
+                    activeTrackColor = WineGold,
+                    inactiveTrackColor = WineSurface
+                )
+            )
         }
 
         // Backup (includes images)
@@ -303,18 +297,22 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}) {
                 viewModel.loadSampleData(); Toast.makeText(context, "Sample wines loaded!", Toast.LENGTH_SHORT).show() }
         }
 
-        // Admin (requires login)
+        // Admin Panel
         SettingsCard("Admin Panel", Icons.Default.Lock) {
-            Text("Manage all wines, edit fields, add photos", color = TextTertiary, fontSize = 13.sp)
-            Text("Requires admin credentials", color = TextTertiary, fontSize = 11.sp)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Admin Mode", color = Color.White, fontSize = 14.sp)
+                Text(if (isAdmin) "Active" else "Inactive", color = if (isAdmin) WineGold else TextSecondary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
             Spacer(modifier = Modifier.height(8.dp))
             if (isAdmin) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     SettingsButton("Admin Panel", WineGold, Modifier.weight(1f)) { onOpenAdmin() }
-                    SettingsButton("Logout", WineRed, Modifier.weight(1f)) { viewModel.setAdmin(false) }
+                    SettingsButton("Lock Admin", WineRed, Modifier.weight(1f)) { viewModel.setAdmin(false) }
                 }
+                Spacer(modifier = Modifier.height(6.dp))
+                SettingsButton("Change Admin PIN", WineSurface) { showChangePinDialog = true }
             } else {
-                SettingsButton("Admin Login", WineGold) { showAdminLogin = true }
+                SettingsButton("Unlock Admin", WineGold) { onShowPinDialog() }
             }
         }
 
