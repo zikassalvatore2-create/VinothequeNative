@@ -57,7 +57,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.MaterialTheme
 import com.vinotheque.nativeapp.ui.theme.BurgundyRed
 import com.vinotheque.nativeapp.ui.theme.WineRed
 import kotlinx.coroutines.Dispatchers

@@ -65,7 +65,7 @@ fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
         drawPath(
             path = archPath,
             brush = Brush.verticalGradient(
-                listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), Color.Transparent)
+                listOf(primaryColor.copy(alpha = 0.2f), Color.Transparent)
             )
         )
 

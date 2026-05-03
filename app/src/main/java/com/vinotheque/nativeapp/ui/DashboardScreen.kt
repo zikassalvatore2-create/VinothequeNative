@@ -195,7 +195,7 @@ fun DashboardScreen(viewModel: WineViewModel) {
             Spacer(modifier = Modifier.height(8.dp))
             TypeBar("Dessert", dessertCount, totalBottles, DessertColor)
         } else {
-            Text("Add wines to see your collection breakdown", color = TextTertiary, fontSize = 14.sp)
+            Text("Add wines to see your collection breakdown", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
         }
 
         // Top Rated

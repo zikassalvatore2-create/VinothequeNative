@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.data.Wine
 import androidx.compose.material3.MaterialTheme
-import com.vinotheque.nativeapp.data.Wine
 
 @Composable
 fun PairingScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
