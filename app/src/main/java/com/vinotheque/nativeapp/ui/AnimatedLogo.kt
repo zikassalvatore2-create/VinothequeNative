@@ -8,10 +8,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,30 +26,34 @@ fun AnimatedVinothequeLogo(
     isSmall: Boolean = false,
     startDelay: Long = 0
 ) {
-    val circleProgress = remember { Animatable(0f) }
-    val bottleProgress = remember { Animatable(0f) }
-    val textAlpha = remember { Animatable(0f) }
+    val doorRotation = remember { Animatable(0f) } // 0 to 90
+    val glowIntensity = remember { Animatable(0f) } // 0 to 1
+    val textAlpha = remember { Animatable(0f) } // 0 to 1
     
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.03f,
+    val infiniteTransition = rememberInfiniteTransition(label = "flicker")
+    val flicker by infiniteTransition.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
+            animation = tween(1500, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "pulseScale"
+        label = "flicker"
     )
 
     LaunchedEffect(Unit) {
         delay(startDelay)
-        circleProgress.animateTo(1f, animationSpec = tween(1200, easing = LinearOutSlowInEasing))
-        bottleProgress.animateTo(1f, animationSpec = tween(1000, easing = FastOutSlowInEasing))
-        textAlpha.animateTo(1f, animationSpec = tween(800))
+        // 1. Doors open
+        doorRotation.animateTo(1f, animationSpec = tween(1500, easing = FastOutSlowInEasing))
+        // 2. Light glows
+        glowIntensity.animateTo(1f, animationSpec = tween(1000))
+        // 3. Text fades in
+        textAlpha.animateTo(1f, animationSpec = tween(1000))
     }
 
     val goldColor = WineGold
-    val redColor = WineRed
+    val darkGold = goldColor.copy(alpha = 0.6f)
+    val wineColor = WineRed
 
     Column(
         modifier = modifier,
@@ -56,141 +61,179 @@ fun AnimatedVinothequeLogo(
         verticalArrangement = Arrangement.Center
     ) {
         Box(
-            modifier = Modifier
-                .size(if (isSmall) 60.dp else 120.dp)
-                .graphicsLayer {
-                    scaleX = pulseScale
-                    scaleY = pulseScale
-                },
+            modifier = Modifier.size(if (isSmall) 80.dp else 160.dp),
             contentAlignment = Alignment.Center
         ) {
-            
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val w = size.width
                 val h = size.height
                 val centerX = w / 2f
                 val centerY = h / 2f
-                val strokeWidth = (if (isSmall) 1.5.dp else 3.dp).toPx()
-
-                // 1. Draw Circle/Arc (Draws in)
-                val arcRect = Rect(Offset(w * 0.1f, h * 0.1f), Size(w * 0.8f, h * 0.8f))
-                drawArc(
-                    color = goldColor,
-                    startAngle = -240f,
-                    sweepAngle = 300f * circleProgress.value,
-                    useCenter = false,
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
-                    topLeft = arcRect.topLeft,
-                    size = arcRect.size
+                
+                // Arch dimensions
+                val archWidth = w * 0.7f
+                val archHeight = h * 0.8f
+                val archRect = androidx.compose.ui.geometry.Rect(
+                    centerX - archWidth / 2f,
+                    h * 0.1f,
+                    centerX + archWidth / 2f,
+                    h * 0.1f + archHeight
                 )
 
-                // 2. Draw "V" (Fades or stays)
-                if (circleProgress.value > 0.5f) {
-                    val vAlpha = ((circleProgress.value - 0.5f) * 2f).coerceIn(0f, 1f)
-                    val vPath = Path().apply {
-                        // Left stroke
-                        moveTo(w * 0.25f, h * 0.3f)
-                        lineTo(centerX - (if (isSmall) 2.dp else 4.dp).toPx(), h * 0.7f)
-                        // Right stroke
-                        moveTo(w * 0.75f, h * 0.3f)
-                        lineTo(centerX + (if (isSmall) 2.dp else 4.dp).toPx(), h * 0.7f)
-                    }
-                    drawPath(
-                        path = vPath,
-                        color = goldColor.copy(alpha = vAlpha),
-                        style = Stroke(width = strokeWidth * 1.5f, cap = StrokeCap.Round)
+                // 1. Draw the Stone Archway (Background)
+                val archPath = Path().apply {
+                    addArc(
+                        androidx.compose.ui.geometry.Rect(
+                            archRect.left, archRect.top, archRect.right, archRect.top + archWidth
+                        ),
+                        180f, 180f
                     )
-                }
-
-                // 3. Draw Bottle (Fills with wine)
-                val bottleWidth = w * 0.25f
-                val bottleHeight = h * 0.5f
-                val bottleRect = Rect(
-                    centerX - bottleWidth / 2f,
-                    centerY - bottleHeight / 2f,
-                    centerX + bottleWidth / 2f,
-                    centerY + bottleHeight / 2f
-                )
-
-                val bottlePath = Path().apply {
-                    // Simple bottle shape
-                    moveTo(centerX - bottleWidth * 0.2f, bottleRect.top) // Neck top left
-                    lineTo(centerX + bottleWidth * 0.2f, bottleRect.top) // Neck top right
-                    lineTo(centerX + bottleWidth * 0.2f, bottleRect.top + bottleHeight * 0.3f) // Neck bottom right
-                    // Shoulder and body
-                    cubicTo(
-                        centerX + bottleWidth * 0.5f, bottleRect.top + bottleHeight * 0.4f,
-                        centerX + bottleWidth * 0.5f, bottleRect.bottom,
-                        centerX, bottleRect.bottom // Taper to point like the image
-                    )
-                    cubicTo(
-                        centerX - bottleWidth * 0.5f, bottleRect.bottom,
-                        centerX - bottleWidth * 0.5f, bottleRect.top + bottleHeight * 0.4f,
-                        centerX - bottleWidth * 0.2f, bottleRect.top + bottleHeight * 0.3f
-                    )
+                    lineTo(archRect.right, archRect.bottom)
+                    lineTo(archRect.left, archRect.bottom)
                     close()
                 }
 
-                // Draw bottle outline
-                drawPath(
-                    path = bottlePath,
-                    color = goldColor.copy(alpha = 0.3f),
-                    style = Stroke(width = strokeWidth / 2f)
-                )
-
-                // Fill bottle (from bottom)
-                if (bottleProgress.value > 0f) {
-                    clipPath(bottlePath) {
-                        val fillHeight = bottleHeight * bottleProgress.value
-                        drawRect(
-                            color = redColor,
-                            topLeft = Offset(bottleRect.left, bottleRect.bottom - fillHeight),
-                            size = Size(bottleWidth, fillHeight)
-                        )
-                    }
-                }
+                // Draw arch stones (segments)
+                val strokeWidth = (if (isSmall) 2.dp else 4.dp).toPx()
+                drawPath(archPath, goldColor, style = Stroke(width = strokeWidth))
                 
-                // 4. Corkscrew (Fades in)
-                if (bottleProgress.value > 0.8f) {
-                    val corkAlpha = ((bottleProgress.value - 0.8f) * 5f).coerceIn(0f, 1f)
-                    val corkPath = Path().apply {
-                        var currY = bottleRect.bottom
-                        moveTo(centerX, currY)
-                        for (i in 1..4) {
-                            val side = if (i % 2 == 0) 1f else -1f
-                            val step = (if (isSmall) 3.dp else 6.dp).toPx()
-                            relativeQuadraticBezierTo(
-                                side * step, step / 2f,
-                                0f, step
+                // Add stone lines
+                for (i in 0..10) {
+                    val angle = 180f + i * 18f
+                    val rad = Math.toRadians(angle.toDouble())
+                    val x1 = centerX + (archWidth / 2f) * Math.cos(rad).toFloat()
+                    val y1 = (archRect.top + archWidth / 2f) + (archWidth / 2f) * Math.sin(rad).toFloat()
+                    val x2 = centerX + (archWidth / 2f + strokeWidth * 2) * Math.cos(rad).toFloat()
+                    val y2 = (archRect.top + archWidth / 2f) + (archWidth / 2f + strokeWidth * 2) * Math.sin(rad).toFloat()
+                    drawLine(goldColor, androidx.compose.ui.geometry.Offset(x1, y1), androidx.compose.ui.geometry.Offset(x2, y2), strokeWidth / 2f)
+                }
+
+                // 2. Draw Shelves and Bottles (Inside)
+                clipPath(archPath) {
+                    drawRect(Color.Black.copy(alpha = 0.8f))
+                    // Grid
+                    val rows = 4
+                    val cols = 4
+                    val cellW = archWidth / cols
+                    val cellH = (archHeight - archWidth / 2f) / rows
+                    val startY = archRect.top + archWidth / 2f
+                    
+                    for (r in 0 until rows) {
+                        for (c in 0 until cols) {
+                            val x = archRect.left + c * cellW
+                            val y = startY + r * cellH
+                            // Draw a tiny bottle silhouette
+                            val bW = cellW * 0.4f
+                            val bH = cellH * 0.6f
+                            drawRoundRect(
+                                wineColor.copy(alpha = 0.3f),
+                                androidx.compose.ui.geometry.Offset(x + (cellW - bW) / 2f, y + (cellH - bH) / 2f),
+                                androidx.compose.ui.geometry.Size(bW, bH),
+                                androidx.compose.ui.geometry.CornerRadius(4f, 4f)
                             )
-                            currY += step
                         }
                     }
-                    drawPath(
-                        path = corkPath,
-                        color = goldColor.copy(alpha = corkAlpha),
-                        style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                    
+                    // Shelving lines
+                    for (i in 1 until rows) {
+                        val y = startY + i * cellH
+                        drawLine(darkGold, androidx.compose.ui.geometry.Offset(archRect.left, y), androidx.compose.ui.geometry.Offset(archRect.right, y), 1f)
+                    }
+                    for (i in 1 until cols) {
+                        val x = archRect.left + i * cellW
+                        drawLine(darkGold, androidx.compose.ui.geometry.Offset(x, startY), androidx.compose.ui.geometry.Offset(x, archRect.bottom), 1f)
+                    }
+                }
+
+                // 3. Draw Center Bottle & Glow
+                val mainBottleW = archWidth * 0.15f
+                val mainBottleH = archHeight * 0.4f
+                val mainBottleX = centerX - mainBottleW / 2f
+                val mainBottleY = archRect.bottom - mainBottleH - 4.dp.toPx()
+
+                if (glowIntensity.value > 0f) {
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(goldColor.copy(alpha = 0.4f * glowIntensity.value * flicker), Color.Transparent),
+                            center = androidx.compose.ui.geometry.Offset(centerX, mainBottleY + mainBottleH / 2f),
+                            radius = archWidth * 0.4f
+                        ),
+                        radius = archWidth * 0.4f,
+                        center = androidx.compose.ui.geometry.Offset(centerX, mainBottleY + mainBottleH / 2f)
+                    )
+                }
+
+                // Bottle outline
+                drawRoundRect(
+                    goldColor,
+                    androidx.compose.ui.geometry.Offset(mainBottleX, mainBottleY),
+                    androidx.compose.ui.geometry.Size(mainBottleW, mainBottleH),
+                    androidx.compose.ui.geometry.CornerRadius(2.dp.toPx(), 2.dp.toPx()),
+                    style = Stroke(width = 1.dp.toPx())
+                )
+                // Bottle neck
+                drawRect(
+                    goldColor,
+                    androidx.compose.ui.geometry.Offset(centerX - mainBottleW * 0.2f, mainBottleY - mainBottleH * 0.15f),
+                    androidx.compose.ui.geometry.Size(mainBottleW * 0.4f, mainBottleH * 0.15f)
+                )
+
+                // 4. Draw Doors (Animated)
+                val doorW = archWidth / 2f
+                val doorH = archHeight
+                
+                // Left Door
+                rotate(degrees = -90f * doorRotation.value, pivot = androidx.compose.ui.geometry.Offset(archRect.left, centerY)) {
+                    drawRect(
+                        brush = Brush.horizontalGradient(listOf(goldColor.copy(alpha = 0.9f), darkGold)),
+                        topLeft = androidx.compose.ui.geometry.Offset(archRect.left, archRect.top),
+                        size = androidx.compose.ui.geometry.Size(doorW, doorH)
+                    )
+                    drawRect(
+                        goldColor,
+                        topLeft = androidx.compose.ui.geometry.Offset(archRect.left, archRect.top),
+                        size = androidx.compose.ui.geometry.Size(doorW, doorH),
+                        style = Stroke(width = strokeWidth / 2f)
+                    )
+                }
+                
+                // Right Door
+                rotate(degrees = 90f * doorRotation.value, pivot = androidx.compose.ui.geometry.Offset(archRect.right, centerY)) {
+                    drawRect(
+                        brush = Brush.horizontalGradient(listOf(darkGold, goldColor.copy(alpha = 0.9f))),
+                        topLeft = androidx.compose.ui.geometry.Offset(centerX, archRect.top),
+                        size = androidx.compose.ui.geometry.Size(doorW, doorH)
+                    )
+                    drawRect(
+                        goldColor,
+                        topLeft = androidx.compose.ui.geometry.Offset(centerX, archRect.top),
+                        size = androidx.compose.ui.geometry.Size(doorW, doorH),
+                        style = Stroke(width = strokeWidth / 2f)
                     )
                 }
             }
         }
 
         if (!isSmall) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "VINOTHEQUE",
-                color = goldColor.copy(alpha = textAlpha.value),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 6.sp
-            )
-            Text(
-                text = "PRO",
-                color = goldColor.copy(alpha = textAlpha.value * 0.6f),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Light,
-                letterSpacing = 10.sp
-            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.graphicsLayer { alpha = textAlpha.value }) {
+                Text(
+                    text = "VINOTHEQUE",
+                    color = goldColor,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 8.sp
+                )
+                
+                // Decorative line with grapes
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.width(40.dp).height(1.dp).graphicsLayer { background(goldColor) })
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("\uD83C\uDF47", fontSize = 16.sp) // Grape emoji
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(modifier = Modifier.width(40.dp).height(1.dp).graphicsLayer { background(goldColor) })
+                }
+            }
         }
     }
 }
