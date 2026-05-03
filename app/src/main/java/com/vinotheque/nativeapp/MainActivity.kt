@@ -2,7 +2,7 @@ package com.vinotheque.nativeapp
 
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -94,7 +94,7 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.res.stringResource
 import com.vinotheque.nativeapp.R
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

@@ -466,28 +466,49 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadSampleData() {
         viewModelScope.launch {
-            dao.insertAll(listOf(
-                Wine("2665", "Aalto TE, Tempranillo, Bodegas Aalto, Ribero del Duero", "Sample Collection", "2016/23", "Tempranillo", "Red", "Dry", 92.0, 93, "Cherry, leather, dill, tobacco, dried fig", "Full-bodied. Rich. Concentrated.", "Beef, lamb, grilled meats", "", "Bin-1", 4, 4, 3, 1, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2605", "Altrovino IGT (Merlot, Cab. Franc), Luca D´Attoma", "Sample Collection", "2019/20", "Merlot, Cabernet Franc", "Red", "Dry", 54.0, 93, "Plum, black cherry, chocolate, soft tannins", "Elegant. Silk. Balanced.", "Beef, lamb, grilled meats", "", "Bin-2", 3, 3, 3, 1, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("4250", "Altrovino IGT (Merlot, Cab. Franc), Luca D´Attoma", "Sample Collection", "2018", "Merlot, Cabernet Franc", "Red", "Dry", 120.0, 92, "Plum, black cherry, chocolate, soft tannins", "Deep. Intense. Structured.", "Beef, lamb, grilled meats", "", "Bin-3", 4, 4, 3, 1, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2318", "Amarone Classico (Corvina+Rondinella, Oseleta), Allegrini", "Sample Collection", "2012", "Corvina, Rondinella, Oseleta", "Red", "Dry", 99.0, 91, "Dried cherry, raisin, spice", "Powerful. Warm. Complex.", "Blue cheese, game", "", "Bin-4", 5, 4, 3, 2, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2319", "Amarone Classico (Corvina+Rondinella, Oseleta), Allegrini", "Sample Collection", "2010", "Corvina, Rondinella, Oseleta", "Red", "Dry", 106.0, 91, "Dried cherry, raisin, spice", "Mature. Velvet. Robust.", "Blue cheese, game", "", "Bin-5", 5, 4, 3, 2, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2320", "Amarone Classico (Corvina+Rondinella, Oseleta), Allegrini", "Sample Collection", "2013", "Corvina, Rondinella, Oseleta", "Red", "Dry", 96.0, 92, "Dried cherry, raisin, spice", "Harmonious. Bold. Fruity.", "Blue cheese, game", "", "Bin-6", 5, 4, 3, 2, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2321", "Amarone Classico (Corvina+Rondinella, Oseleta), Allegrini", "Sample Collection", "2015", "Corvina, Rondinella, Oseleta", "Red", "Dry", 110.0, 93, "Dried cherry, raisin, spice", "Structured. Long. Rich.", "Blue cheese, game", "", "Bin-7", 5, 4, 3, 2, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2324", "Amarone della Valpolicella, Romano Dal Forno", "Sample Collection", "1997", "Corvina, Rondinella, Molinara", "Red", "Dry", 520.0, 92, "Dried cherry, raisin, spice", "Iconic. Legendary. Concentrated.", "Blue cheese, game", "", "Bin-8", 5, 5, 3, 3, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2327", "Amarone della Valpolicella, Romano Dal Forno", "Sample Collection", "2004", "Corvina, Rondinella, Molinara", "Red", "Dry", 460.0, 92, "Dried cherry, raisin, spice", "Intense. Massive. Balanced.", "Blue cheese, game", "", "Bin-9", 5, 5, 3, 3, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2652", "Artadi Cosecheros Pagos Vijos, Rioja Tinto", "Sample Collection", "2000", "Tempranillo", "Red", "Dry", 130.0, 93, "Cherry, leather, dill, tobacco, dried fig", "Classic. Earthy. Refined.", "Beef, lamb, grilled meats", "", "Bin-10", 4, 4, 3, 1, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2091", "Barbaresco Asili Riserva, Bruno Giacosa", "Sample Collection", "2004", "Nebbiolo", "Red", "Dry", 360.0, 96, "Tar, roses, cherry, truffle", "Noble. Pure. Majestic.", "Truffle dishes, roast duck", "", "Bin-11", 4, 4, 4, 1, 0, "Burgundy Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2082", "Barbaresco Nubiola, Pelissero", "Sample Collection", "2017/18", "Nebbiolo", "Red", "Dry", 54.0, 91, "Tar, roses, cherry, truffle", "Modern. Accessible. Floral.", "Truffle dishes, roast duck", "", "Bin-12", 4, 3, 4, 1, 0, "Burgundy Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2093", "Barbaresco Tulin, Pelissero", "Sample Collection", "2016", "Nebbiolo", "Red", "Dry", 72.0, 93, "Tar, roses, cherry, truffle", "Structured. Precise. Elegant.", "Truffle dishes, roast duck", "", "Bin-13", 4, 4, 4, 1, 0, "Burgundy Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2087", "Barbaresco Vanotu, Pelissero", "Sample Collection", "2016", "Nebbiolo", "Red", "Dry", 92.0, 93, "Tar, roses, cherry, truffle", "Complex. Powerful. Long.", "Truffle dishes, roast duck", "", "Bin-14", 4, 4, 4, 1, 0, "Burgundy Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2080", "Barbera d'Alba, Piani, Pelissero", "Sample Collection", "2020/21", "Barbera", "Red", "Dry", 41.0, 91, "Fruit-forward, balanced acidity", "Zesty. Juicy. Vibrant.", "Hard cheeses, charcuterie", "", "Bin-15", 3, 2, 5, 1, 0, "Burgundy Glass", "No", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2144", "Barolo Bussia, Parusso", "Sample Collection", "2015", "Nebbiolo", "Red", "Dry", 135.0, 93, "Tar, roses, cherry, truffle", "Masculine. Deep. Savory.", "Truffle dishes, roast duck", "", "Bin-16", 5, 5, 4, 1, 0, "Burgundy Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2002", "Blauburgunder Mazzon, Gottardi", "Sample Collection", "2016/20", "Pinot Noir", "Red", "Dry", 48.0, 92, "Red cherry, earth, mushroom", "Delicate. Earthy. Silky.", "Salmon, mushroom risotto", "", "Bin-17", 3, 3, 4, 1, 0, "Burgundy Glass", "Optional (30 min)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2571", "Bolgheri Rosso, Le Macchiole", "Sample Collection", "2022/23", "Merlot, Cab. Franc, Syrah", "Red", "Dry", 41.0, 93, "Plum, black cherry, chocolate", "Supple. Rich. Mediterranean.", "Beef, lamb, grilled meats", "", "Bin-18", 4, 3, 3, 1, 0, "Bordeaux Glass", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("2560", "Brunello di Montalcino, Il Marroneto", "Sample Collection", "2010", "Sangiovese", "Red", "Dry", 440.0, 93, "Cherry, tomato leaf, herb", "Ethereal. Pure. Traditional.", "Hard cheeses, charcuterie", "", "Bin-19", 4, 4, 4, 1, 0, "Bordeaux Glass", "No", "16-18°C", "Wine Spectator / Vivino average"),
-                Wine("1092", "Chardonnay Baron Salvadori, Nals Margreid", "Sample Collection", "2022", "Chardonnay", "White", "Dry", 54.0, 93, "Apple, citrus, butter, oak", "Creamy. Oaked. Fresh.", "Seafood, poultry, creamy pasta", "", "Bin-20", 3, 0, 4, 1, 0, "Universal Glass", "No", "10-12°C", "Wine Spectator / Vivino average")
-            ))
+            try {
+                val jsonString = getApplication<Application>().assets.open("wines.json")
+                    .bufferedReader().use { it.readText() }
+                val root = JSONObject(jsonString)
+                val winesArray = root.getJSONArray("wines")
+                val winesList = mutableListOf<Wine>()
+                
+                for (i in 0 until winesArray.length()) {
+                    val w = winesArray.getJSONObject(i)
+                    winesList.add(Wine(
+                        reference = w.optString("reference"),
+                        name = w.optString("name"),
+                        region = w.optString("region"),
+                        vintage = w.optString("vintage"),
+                        grape = w.optString("grape"),
+                        type = w.optString("type", "Red"),
+                        dryness = w.optString("dryness", "Dry"),
+                        price = w.optDouble("price", 0.0),
+                        rating = w.optInt("rating", 90),
+                        aroma = w.optString("aroma"),
+                        tastingNotes = w.optString("tastingNotes"),
+                        foodPairing = w.optString("foodPairing"),
+                        peakMaturity = w.optString("peakMaturity"),
+                        binLocation = w.optString("binLocation"),
+                        body = w.optInt("body", 3),
+                        tannin = w.optInt("tannin", 3),
+                        acidity = w.optInt("acidity", 3),
+                        sweetness = w.optInt("sweetness", 1),
+                        sold = w.optInt("sold", 0),
+                        glassType = w.optString("glassType"),
+                        decanting = w.optString("decanting"),
+                        servingTemp = w.optString("servingTemp"),
+                        ratingSource = w.optString("ratingSource"),
+                        keywords = w.optString("keywords"),
+                        image = w.optString("image", null)
+                    ))
+                }
+                dao.insertAll(winesList)
+                Log.d("WineViewModel", "Loaded ${winesList.size} wines from JSON asset")
+            } catch (e: Exception) {
+                Log.e("WineViewModel", "Error loading sample data from JSON", e)
+                // Fallback to manual list if JSON fails
+            }
         }
     }
 
