@@ -125,15 +125,7 @@ fun SplashScreen() {
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            com.vinotheque.nativeapp.ui.AnimatedVinothequeLogo(modifier = Modifier.size(140.dp))
-            Spacer(modifier = Modifier.height(32.dp))
-            Text("VINOTHEQUE", color = MaterialTheme.colorScheme.primary, fontSize = 36.sp, fontWeight = FontWeight.Bold, letterSpacing = 8.sp)
-            Text("PRO", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), fontSize = 18.sp, fontWeight = FontWeight.Light, letterSpacing = 12.sp)
-            Spacer(modifier = Modifier.height(60.dp))
-            Text("Developed by", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 12.sp)
-            Text("Zakariae BOUZIDI-IDRISSI", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
-        }
+        com.vinotheque.nativeapp.ui.AnimatedVinothequeLogo(modifier = Modifier.size(240.dp))
     }
 }
 
@@ -310,6 +302,11 @@ fun VinothequeApp(viewModel: WineViewModel) {
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            Box(modifier = Modifier.fillMaxWidth().height(70.dp), contentAlignment = Alignment.Center) {
+                com.vinotheque.nativeapp.ui.AnimatedVinothequeLogo(isSmall = true)
+            }
+        },
         bottomBar = {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
                 navItems.forEachIndexed { index, item ->
