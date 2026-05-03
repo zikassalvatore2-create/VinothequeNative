@@ -57,7 +57,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vinotheque.nativeapp.ui.theme.*
+import androidx.compose.material3.MaterialTheme
+import com.vinotheque.nativeapp.ui.theme.BurgundyRed
+import com.vinotheque.nativeapp.ui.theme.WineRed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -162,7 +164,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
             text = { Text("Permanently delete all " + wines.size.toString() + " wines?") },
             confirmButton = { TextButton(onClick = { viewModel.clearAll(); showClearDialog = false
                 Toast.makeText(context, "All data cleared", Toast.LENGTH_SHORT).show()
-            }) { Text("Delete All", color = Color.Red) } },
+            }) { Text("Delete All", color = MaterialTheme.colorScheme.error) } },
             dismissButton = { TextButton(onClick = { showClearDialog = false }) { Text("Cancel") } })
     }
 
@@ -190,12 +192,17 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
         .verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-        Text("Settings", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text("Settings", color = MaterialTheme.colorScheme.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold)
 
         // Profile
         SettingsCard("Profile", Icons.Default.Person) {
-            Text("Serving as: " + currentUser, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
-            Spacer(modifier = Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Text("Current Sommelier", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontSize = 12.sp)
+                    Text(currentUser, color = MaterialTheme.colorScheme.primary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SettingsButton("Change Name", MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { onShowNamePrompt() }
                 SettingsButton("Shift Summary", MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) { onShowShiftSummary() }
@@ -259,8 +266,8 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
 
         // Backup (includes images)
         SettingsCard("Backup & Restore", Icons.Default.CloudUpload) {
-            Text(wines.size.toString() + " bottles in cellar", color = TextTertiary, fontSize = 13.sp)
-            Text("Includes wine photos in backup", color = TextTertiary, fontSize = 11.sp)
+            Text(wines.size.toString() + " bottles in cellar", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp)
+            Text("Includes wine photos in backup", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
             // Auto-backup status
             val lastBackup = viewModel.getLastBackupTime()
             if (lastBackup > 0) {
@@ -271,11 +278,11 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
                     ago < 86400 -> (ago / 3600).toString() + "h ago"
                     else -> (ago / 86400).toString() + "d ago"
                 }
-                Text("\u2705 Auto-backup: $timeText", color = WineGold.copy(alpha = 0.7f), fontSize = 11.sp)
+                Text("\u2705 Auto-backup: $timeText", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f), fontSize = 11.sp)
             }
             Spacer(modifier = Modifier.height(8.dp))
             if (isBusy) {
-                Text("Processing... please wait", color = WineGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("Processing... please wait", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -288,7 +295,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
             }
             Spacer(modifier = Modifier.height(6.dp))
             // Restore from auto-backup
-            SettingsButton("Restore from Auto-Backup", WineSurface) {
+            SettingsButton("Restore from Auto-Backup", MaterialTheme.colorScheme.surfaceVariant) {
                 if (!isBusy) {
                     isBusy = true
                     scope.launch(Dispatchers.IO) {
@@ -328,15 +335,15 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
 
         // Sample Data
         SettingsCard("Sample Collection", Icons.Default.LocalBar) {
-            SettingsButton("Load 10 Premium Wines", WineGold) {
+            SettingsButton("Load 10 Premium Wines", MaterialTheme.colorScheme.primary) {
                 viewModel.loadSampleData(); Toast.makeText(context, "Sample wines loaded!", Toast.LENGTH_SHORT).show() }
         }
 
         // Admin Panel
         SettingsCard("Admin Panel", Icons.Default.Lock) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Admin Mode", color = Color.White, fontSize = 14.sp)
-                Text(if (isAdmin) "Active" else "Inactive", color = if (isAdmin) WineGold else TextSecondary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text("Admin Mode", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                Text(if (isAdmin) "Active" else "Inactive", color = if (isAdmin) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(8.dp))
             if (isAdmin) {
@@ -381,7 +388,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
         ) {
             Card(
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = WineSurface)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(
                     modifier = Modifier.padding(32.dp),
@@ -389,27 +396,27 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
                 ) {
                     CircularProgressIndicator(
                         progress = progress.progress.toFloat() / progress.max.toFloat(),
-                        color = WineGold,
-                        trackColor = WineSurface.copy(alpha = 0.2f),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
                         modifier = Modifier.size(64.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         "${progress.progress}%",
-                        color = WineGold,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         progress.message,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         "Do not close the app",
-                        color = TextSecondary,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         fontSize = 11.sp
                     )
                 }
@@ -439,7 +446,7 @@ fun SettingsCard(title: String, icon: ImageVector, content: @Composable () -> Un
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, title, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.padding(start = 10.dp))
-                Text(title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(title, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(12.dp))
             content()
@@ -449,9 +456,9 @@ fun SettingsCard(title: String, icon: ImageVector, content: @Composable () -> Un
 
 @Composable
 fun SettingsButton(text: String, color: Color, modifier: Modifier = Modifier.fillMaxWidth(), onClick: () -> Unit) {
-    val isPrimary = color == WineGold || color == MaterialTheme.colorScheme.primary
+    val isPrimary = color == MaterialTheme.colorScheme.primary
     Button(onClick = onClick, modifier = modifier, shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(containerColor = color)) {
-        Text(text, color = if (isPrimary) Color.Black else Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text(text, color = if (isPrimary) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     }
 }

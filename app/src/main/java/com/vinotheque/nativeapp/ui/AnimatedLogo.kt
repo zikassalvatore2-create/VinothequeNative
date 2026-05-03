@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.dp
-import com.vinotheque.nativeapp.ui.theme.WineGold
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
@@ -28,9 +28,10 @@ fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
         label = "glow"
     )
 
+    val primaryColor = MaterialTheme.colorScheme.primary
     val colorShift by infiniteTransition.animateColor(
-        initialValue = Color(0xFFFFD700), // Gold
-        targetValue = Color(0xFFFFEAB0), // Light gold
+        initialValue = primaryColor,
+        targetValue = primaryColor.copy(alpha = 0.6f),
         animationSpec = infiniteRepeatable(
             animation = tween(4000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
@@ -64,7 +65,7 @@ fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
         drawPath(
             path = archPath,
             brush = Brush.verticalGradient(
-                listOf(Color(0xFF4A0E0E).copy(alpha = 0.4f), Color.Transparent)
+                listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), Color.Transparent)
             )
         )
 

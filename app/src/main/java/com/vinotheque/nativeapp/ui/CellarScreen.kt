@@ -65,13 +65,8 @@ import com.vinotheque.nativeapp.ui.theme.DessertColor
 import com.vinotheque.nativeapp.ui.theme.RedWineColor
 import com.vinotheque.nativeapp.ui.theme.RoseWineColor
 import com.vinotheque.nativeapp.ui.theme.SparklingColor
-import com.vinotheque.nativeapp.ui.theme.TextSecondary
-import com.vinotheque.nativeapp.ui.theme.TextTertiary
 import com.vinotheque.nativeapp.ui.theme.WhiteWineColor
-import com.vinotheque.nativeapp.ui.theme.WineDark
-import com.vinotheque.nativeapp.ui.theme.WineGold
-import com.vinotheque.nativeapp.ui.theme.WineGoldDim
-import com.vinotheque.nativeapp.ui.theme.WineSurface
+import androidx.compose.material3.MaterialTheme
 
 fun getTypeColor(type: String): Color = when (type.lowercase().replace("é", "e")) {
     "red" -> RedWineColor
@@ -79,7 +74,7 @@ fun getTypeColor(type: String): Color = when (type.lowercase().replace("é", "e"
     "rose" -> RoseWineColor
     "sparkling" -> SparklingColor
     "dessert" -> DessertColor
-    else -> WineGold
+    else -> Color(0xFFD4AF6A) // Fallback gold
 }
 
 @Composable
@@ -153,18 +148,18 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
         Spacer(modifier = Modifier.height(8.dp))
 
         // Results
-        Text(wines.size.toString() + " wines", color = TextTertiary, fontSize = 12.sp,
+        Text(wines.size.toString() + " wines", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 12.sp,
             modifier = Modifier.padding(horizontal = 20.dp))
         Spacer(modifier = Modifier.height(8.dp))
 
         if (wines.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.LocalBar, "Empty", tint = WineGold.copy(alpha = 0.2f), modifier = Modifier.size(80.dp))
+                    Icon(Icons.Default.LocalBar, "Empty", tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), modifier = Modifier.size(80.dp))
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Your cellar is empty", color = TextSecondary, fontSize = 18.sp, fontWeight = FontWeight.Light)
+                    Text("Your cellar is empty", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 18.sp, fontWeight = FontWeight.Light)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Add wines or load sample data", color = TextTertiary, fontSize = 14.sp)
+                    Text("Add wines or load sample data", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
                 }
             }
         } else {
@@ -255,10 +250,10 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
             Box(
                 modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
                     .size(34.dp).clip(CircleShape)
-                    .background(Brush.radialGradient(listOf(WineGold, WineGoldDim))),
+                    .background(Brush.radialGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)))),
                 contentAlignment = Alignment.Center
             ) {
-                Text(wine.rating.toString(), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                Text(wine.rating.toString(), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 10.sp)
             }
             // Type badge — frosted glass effect
             Box(
@@ -274,10 +269,10 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                 Box(
                     modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(WineGold.copy(alpha = 0.15f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
-                    Text(wine.sold.toString() + " sold", color = WineGold, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    Text(wine.sold.toString() + " sold", color = MaterialTheme.colorScheme.primary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -292,7 +287,7 @@ fun WineListRow(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = WineSurface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -312,26 +307,26 @@ fun WineListRow(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(wine.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
+                Text(wine.name, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
                 Spacer(modifier = Modifier.height(2.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (wine.region.isEmpty()) "No Region" else wine.region, color = if (wine.region.isEmpty()) Color.Red else TextSecondary, fontSize = 11.sp, maxLines = 1)
-                    Text(" | ", color = TextTertiary, fontSize = 11.sp)
-                    Text(if (wine.vintage.isEmpty()) "No Vintage" else wine.vintage, color = if (wine.vintage.isEmpty()) Color.Red else TextSecondary, fontSize = 11.sp)
+                    Text(if (wine.region.isEmpty()) "No Region" else wine.region, color = if (wine.region.isEmpty()) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp, maxLines = 1)
+                    Text(" | ", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), fontSize = 11.sp)
+                    Text(if (wine.vintage.isEmpty()) "No Vintage" else wine.vintage, color = if (wine.vintage.isEmpty()) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
                 }
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(if (wine.grape.isEmpty()) "No Grape" else wine.grape, color = if (wine.grape.isEmpty()) Color.Red else TextTertiary, fontSize = 10.sp)
+                Text(if (wine.grape.isEmpty()) "No Grape" else wine.grape, color = if (wine.grape.isEmpty()) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 10.sp)
                 if (wine.rating == 0) {
                     Text("No Rating", color = Color.Red, fontSize = 10.sp)
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End) {
-                Text("\u20AC" + wine.price.toInt().toString(), color = WineGold, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("\u20AC" + wine.price.toInt().toString(), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 if (wine.binLocation.isEmpty()) {
                     Text("No Bin", color = Color.Red, fontSize = 10.sp)
                 } else {
-                    Text("Bin " + wine.binLocation, color = WineGold.copy(alpha = 0.8f), fontSize = 11.sp)
+                    Text("Bin " + wine.binLocation, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f), fontSize = 11.sp)
                 }
             }
         }

@@ -34,51 +34,46 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.MaterialTheme
 import com.vinotheque.nativeapp.data.Wine
-import com.vinotheque.nativeapp.ui.theme.TextSecondary
-import com.vinotheque.nativeapp.ui.theme.TextTertiary
-import com.vinotheque.nativeapp.ui.theme.WineDark
-import com.vinotheque.nativeapp.ui.theme.WineGold
-import com.vinotheque.nativeapp.ui.theme.WineGoldDim
-import com.vinotheque.nativeapp.ui.theme.WineSurface
 
 @Composable
 fun FavoritesScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
     val favorites by viewModel.favoriteWines.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize().background(WineDark).padding(20.dp)) {
-        Text("Favorites", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text(favorites.size.toString() + " wines saved", color = TextSecondary, fontSize = 14.sp)
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(20.dp)) {
+        Text("Favorites", color = MaterialTheme.colorScheme.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(favorites.size.toString() + " wines saved", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp)
         Spacer(modifier = Modifier.height(20.dp))
 
         if (favorites.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.FavoriteBorder, "Empty", tint = TextTertiary, modifier = Modifier.size(64.dp))
+                    Icon(Icons.Default.FavoriteBorder, "Empty", tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f), modifier = Modifier.size(64.dp))
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("No favorites yet", color = TextSecondary, fontSize = 18.sp)
-                    Text("Tap the heart on any wine to save it", color = TextTertiary, fontSize = 14.sp)
+                    Text("No favorites yet", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 18.sp)
+                    Text("Tap the heart on any wine to save it", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
                 }
             }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(favorites) { wine ->
                     Card(modifier = Modifier.clickable { onWineClick(wine) }, shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Row(modifier = Modifier.padding(16.dp).fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically) {
                             Box(modifier = Modifier.size(48.dp).clip(CircleShape)
-                                .background(Brush.radialGradient(listOf(WineGold, WineGoldDim))),
+                                .background(Brush.radialGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)))),
                                 contentAlignment = Alignment.Center) {
-                                Text(wine.rating.toString(), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text(wine.rating.toString(), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             }
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(wine.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1)
-                                Text(wine.region + " | " + wine.vintage, color = TextSecondary, fontSize = 12.sp)
-                                Text(wine.grape, color = TextTertiary, fontSize = 11.sp)
+                                Text(wine.name, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1)
+                                Text(wine.region + " | " + wine.vintage, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
+                                Text(wine.grape, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
                             }
-                            Text("\u20AC" + wine.price.toInt().toString(), color = WineGold, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text("\u20AC" + wine.price.toInt().toString(), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
                     }
                 }

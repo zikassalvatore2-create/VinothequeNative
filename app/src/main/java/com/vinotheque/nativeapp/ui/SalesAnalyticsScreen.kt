@@ -17,7 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.data.Sale
-import com.vinotheque.nativeapp.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -43,12 +42,12 @@ fun SalesAnalyticsScreen(viewModel: WineViewModel, onBack: () -> Unit) {
         entry.value.sumOf { it.quantity } to entry.value.sumOf { it.price * it.quantity }
     }}
 
-    Column(modifier = Modifier.fillMaxSize().background(WineDark)) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = Color.White)
+                Icon(Icons.Default.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface)
             }
-            Text("Sales Analytics", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Sales Analytics", color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
         
         LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
@@ -77,7 +76,7 @@ fun SalesAnalyticsScreen(viewModel: WineViewModel, onBack: () -> Unit) {
             }
             
             item {
-                Text("Recent Transactions", color = WineGold, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 12.dp))
+                Text("Recent Transactions", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 12.dp))
             }
             
             items(sales.take(50)) { sale ->
@@ -94,11 +93,11 @@ fun AnalyticsCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = WineSurface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, color = WineGold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = TextTertiary.copy(alpha = 0.2f))
+            Text(title, color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
             content()
         }
     }
@@ -107,8 +106,8 @@ fun AnalyticsCard(title: String, content: @Composable ColumnScope.() -> Unit) {
 @Composable
 fun StatRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = TextSecondary, fontSize = 14.sp)
-        Text(value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(label, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 14.sp)
+        Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -118,16 +117,16 @@ fun SaleItem(sale: Sale) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = WineSurface.copy(alpha = 0.5f))
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.TrendingUp, null, tint = WineGold, modifier = Modifier.size(16.dp))
+            Icon(Icons.Default.TrendingUp, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text("${sale.quantity}\u00D7 ${sale.wineName}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Text("by ${sale.username} \u2022 ${sdf.format(Date(sale.timestamp))}", color = TextTertiary, fontSize = 11.sp)
+                Text("${sale.quantity}\u00D7 ${sale.wineName}", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text("by ${sale.username} \u2022 ${sdf.format(Date(sale.timestamp))}", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
             }
-            Text("\u20AC${(sale.price * sale.quantity).toInt()}", color = WineGold, fontWeight = FontWeight.Bold)
+            Text("\u20AC${(sale.price * sale.quantity).toInt()}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
         }
     }
 }

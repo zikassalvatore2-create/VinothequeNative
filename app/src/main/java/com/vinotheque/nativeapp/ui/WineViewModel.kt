@@ -636,32 +636,42 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 val dataLines = allLines.drop(1)
 
                 fun findIdx(names: List<String>, exclude: List<String> = emptyList()): Int {
+                    // Try exact match first for ANY of the names
                     val exact = headers.indexOfFirst { h -> names.any { it.equals(h, ignoreCase = true) } }
                     if (exact >= 0) return exact
+                    
+                    // Try exact match without underscores/spaces
+                    val exactNormalized = headers.indexOfFirst { h -> 
+                        val hn = h.replace("_", "").replace(" ", "").lowercase()
+                        names.any { n -> n.replace("_", "").replace(" ", "").lowercase() == hn }
+                    }
+                    if (exactNormalized >= 0) return exactNormalized
+
+                    // Try partial match with exclusions
                     return headers.indexOfFirst { h -> 
                         names.any { n -> h.contains(n, ignoreCase = true) } &&
                         exclude.none { e -> h.contains(e, ignoreCase = true) }
                     }
                 }
 
-                val nameIdx = findIdx(listOf("name", "wine", "label"))
-                val refIdx = findIdx(listOf("reference", "ref", "id", "sku"))
-                val regionIdx = findIdx(listOf("region", "appellation", "origin", "terroir"))
-                val vintageIdx = findIdx(listOf("vintage", "year", "millésime", "millesime"))
+                val nameIdx = findIdx(listOf("name", "wine", "label", "nom"))
+                val refIdx = findIdx(listOf("reference", "ref", "id", "sku", "code"))
+                val regionIdx = findIdx(listOf("region", "appellation", "origin", "terroir", "pays"))
+                val vintageIdx = findIdx(listOf("vintage", "year", "millésime", "millesime", "annee"))
                 val grapeIdx = findIdx(listOf("grape", "varietal", "variety", "cépage", "cepage"))
-                val priceIdx = findIdx(listOf("price", "cost", "prix"))
-                val typeIdx = findIdx(listOf("type", "color", "couleur"), exclude = listOf("glass"))
+                val priceIdx = findIdx(listOf("price", "cost", "prix", "valeur"))
+                val typeIdx = findIdx(listOf("type", "color", "couleur", "wine_color"), exclude = listOf("glass"))
                 val drynessIdx = findIdx(listOf("dryness", "sugar", "sucre", "dry"))
                 val ratingIdx = findIdx(listOf("rating", "score", "points", "note"))
                 val ratingSourceIdx = findIdx(listOf("rating_source", "source", "critic"))
                 val aromaIdx = findIdx(listOf("aroma", "nose", "bouquet", "nez"))
-                val pairingIdx = findIdx(listOf("pairing", "food", "accord"))
+                val pairingIdx = findIdx(listOf("pairing", "food", "accord", "plat"))
                 val binIdx = findIdx(listOf("bin", "location", "shelf", "emplacement", "cave"))
-                val keywordsIdx = findIdx(listOf("keywords", "selling", "tags"))
-                val notesIdx = findIdx(listOf("notes", "tasting", "description"))
-                val glassIdx = findIdx(listOf("glass", "verre"))
+                val keywordsIdx = findIdx(listOf("keywords", "selling", "tags", "mots"))
+                val notesIdx = findIdx(listOf("notes", "tasting", "description", "degustation"))
+                val glassIdx = findIdx(listOf("glass", "verre", "glass_type"))
                 val decantIdx = findIdx(listOf("decant", "decanting", "carafe"))
-                val tempIdx = findIdx(listOf("temp", "serving", "temperature"))
+                val tempIdx = findIdx(listOf("temp", "serving", "temperature", "service"))
 
                 // Build a map of existing wines for upsert
                 val existingWines = allWines.value.associateBy { it.reference }

@@ -129,7 +129,7 @@ fun SplashScreen() {
             Text("VINOTHEQUE", color = MaterialTheme.colorScheme.primary, fontSize = 36.sp, fontWeight = FontWeight.Bold, letterSpacing = 8.sp)
             Text("PRO", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), fontSize = 18.sp, fontWeight = FontWeight.Light, letterSpacing = 12.sp)
             Spacer(modifier = Modifier.height(60.dp))
-            Text("Developed by", color = TextSecondary.copy(alpha = 0.5f), fontSize = 12.sp)
+            Text("Developed by", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 12.sp)
             Text("Zakariae BOUZIDI-IDRISSI", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
         }
     }
@@ -142,23 +142,23 @@ fun NamePromptScreen(onConfirm: (String) -> Unit) {
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { delay(300); focusRequester.requestFocus() }
 
-    Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(WineDark, WineRed.copy(alpha = 0.15f), WineDark))),
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(40.dp)) {
-            Icon(Icons.Default.LocalBar, "Logo", tint = WineGold, modifier = Modifier.size(48.dp))
+            Icon(Icons.Default.LocalBar, "Logo", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
             Spacer(modifier = Modifier.height(32.dp))
-            Text("Welcome", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-            Text("Who's serving tonight?", color = TextSecondary, fontSize = 16.sp)
+            Text("Welcome", color = MaterialTheme.colorScheme.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text("Who's serving tonight?", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 16.sp)
             Spacer(modifier = Modifier.height(32.dp))
             OutlinedTextField(
                 value = name, onValueChange = { name = it },
-                placeholder = { Text("Your name", color = TextSecondary) },
+                placeholder = { Text("Your name", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)) },
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                 singleLine = true, shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = WineGold, unfocusedBorderColor = WineGold.copy(alpha = 0.3f),
-                    focusedContainerColor = WineSurface, unfocusedContainerColor = WineSurface,
-                    cursorColor = WineGold, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                    focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface, unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    cursorColor = MaterialTheme.colorScheme.primary, focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface)
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(
@@ -167,9 +167,9 @@ fun NamePromptScreen(onConfirm: (String) -> Unit) {
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = WineGold, disabledContainerColor = WineGold.copy(alpha = 0.3f))
+                    containerColor = MaterialTheme.colorScheme.primary, disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
             ) {
-                Text("Begin", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Begin", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
     }
@@ -186,16 +186,16 @@ fun AdminPinDialog(onCorrect: () -> Unit, onDismiss: () -> Unit, viewModel: Wine
     LaunchedEffect(shake) { if (shake) { delay(100); shake = false } }
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = WineSurface),
+        Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier.width(280.dp)) {
             Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Admin Access", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Admin Access", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(20.dp))
                 // PIN dots
                 Row(modifier = Modifier.offset(x = shakeOffset.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     for (i in 0 until 4) {
                         Box(modifier = Modifier.size(16.dp).clip(CircleShape)
-                            .background(if (i < pin.length) WineGold else WineGold.copy(alpha = 0.2f)))
+                            .background(if (i < pin.length) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)))
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -217,15 +217,15 @@ fun AdminPinDialog(onCorrect: () -> Unit, onDismiss: () -> Unit, viewModel: Wine
                                 },
                                 modifier = Modifier.size(56.dp),
                                 shape = CircleShape,
-                                colors = ButtonDefaults.buttonColors(containerColor = WineDark)
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.background)
                             ) {
-                                Text(key, color = Color.White, fontSize = if (key == "⌫" || key == "✓") 18.sp else 20.sp, fontWeight = FontWeight.Bold)
+                                Text(key, color = MaterialTheme.colorScheme.onBackground, fontSize = if (key == "⌫" || key == "✓") 18.sp else 20.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
-                TextButton(onClick = onDismiss) { Text("Cancel", color = TextSecondary) }
+                TextButton(onClick = onDismiss) { Text("Cancel", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) }
             }
         }
     }
@@ -305,25 +305,25 @@ fun VinothequeApp(viewModel: WineViewModel) {
     )
 
     Scaffold(
-        containerColor = WineDark,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            NavigationBar(containerColor = WineSurface, tonalElevation = 0.dp) {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
                 navItems.forEachIndexed { index, item ->
                     NavigationBarItem(
                         icon = { Icon(item.icon, item.label, modifier = Modifier.size(22.dp)) },
                         label = { Text(item.label, fontSize = 10.sp, fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal) },
                         selected = selectedTab == index, onClick = { selectedTab = index },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = WineGold, unselectedIconColor = TextSecondary,
-                            selectedTextColor = WineGold, unselectedTextColor = TextSecondary,
-                            indicatorColor = WineGold.copy(alpha = 0.15f))
+                            selectedIconColor = MaterialTheme.colorScheme.primary, unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            selectedTextColor = MaterialTheme.colorScheme.primary, unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                     )
                 }
             }
         },
         floatingActionButton = {
             if (selectedTab == 1 && isAdmin) {
-                FloatingActionButton(onClick = { showAddWine = true }, containerColor = WineGold, contentColor = Color.Black) {
+                FloatingActionButton(onClick = { showAddWine = true }, containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary) {
                     Icon(Icons.Default.Add, "Add Wine", modifier = Modifier.size(28.dp))
                 }
             }
@@ -346,9 +346,9 @@ fun VinothequeApp(viewModel: WineViewModel) {
                 }
             }
 
-            // Gold indicator line when admin active
+            // Primary indicator line when admin active
             if (isAdmin) {
-                Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(WineGold.copy(alpha = 0.6f)).align(Alignment.TopCenter))
+                Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)).align(Alignment.TopCenter))
             }
         }
     }

@@ -69,13 +69,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.vinotheque.nativeapp.data.Wine
-import com.vinotheque.nativeapp.ui.theme.TextSecondary
-import com.vinotheque.nativeapp.ui.theme.TextTertiary
-import com.vinotheque.nativeapp.ui.theme.WineDark
-import com.vinotheque.nativeapp.ui.theme.WineGold
-import com.vinotheque.nativeapp.ui.theme.WineGoldDim
-import com.vinotheque.nativeapp.ui.theme.WineRed
-import com.vinotheque.nativeapp.ui.theme.WineSurface
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.text.KeyboardOptions
@@ -132,16 +125,16 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
             // Top bar with back/fav/delete
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, "Back", tint = Color.White, modifier = Modifier.size(28.dp))
+                    Icon(Icons.Default.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(28.dp))
                 }
                 Row {
                     IconButton(onClick = { viewModel.toggleFavorite(wine.reference) }) {
                         Icon(if (isFav) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            "Favorite", tint = if (isFav) Color.Red else MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(28.dp))
+                            "Favorite", tint = if (isFav) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(28.dp))
                     }
                     if (isAdmin) {
                         IconButton(onClick = onDelete) {
-                            Icon(Icons.Default.Delete, "Delete", tint = Color.Red.copy(alpha = 0.7f), modifier = Modifier.size(28.dp))
+                            Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f), modifier = Modifier.size(28.dp))
                         }
                     }
                 }
@@ -216,26 +209,27 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                         },
                         modifier = Modifier.weight(1f).height(40.dp),
                         shape = RoundedCornerShape(14.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, WineGold)
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                     ) {
-                        Icon(Icons.Default.Search, "Google", tint = WineGold, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Search, "Google", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Search Google", color = WineGold, fontSize = 12.sp)
+                        Text("Search Google", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                     }
                     OutlinedButton(
                         onClick = { showPresentation = true },
                         modifier = Modifier.weight(1f).height(40.dp),
                         shape = RoundedCornerShape(14.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, WineGold)
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                     ) {
-                        Icon(Icons.Default.Visibility, "Present", tint = WineGold, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Visibility, "Present", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Present", color = WineGold, fontSize = 12.sp)
+                        Text("Present", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                     }
                 }
 
                 // ===== BELOW THE FOLD =====
-                Spacer(modifier = Modifier.h                DetailSection("Reference", wine.reference)
+                Spacer(modifier = Modifier.height(20.dp))
+                DetailSection("Reference", wine.reference)
                 DetailSection("Grape", wine.grape)
 
                 if (wine.tastingNotes.isNotEmpty()) {
@@ -261,7 +255,7 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                     Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Text(wine.foodPairing, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
                     }
-                }             }
+                }
                 if (wine.peakMaturity.isNotEmpty()) { Spacer(modifier = Modifier.height(12.dp)); DetailSection("Peak Maturity", wine.peakMaturity) }
                 if (wine.ratingSource.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection("Rating Source", wine.ratingSource) }
                 if (wine.glassType.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection("Glass", wine.glassType) }
@@ -320,17 +314,17 @@ fun PresentationMode(wine: Wine, onClose: () -> Unit) {
         onDispose { activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(WineDark).verticalScroll(rememberScrollState())) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).verticalScroll(rememberScrollState())) {
         // Close button
         Row(modifier = Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.End) {
             IconButton(onClick = onClose) {
-                Icon(Icons.Default.Close, "Close", tint = Color.White, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.Close, "Close", tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(24.dp))
             }
         }
 
         // Service bar
         Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp), shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = WineGold.copy(alpha = 0.10f))) {
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f))) {
             Row(modifier = Modifier.padding(14.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 ServiceTag("\uD83D\uDCCD", wine.binLocation.ifEmpty { "—" })
                 ServiceTag("\uD83C\uDF77", wine.glassType.ifEmpty { "—" })

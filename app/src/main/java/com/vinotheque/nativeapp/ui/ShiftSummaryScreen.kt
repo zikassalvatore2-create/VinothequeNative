@@ -18,8 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.vinotheque.nativeapp.ui.theme.*
+import androidx.compose.material3.MaterialTheme
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -101,7 +100,7 @@ fun ShiftSummaryScreen(viewModel: WineViewModel, onBack: () -> Unit) {
             Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text(dateFormat.format(Date(now)), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(dateFormat.format(Date(now)), color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf("Lunch", "Dinner", "Custom").forEach { label ->

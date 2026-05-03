@@ -51,15 +51,7 @@ import com.vinotheque.nativeapp.ui.theme.DessertColor
 import com.vinotheque.nativeapp.ui.theme.RedWineColor
 import com.vinotheque.nativeapp.ui.theme.RoseWineColor
 import com.vinotheque.nativeapp.ui.theme.SparklingColor
-import com.vinotheque.nativeapp.ui.theme.TextSecondary
-import com.vinotheque.nativeapp.ui.theme.TextTertiary
 import com.vinotheque.nativeapp.ui.theme.WhiteWineColor
-import com.vinotheque.nativeapp.ui.theme.WineCard
-import com.vinotheque.nativeapp.ui.theme.WineDark
-import com.vinotheque.nativeapp.ui.theme.WineGold
-import com.vinotheque.nativeapp.ui.theme.WineGoldDim
-import com.vinotheque.nativeapp.ui.theme.WineRed
-import com.vinotheque.nativeapp.ui.theme.WineSurface
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -114,7 +106,7 @@ fun DashboardScreen(viewModel: WineViewModel) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Welcome back,",
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                     fontSize = 14.sp
                 )
                 Text(
@@ -126,7 +118,7 @@ fun DashboardScreen(viewModel: WineViewModel) {
                 )
                 Text(
                     text = SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date()),
-                    color = TextTertiary,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f),
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 4.dp)
                 )
@@ -164,7 +156,7 @@ fun DashboardScreen(viewModel: WineViewModel) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Time-based stat cards
-        Text("Bottles Served", color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text("Bottles Served", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TimeStatChip("Today", todaySold.toString(), Modifier.weight(1f))
@@ -209,14 +201,14 @@ fun DashboardScreen(viewModel: WineViewModel) {
         // Top Rated
         if (topWine != null) {
             Spacer(modifier = Modifier.height(28.dp))
-            Text("Top Rated", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Top Rated", color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             HighlightCard(topWine.name, topWine.region, topWine.rating.toString() + "/100",
                 "\u20AC" + topWine.price.toInt().toString(), topWine.vintage)
         }
         if (mostExpensive != null && mostExpensive != topWine) {
             Spacer(modifier = Modifier.height(12.dp))
-            Text("Most Valuable", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Most Valuable", color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             HighlightCard(mostExpensive.name, mostExpensive.region, mostExpensive.rating.toString() + "/100",
                 "\u20AC" + mostExpensive.price.toInt().toString(), mostExpensive.vintage)
@@ -225,7 +217,7 @@ fun DashboardScreen(viewModel: WineViewModel) {
         // Recent Activity Feed
         if (recentSales.isNotEmpty()) {
             Spacer(modifier = Modifier.height(28.dp))
-            Text("Recent Activity", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Recent Activity", color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             val sdf = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
             for (sale in recentSales) {
@@ -291,28 +283,28 @@ fun TypeBar(label: String, count: Int, total: Int, color: Color) {
                 .background(Brush.horizontalGradient(listOf(color.copy(alpha = 0.7f), color))))
         }
         Spacer(modifier = Modifier.width(8.dp))
-        Text(count.toString(), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+        Text(count.toString(), color = MaterialTheme.colorScheme.onBackground, fontSize = 13.sp, fontWeight = FontWeight.Bold,
             modifier = Modifier.width(30.dp))
     }
 }
 
 @Composable
 fun HighlightCard(name: String, region: String, rating: String, price: String, vintage: String) {
-    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier.size(56.dp).clip(CircleShape)
-                    .background(Brush.radialGradient(listOf(WineGold, WineGoldDim))),
+                    .background(Brush.radialGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)))),
                 contentAlignment = Alignment.Center
             ) {
-                Text(rating.substringBefore("/"), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(rating.substringBefore("/"), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 2)
-                Text(region + " | " + vintage, color = TextSecondary, fontSize = 12.sp)
+                Text(name, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 2)
+                Text(region + " | " + vintage, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
             }
-            Text(price, color = WineGold, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text(price, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
     }
 }

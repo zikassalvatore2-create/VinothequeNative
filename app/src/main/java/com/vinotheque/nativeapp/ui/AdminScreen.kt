@@ -59,12 +59,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.data.Wine
-import com.vinotheque.nativeapp.ui.theme.TextSecondary
-import com.vinotheque.nativeapp.ui.theme.TextTertiary
-import com.vinotheque.nativeapp.ui.theme.WineDark
-import com.vinotheque.nativeapp.ui.theme.WineGold
+import androidx.compose.material3.MaterialTheme
 import com.vinotheque.nativeapp.ui.theme.WineRed
-import com.vinotheque.nativeapp.ui.theme.WineSurface
 import java.io.ByteArrayOutputStream
 
 data class EditableWine(
@@ -99,9 +95,9 @@ fun EditableWine.toWine(original: Wine) = original.copy(
     image = imageBase64)
 
 private val miniFieldColors @Composable get() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = WineGold, unfocusedBorderColor = WineSurface,
-    focusedLabelColor = WineGold, unfocusedLabelColor = TextTertiary,
-    cursorColor = WineGold, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+    focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+    focusedLabelColor = MaterialTheme.colorScheme.primary, unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+    cursorColor = MaterialTheme.colorScheme.primary, focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface)
 
 /** Resize bitmap to max 800px on longest side, PNG format for transparency */
 
@@ -152,22 +148,22 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(WineDark)) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         // Top bar
-        Row(modifier = Modifier.fillMaxWidth().background(WineSurface).padding(horizontal = 4.dp, vertical = 4.dp),
+        Row(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = Color.White, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
             }
             Spacer(modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.weight(1f))
-            Text("Admin Table", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("Admin Table", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.weight(1f))
             if (isRepairing) {
-                Text("Repairing...  ", color = WineGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("Repairing...  ", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             } else {
                 IconButton(onClick = onOpenSales) {
-                    Icon(Icons.Default.TrendingUp, "Sales", tint = WineGold, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.TrendingUp, "Sales", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 }
                 IconButton(onClick = {
                     isRepairing = true
@@ -176,34 +172,34 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
                         Toast.makeText(context, "Repaired $count images!", Toast.LENGTH_LONG).show()
                     }
                 }) {
-                    Icon(Icons.Default.LocalBar, "Repair", tint = WineGold, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.LocalBar, "Repair", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 }
             }
-            Text(filteredWines.size.toString() + "/" + wines.size.toString() + "  ", color = TextSecondary, fontSize = 13.sp)
+            Text(filteredWines.size.toString() + "/" + wines.size.toString() + "  ", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp)
         }
 
         // Search bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Search by reference, name, grape...", color = TextTertiary) },
-            leadingIcon = { Icon(Icons.Default.Search, "Search", tint = TextSecondary) },
+            placeholder = { Text("Search by reference, name, grape...", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)) },
+            leadingIcon = { Icon(Icons.Default.Search, "Search", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = WineGold, unfocusedBorderColor = WineSurface,
-                focusedContainerColor = WineSurface, unfocusedContainerColor = WineSurface,
-                cursorColor = WineGold, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant, unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                cursorColor = MaterialTheme.colorScheme.primary, focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface)
         )
 
         if (filteredWines.isEmpty()) {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.LocalBar, "Empty", tint = TextTertiary, modifier = Modifier.size(64.dp))
+                Icon(Icons.Default.LocalBar, "Empty", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), modifier = Modifier.size(64.dp))
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(if (searchQuery.isNotBlank()) "No wines match \"" + searchQuery + "\"" else "No wines to edit",
-                    color = TextSecondary, fontSize = 16.sp)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 16.sp)
             }
         } else {
             LazyColumn(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -255,7 +251,7 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
              onTakePhoto: () -> Unit, onPickGallery: () -> Unit, onSave: () -> Unit, onDelete: () -> Unit) {
     val context = LocalContext.current
 
-    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(modifier = Modifier.padding(12.dp)) {
             // Photo + reference + actions row
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -263,7 +259,7 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                 Box(
                     modifier = Modifier.size(56.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(WineDark),
+                        .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncWineImage(
@@ -272,7 +268,7 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                         modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(10.dp)).padding(2.dp),
                         contentScale = ContentScale.Fit,
                         placeholder = {
-                            Icon(Icons.Default.LocalBar, "No photo", tint = TextTertiary.copy(alpha = 0.4f), modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.LocalBar, "No photo", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), modifier = Modifier.size(24.dp))
                         }
                     )
                 }
@@ -281,20 +277,20 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                 Column {
                     Row {
                         IconButton(onClick = onTakePhoto, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.CameraAlt, "Camera", tint = WineGold, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.CameraAlt, "Camera", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                         }
                         IconButton(onClick = onPickGallery, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Image, "Gallery", tint = WineGold, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Image, "Gallery", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                         }
                         IconButton(onClick = { searchWineImage(context, edit.name) }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Search, "Search", tint = WineGold, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Search, "Search", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 // Reference badge
-                Box(modifier = Modifier.background(WineDark, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 4.dp)) {
-                    Text("#" + edit.reference, color = WineGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Box(modifier = Modifier.background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 4.dp)) {
+                    Text("#" + edit.reference, color = MaterialTheme.colorScheme.primary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -330,9 +326,9 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
             Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onSave, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = WineGold)) {
-                    Icon(Icons.Default.Save, "Save", tint = Color.Black, modifier = Modifier.size(16.dp))
-                    Text(" Save", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+                    Icon(Icons.Default.Save, "Save", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
+                    Text(" Save", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
                 Button(onClick = onDelete, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = WineRed)) {
