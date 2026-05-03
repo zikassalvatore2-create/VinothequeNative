@@ -52,8 +52,8 @@ import com.vinotheque.nativeapp.ui.theme.RedWineColor
 import com.vinotheque.nativeapp.ui.theme.RoseWineColor
 import com.vinotheque.nativeapp.ui.theme.SparklingColor
 import com.vinotheque.nativeapp.ui.theme.WhiteWineColor
-import java.text.SimpleDateFormat
-import java.util.*
+import androidx.compose.ui.res.stringResource
+import com.vinotheque.nativeapp.R
 
 @Composable
 fun DashboardScreen(viewModel: WineViewModel) {
@@ -105,7 +105,7 @@ fun DashboardScreen(viewModel: WineViewModel) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Welcome back,",
+                    text = stringResource(R.string.welcome_back),
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                     fontSize = 14.sp
                 )
@@ -143,8 +143,8 @@ fun DashboardScreen(viewModel: WineViewModel) {
         // Search bar
         OutlinedTextField(
             value = searchQuery, onValueChange = { searchQuery = it; viewModel.searchQuery.value = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search wines, regions, grapes...", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f), fontSize = 14.sp) },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            placeholder = { Text(stringResource(R.string.search_hint), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f), fontSize = 14.sp) },
             leadingIcon = { Icon(Icons.Default.Search, "Search", tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)) },
             singleLine = true, shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -153,73 +153,74 @@ fun DashboardScreen(viewModel: WineViewModel) {
                 cursorColor = MaterialTheme.colorScheme.primary, focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Time-based stat cards
-        Text("Bottles Served", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TimeStatChip("Today", todaySold.toString(), Modifier.weight(1f))
-            TimeStatChip("Week", weekSold.toString(), Modifier.weight(1f))
-            TimeStatChip("Month", monthSold.toString(), Modifier.weight(1f))
-            TimeStatChip("Year", yearSold.toString(), Modifier.weight(1f))
-            TimeStatChip("All", totalSold.toString(), Modifier.weight(1f))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Hero stat cards
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            HeroCard("Wines", totalBottles.toString(), Icons.Default.LocalBar, MaterialTheme.colorScheme.primary, Modifier.weight(1f))
-            HeroCard("Value", "\u20AC" + totalValue.toInt().toString(), Icons.Default.TrendingUp, MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            HeroCard("Your Sales", userSales.toString() + " btl", Icons.Default.Star, MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
-            HeroCard("Your Revenue", "\u20AC" + userRevenue.toInt().toString(), Icons.Default.TrendingUp, MaterialTheme.colorScheme.primary, Modifier.weight(1f))
-        }
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        // Wine type distribution
-        Text("Collection", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(12.dp))
-        if (totalBottles > 0) {
-            TypeBar("Red", redCount, totalBottles, RedWineColor)
+        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+            // Time-based stat cards
+            Text(stringResource(R.string.bottles_served), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
-            TypeBar("White", whiteCount, totalBottles, WhiteWineColor)
-            Spacer(modifier = Modifier.height(8.dp))
-            TypeBar("Rosé", roseCount, totalBottles, RoseWineColor)
-            Spacer(modifier = Modifier.height(8.dp))
-            TypeBar("Sparkling", sparkCount, totalBottles, SparklingColor)
-            Spacer(modifier = Modifier.height(8.dp))
-            TypeBar("Dessert", dessertCount, totalBottles, DessertColor)
-        } else {
-            Text("Add wines to see your collection breakdown", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
-        }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TimeStatChip(stringResource(R.string.today), todaySold.toString(), Modifier.weight(1f))
+                TimeStatChip(stringResource(R.string.week), weekSold.toString(), Modifier.weight(1f))
+                TimeStatChip(stringResource(R.string.month), monthSold.toString(), Modifier.weight(1f))
+                TimeStatChip(stringResource(R.string.year), yearSold.toString(), Modifier.weight(1f))
+                TimeStatChip(stringResource(R.string.all_time), totalSold.toString(), Modifier.weight(1f))
+            }
 
-        // Top Rated
-        if (topWine != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Hero stat cards
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                HeroCard(stringResource(R.string.wines_stat), totalBottles.toString(), Icons.Default.LocalBar, MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                HeroCard(stringResource(R.string.value_stat), "\u20AC" + totalValue.toInt().toString(), Icons.Default.TrendingUp, MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                HeroCard(stringResource(R.string.your_sales), userSales.toString(), Icons.Default.Star, MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
+                HeroCard(stringResource(R.string.your_revenue), "\u20AC" + userRevenue.toInt().toString(), Icons.Default.TrendingUp, MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+            }
+
             Spacer(modifier = Modifier.height(28.dp))
-            Text("Top Rated", color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(12.dp))
-            HighlightCard(topWine.name, topWine.region, topWine.rating.toString() + "/100",
-                "\u20AC" + topWine.price.toInt().toString(), topWine.vintage)
-        }
-        if (mostExpensive != null && mostExpensive != topWine) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Text("Most Valuable", color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(12.dp))
-            HighlightCard(mostExpensive.name, mostExpensive.region, mostExpensive.rating.toString() + "/100",
-                "\u20AC" + mostExpensive.price.toInt().toString(), mostExpensive.vintage)
-        }
 
-        // Recent Activity Feed
-        if (recentSales.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(28.dp))
-            Text("Recent Activity", color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            // Wine type distribution
+            Text(stringResource(R.string.collection), color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
-            val sdf = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
+            if (totalBottles > 0) {
+                TypeBar("Red", redCount, totalBottles, RedWineColor)
+                Spacer(modifier = Modifier.height(8.dp))
+                TypeBar("White", whiteCount, totalBottles, WhiteWineColor)
+                Spacer(modifier = Modifier.height(8.dp))
+                TypeBar("Rosé", roseCount, totalBottles, RoseWineColor)
+                Spacer(modifier = Modifier.height(8.dp))
+                TypeBar("Sparkling", sparkCount, totalBottles, SparklingColor)
+                Spacer(modifier = Modifier.height(8.dp))
+                TypeBar("Dessert", dessertCount, totalBottles, DessertColor)
+            } else {
+                Text("Add wines to see your collection breakdown", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
+            }
+
+            // Top Rated
+            if (topWine != null) {
+                Spacer(modifier = Modifier.height(28.dp))
+                Text(stringResource(R.string.top_rated), color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(12.dp))
+                HighlightCard(topWine.name, topWine.region, topWine.rating.toString() + "/100",
+                    "\u20AC" + topWine.price.toInt().toString(), topWine.vintage)
+            }
+            if (mostExpensive != null && mostExpensive != topWine) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(stringResource(R.string.most_valuable), color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(12.dp))
+                HighlightCard(mostExpensive.name, mostExpensive.region, mostExpensive.rating.toString() + "/100",
+                    "\u20AC" + mostExpensive.price.toInt().toString(), mostExpensive.vintage)
+            }
+
+            // Recent Activity Feed
+            if (recentSales.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(28.dp))
+                Text(stringResource(R.string.recent_activity), color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(12.dp))
+                val sdf = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
             for (sale in recentSales) {
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),

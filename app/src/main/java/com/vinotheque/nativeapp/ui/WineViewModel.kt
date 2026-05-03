@@ -56,6 +56,13 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     val restoreProgress: StateFlow<RestoreProgress> = _restoreProgress.asStateFlow()
 
     fun resetRestoreState() { _restoreProgress.value = RestoreProgress() }
+    
+    init {
+        // Re-apply language on start
+        val savedLang = prefs.getString("selected_language", "en") ?: "en"
+        val appLocales = androidx.core.os.LocaleListCompat.forLanguageTags(savedLang)
+        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(appLocales)
+    }
 
     val currentUser = MutableStateFlow(prefs.getString("current_user", "default") ?: "default")
     val isAdmin = MutableStateFlow(false) // Always OFF on cold start
@@ -64,6 +71,15 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     fun setTheme(theme: String) {
         selectedTheme.value = theme
         prefs.edit().putString("selected_theme", theme).apply()
+    }
+
+    val selectedLanguage = MutableStateFlow(prefs.getString("selected_language", "en") ?: "en")
+    fun setLanguage(lang: String) {
+        selectedLanguage.value = lang
+        prefs.edit().putString("selected_language", lang).apply()
+        // Update application locales
+        val appLocales = androidx.core.os.LocaleListCompat.forLanguageTags(lang)
+        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(appLocales)
     }
 
     private var adminLastActivity = System.currentTimeMillis()
@@ -449,16 +465,26 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     fun loadSampleData() {
         viewModelScope.launch {
             dao.insertAll(listOf(
-                Wine("SAM001", "Chateau Margaux 2015", "Margaux, Bordeaux", "2015", "Cabernet Sauvignon", "Red", "Dry", 650.0, 98, "Blackcurrant, violet, cedar", foodPairing = "Prime ribeye, lamb rack", peakMaturity = "2025-2040", binLocation = "A1-01", glassType = "Bordeaux Glass", decanting = "Decant 1-2h", servingTemp = "16-18°C", keywords = "Powerful. Structured. Dark fruit."),
-                Wine("SAM002", "Dom Perignon 2012", "Champagne, France", "2012", "Chardonnay/Pinot Noir", "Sparkling", "Brut", 220.0, 96, "Citrus, brioche, almond", foodPairing = "Oysters, caviar, lobster", binLocation = "A2-01", glassType = "Champagne Flute", decanting = "No decanting", servingTemp = "6-8°C", keywords = "Festive. Crisp. Bubbles."),
-                Wine("SAM003", "Sassicaia 2018", "Bolgheri, Tuscany", "2018", "Cabernet Sauvignon", "Red", "Dry", 280.0, 97, "Black cherry, herbs, tobacco", foodPairing = "Florentine steak, wild boar", binLocation = "B1-01", glassType = "Bordeaux Glass", decanting = "Decant 1-2h", servingTemp = "16-18°C", keywords = "Powerful. Structured. Dark fruit."),
-                Wine("SAM004", "Cloudy Bay Sauvignon Blanc", "Marlborough, NZ", "2022", "Sauvignon Blanc", "White", "Dry", 28.0, 90, "Passion fruit, lime, herbs", foodPairing = "Grilled fish, goat cheese", binLocation = "C1-03", glassType = "White Wine Glass", decanting = "No decanting", servingTemp = "8-12°C", keywords = "Crisp. Fresh. Citrus."),
-                Wine("SAM005", "Opus One 2019", "Napa Valley, USA", "2019", "Cabernet Sauvignon", "Red", "Dry", 420.0, 97, "Cassis, dark plum, vanilla", foodPairing = "Filet mignon, truffle risotto", binLocation = "A3-01", glassType = "Bordeaux Glass", decanting = "Decant 1-2h", servingTemp = "16-18°C", keywords = "Powerful. Structured. Dark fruit."),
-                Wine("SAM006", "Whispering Angel Rose", "Provence, France", "2023", "Grenache/Cinsault", "Rose", "Dry", 22.0, 88, "Strawberry, peach, herbs", foodPairing = "Mediterranean salad, grilled shrimp", binLocation = "D1-02", glassType = "White Wine Glass", decanting = "No decanting", servingTemp = "8-10°C", keywords = "Fresh. Summery. Delicate."),
-                Wine("SAM007", "Penfolds Grange 2017", "South Australia", "2017", "Shiraz", "Red", "Dry", 750.0, 99, "Plum, chocolate, spice", foodPairing = "Wagyu beef, dark chocolate dessert", binLocation = "A1-02", glassType = "Bordeaux Glass", decanting = "Decant 1-2h", servingTemp = "16-18°C", keywords = "Bold. Rich. Spice."),
-                Wine("SAM008", "Chateau d'Yquem 2015", "Sauternes, Bordeaux", "2015", "Semillon/Sauvignon Blanc", "Dessert", "Sweet", 380.0, 98, "Honey, apricot, saffron", foodPairing = "Foie gras, creme brulee", binLocation = "B2-01", glassType = "Dessert Glass", decanting = "No decanting", servingTemp = "10-14°C", keywords = "Luscious. Sweet. Golden."),
-                Wine("SAM009", "Barolo Giacomo Conterno", "Piedmont, Italy", "2016", "Nebbiolo", "Red", "Dry", 320.0, 96, "Rose, tar, cherry, truffle", foodPairing = "Braised veal, mushroom risotto", binLocation = "B1-02", glassType = "Burgundy Glass", decanting = "Decant 1-2h", servingTemp = "16-18°C", keywords = "Complex. Tannic. Roses."),
-                Wine("SAM010", "Puligny-Montrachet 2020", "Burgundy, France", "2020", "Chardonnay", "White", "Dry", 85.0, 93, "Lemon, hazelnut, mineral", foodPairing = "Lobster thermidor, white fish", binLocation = "C2-01", glassType = "Oaked White Glass", decanting = "No decanting", servingTemp = "8-12°C", keywords = "Buttery. Oaky. Rich.")
+                Wine("2665", "Aalto TE, Tempranillo, Bodegas Aalto, Ribero del Duero", "Sample Collection", "2016/23", "Tempranillo", "Red", "Dry", 92.0, 93, "Cherry, leather, dill, tobacco, dried fig", null, "Beef, lamb, grilled meats", "", "Bin-1", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2605", "Altrovino IGT (Merlot, Cab. Franc), Luca D´Attoma", "Sample Collection", "2019/20", "Merlot, Cabernet Franc", "Red", "Dry", 54.0, 93, "Plum, black cherry, chocolate, soft tannins", null, "Beef, lamb, grilled meats", "", "Bin-2", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("4250", "Altrovino IGT (Merlot, Cab. Franc), Luca D´Attoma", "Sample Collection", "2018", "Merlot, Cabernet Franc", "Red", "Dry", 120.0, 92, "Plum, black cherry, chocolate, soft tannins", null, "Beef, lamb, grilled meats", "", "Bin-3", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2318", "Amarone Classico (Corvina+Rondinella, Oseleta), Allegrini", "Sample Collection", "2012", "Corvina, Rondinella, Oseleta", "Red", "Dry", 99.0, 91, "Dried cherry, raisin, spice", null, "Blue cheese, game", "", "Bin-4", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2319", "Amarone Classico (Corvina+Rondinella, Oseleta), Allegrini", "Sample Collection", "2010", "Corvina, Rondinella, Oseleta", "Red", "Dry", 106.0, 91, "Dried cherry, raisin, spice", null, "Blue cheese, game", "", "Bin-5", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2320", "Amarone Classico (Corvina+Rondinella, Oseleta), Allegrini", "Sample Collection", "2013", "Corvina, Rondinella, Oseleta", "Red", "Dry", 96.0, 92, "Dried cherry, raisin, spice", null, "Blue cheese, game", "", "Bin-6", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2321", "Amarone Classico (Corvina+Rondinella, Oseleta), Allegrini", "Sample Collection", "2015", "Corvina, Rondinella, Oseleta", "Red", "Dry", 110.0, 93, "Dried cherry, raisin, spice", null, "Blue cheese, game", "", "Bin-7", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2324", "Amarone della Valpolicella, Romano Dal Forno", "Sample Collection", "1997", "Corvina, Rondinella, Molinara", "Red", "Dry", 520.0, 92, "Dried cherry, raisin, spice", null, "Blue cheese, game", "", "Bin-8", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2327", "Amarone della Valpolicella, Romano Dal Forno", "Sample Collection", "2004", "Corvina, Rondinella, Molinara", "Red", "Dry", 460.0, 92, "Dried cherry, raisin, spice", null, "Blue cheese, game", "", "Bin-9", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2652", "Artadi Cosecheros Pagos Vijos, Rioja Tinto", "Sample Collection", "2000", "Tempranillo", "Red", "Dry", 130.0, 93, "Cherry, leather, dill, tobacco, dried fig", null, "Beef, lamb, grilled meats", "", "Bin-10", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2091", "Barbaresco Asili Riserva, Bruno Giacosa", "Sample Collection", "2004", "Nebbiolo", "Red", "Dry", 360.0, 96, "Tar, roses, cherry, truffle", null, "Truffle dishes, roast duck", "", "Bin-11", 0, "Burgundy", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2082", "Barbaresco Nubiola, Pelissero", "Sample Collection", "2017/18", "Nebbiolo", "Red", "Dry", 54.0, 91, "Tar, roses, cherry, truffle", null, "Truffle dishes, roast duck", "", "Bin-12", 0, "Burgundy", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2093", "Barbaresco Tulin, Pelissero", "Sample Collection", "2016", "Nebbiolo", "Red", "Dry", 72.0, 93, "Tar, roses, cherry, truffle", null, "Truffle dishes, roast duck", "", "Bin-13", 0, "Burgundy", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2087", "Barbaresco Vanotu, Pelissero", "Sample Collection", "2016", "Nebbiolo", "Red", "Dry", 92.0, 93, "Tar, roses, cherry, truffle", null, "Truffle dishes, roast duck", "", "Bin-14", 0, "Burgundy", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2080", "Barbera d'Alba, Piani, Pelissero", "Sample Collection", "2020/21", "Barbera", "Red", "Dry", 41.0, 91, "Fruit-forward, balanced acidity", null, "Hard cheeses, charcuterie", "", "Bin-15", 0, "Burgundy", "", "No", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2144", "Barolo Bussia, Parusso", "Sample Collection", "2015", "Nebbiolo", "Red", "Dry", 135.0, 93, "Tar, roses, cherry, truffle", null, "Truffle dishes, roast duck", "", "Bin-16", 0, "Burgundy", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2002", "Blauburgunder Mazzon, Gottardi", "Sample Collection", "2016/20", "Pinot Noir", "Red", "Dry", 48.0, 92, "Red cherry, earth, mushroom", null, "Salmon, mushroom risotto", "", "Bin-17", 0, "Burgundy", "", "Optional (30 min)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2571", "Bolgheri Rosso, Le Macchiole", "Sample Collection", "2022/23", "Merlot, Cab. Franc, Syrah", "Red", "Dry", 41.0, 93, "Plum, black cherry, chocolate", null, "Beef, lamb, grilled meats", "", "Bin-18", 0, "Bordeaux", "", "Yes (1-2 hours)", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("2560", "Brunello di Montalcino, Il Marroneto", "Sample Collection", "2010", "Sangiovese", "Red", "Dry", 440.0, 93, "Cherry, tomato leaf, herb", null, "Hard cheeses, charcuterie", "", "Bin-19", 0, "Bordeaux", "", "No", "16-18°C", "Wine Spectator / Vivino average"),
+                Wine("1092", "Chardonnay Baron Salvadori, Nals Margreid", "Sample Collection", "2022", "Chardonnay", "White", "Dry", 54.0, 93, "Apple, citrus, butter, oak", null, "Seafood, poultry, creamy pasta", "", "Bin-20", 0, "Universal", "", "No", "10-12°C", "Wine Spectator / Vivino average")
             ))
         }
     }

@@ -36,4 +36,16 @@
     <string name="month">Month</string>
     <string name="year">Year</string>
     <string name="all_time">All Time</string>
+    
+    <string name="welcome_back">Welcome back,</string>
+    <string name="bottles_served">Bottles Served</string>
+    <string name="wines_stat">Wines</string>
+    <string name="value_stat">Value</string>
+    <string name="your_sales">Your Sales</string>
+    <string name="your_revenue">Your Revenue</string>
+    <string name="collection">Collection</string>
+    <string name="recent_activity">Recent Activity</string>
+    <string name="search_hint">Search wines, regions, grapes...</string>
+    <string name="top_rated">Top Rated</string>
+    <string name="most_valuable">Most Valuable</string>
 </resources>

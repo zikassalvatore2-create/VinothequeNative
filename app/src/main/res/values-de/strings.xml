@@ -36,4 +36,16 @@
     <string name="month">Monat</string>
     <string name="year">Jahr</string>
     <string name="all_time">Gesamt</string>
+    
+    <string name="welcome_back">Willkommen zurück,</string>
+    <string name="bottles_served">Servierte Flaschen</string>
+    <string name="wines_stat">Weine</string>
+    <string name="value_stat">Wert</string>
+    <string name="your_sales">Ihre Verkäufe</string>
+    <string name="your_revenue">Ihr Umsatz</string>
+    <string name="collection">Sammlung</string>
+    <string name="recent_activity">Letzte Aktivitäten</string>
+    <string name="search_hint">Weine, Regionen, Reben suchen...</string>
+    <string name="top_rated">Beste Bewertung</string>
+    <string name="most_valuable">Wertvollste</string>
 </resources>

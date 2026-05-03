@@ -91,6 +91,8 @@ import com.vinotheque.nativeapp.ui.WineDetailScreen
 import com.vinotheque.nativeapp.ui.WineViewModel
 import com.vinotheque.nativeapp.ui.theme.*
 import kotlinx.coroutines.delay
+import androidx.compose.ui.res.stringResource
+import com.vinotheque.nativeapp.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -299,9 +301,11 @@ fun VinothequeApp(viewModel: WineViewModel) {
     if (showAddWine) { AddWineScreen(viewModel = viewModel) { showAddWine = false; Toast.makeText(context, "Wine added", Toast.LENGTH_SHORT).show() }; return }
 
     val navItems = listOf(
-        NavItem("Home", Icons.Default.Home), NavItem("Cellar", Icons.Default.LocalBar),
-        NavItem("Pairing", Icons.Default.Restaurant), NavItem("Favorites", Icons.Default.Favorite),
-        NavItem("More", Icons.Default.Settings)
+        NavItem(stringResource(R.string.home), Icons.Default.Home),
+        NavItem(stringResource(R.string.cellar), Icons.Default.LocalBar),
+        NavItem(stringResource(R.string.pairing), Icons.Default.Restaurant),
+        NavItem(stringResource(R.string.favorites), Icons.Default.Favorite),
+        NavItem(stringResource(R.string.more), Icons.Default.Settings)
     )
 
     Scaffold(

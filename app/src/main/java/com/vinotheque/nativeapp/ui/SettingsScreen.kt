@@ -63,6 +63,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import androidx.compose.ui.res.stringResource
+import com.vinotheque.nativeapp.R
+
 @Composable
 fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onShowPinDialog: () -> Unit = {}, onShowNamePrompt: () -> Unit = {}, onShowShiftSummary: () -> Unit = {}) {
     val context = LocalContext.current
@@ -191,7 +194,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
         .verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-        Text("Settings", color = MaterialTheme.colorScheme.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.more), color = MaterialTheme.colorScheme.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold)
 
         // Profile
         SettingsCard("Profile", Icons.Default.Person) {
@@ -204,7 +207,36 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
             Spacer(modifier = Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SettingsButton("Change Name", MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { onShowNamePrompt() }
-                SettingsButton("Shift Summary", MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) { onShowShiftSummary() }
+                SettingsButton(stringResource(R.string.shift_summary), MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) { onShowShiftSummary() }
+            }
+        }
+
+
+        // Language Selector
+        val currentLang by viewModel.selectedLanguage.collectAsState()
+        SettingsCard("Language / Sprache / Langue", Icons.Default.LocalBar) {
+            val languages = listOf("en" to "English", "de" to "Deutsch", "fr" to "Français")
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                languages.forEach { (code, label) ->
+                    val isSelected = currentLang == code
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { viewModel.setLanguage(code) }
+                            .padding(4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = label,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                }
             }
         }
 

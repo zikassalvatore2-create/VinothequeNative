@@ -1,0 +1,51 @@
+<resources>
+    <string name="app_name">Vinothèque PRO</string>
+    <string name="welcome">Bienvenue</string>
+    <string name="who_is_serving">Qui sert ce soir ?</string>
+    <string name="begin">Commencer</string>
+    <string name="your_name">Votre nom</string>
+    
+    <string name="home">Accueil</string>
+    <string name="cellar">Cave</string>
+    <string name="pairing">Accords</string>
+    <string name="favorites">Favoris</string>
+    <string name="more">Plus</string>
+    
+    <string name="bin_location">Emplacement</string>
+    <string name="glass_type">Verre</string>
+    <string name="decanting">Caraffage</string>
+    <string name="serving_temp">Temp. Service</string>
+    
+    <string name="record_sale">Enregistrer Vente</string>
+    <string name="search_google">Recherche Google</string>
+    <string name="present">Présenter</string>
+    <string name="undo">Annuler</string>
+    
+    <string name="admin_access">Accès Admin</string>
+    <string name="admin_mode">Mode Admin</string>
+    <string name="active">Actif</string>
+    <string name="inactive">Inactif</string>
+    
+    <string name="shift_summary">Résumé de Service</string>
+    <string name="dinner">Dîner</string>
+    <string name="lunch">Déjeuner</string>
+    <string name="custom">Personnalisé</string>
+    
+    <string name="today">Aujourd\'hui</string>
+    <string name="week">Semaine</string>
+    <string name="month">Mois</string>
+    <string name="year">Année</string>
+    <string name="all_time">Tout le temps</string>
+    
+    <string name="welcome_back">Bon retour,</string>
+    <string name="bottles_served">Bouteilles Servies</string>
+    <string name="wines_stat">Vins</string>
+    <string name="value_stat">Valeur</string>
+    <string name="your_sales">Vos Ventes</string>
+    <string name="your_revenue">Votre Revenu</string>
+    <string name="collection">Collection</string>
+    <string name="recent_activity">Activité Récente</string>
+    <string name="search_hint">Rechercher vins, régions...</string>
+    <string name="top_rated">Mieux Notés</string>
+    <string name="most_valuable">Plus de Valeur</string>
+</resources>
