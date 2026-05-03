@@ -2,6 +2,7 @@ package com.vinotheque.nativeapp.ui
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -227,11 +228,11 @@ fun AnimatedVinothequeLogo(
                 
                 // Decorative line with grapes
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.width(40.dp).height(1.dp).graphicsLayer { background(goldColor) })
+                    Box(modifier = Modifier.width(40.dp).height(1.dp).background(goldColor))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("\uD83C\uDF47", fontSize = 16.sp) // Grape emoji
                     Spacer(modifier = Modifier.width(8.dp))
-                    Box(modifier = Modifier.width(40.dp).height(1.dp).graphicsLayer { background(goldColor) })
+                    Box(modifier = Modifier.width(40.dp).height(1.dp).background(goldColor))
                 }
             }
         }
