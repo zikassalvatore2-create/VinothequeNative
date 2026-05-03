@@ -34,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.vinotheque.nativeapp.R
 import androidx.compose.material3.MaterialTheme
 import com.vinotheque.nativeapp.data.Wine
 

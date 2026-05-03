@@ -40,9 +40,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.data.Wine
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.res.stringResource
 import com.vinotheque.nativeapp.R
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun PairingScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
