@@ -29,6 +29,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
@@ -41,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,6 +73,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
     var showClearDialog by remember { mutableStateOf(false) }
     var showChangePinDialog by remember { mutableStateOf(false) }
     var isBusy by remember { mutableStateOf(false) }
+    val progress by viewModel.restoreProgress.collectAsState()
 
     // All file operations run on Dispatchers.IO to prevent UI thread crash
     val jsonSave = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -99,23 +102,17 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
 
     val jsonRestore = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
-            isBusy = true
             scope.launch(Dispatchers.IO) {
                 try {
-                    val json = context.contentResolver.openInputStream(uri)?.bufferedReader()?.readText()
+                    val json = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
                     if (json != null) {
                         viewModel.restoreFromJson(json)
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Restored!", Toast.LENGTH_SHORT).show()
-                        }
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Restore failed: " + e.message, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Restore failed", Toast.LENGTH_SHORT).show()
                     }
                 }
-                withContext(Dispatchers.Main) { isBusy = false }
             }
         }
     }
@@ -337,6 +334,64 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
             }
         }
         Spacer(modifier = Modifier.height(40.dp))
+    }
+
+    // Progress Overlay
+    if (progress.isRestoring) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = WineSurface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(
+                        progress = progress.progress.toFloat() / progress.max.toFloat(),
+                        color = WineGold,
+                        trackColor = WineSurface.copy(alpha = 0.2f),
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "${progress.progress}%",
+                        color = WineGold,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        progress.message,
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Do not close the app",
+                        color = TextSecondary,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+        }
+    }
+
+    if (progress.isComplete) {
+        LaunchedEffect(Unit) {
+            Toast.makeText(context, progress.message, Toast.LENGTH_SHORT).show()
+            viewModel.resetRestoreState()
+        }
+    }
+
+    if (progress.error != null) {
+        LaunchedEffect(progress.error) {
+            Toast.makeText(context, "Error: ${progress.error}", Toast.LENGTH_LONG).show()
+            viewModel.resetRestoreState()
+        }
     }
 }
 

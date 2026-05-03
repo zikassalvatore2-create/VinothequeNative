@@ -19,7 +19,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -31,6 +33,15 @@ import android.graphics.BitmapFactory
 
 data class EnrichmentResult(val type: String, val dryness: String, val aroma: String, val foodPairing: String, val glass: String, val decanting: String = "No decanting", val servingTemp: String = "12-14°C", val keywords: String = "")
 
+data class RestoreProgress(
+    val message: String = "",
+    val progress: Int = 0,
+    val max: Int = 100,
+    val isRestoring: Boolean = false,
+    val isComplete: Boolean = false,
+    val error: String? = null
+)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class WineViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = AppDatabase.getDatabase(application).wineDao()
@@ -39,6 +50,11 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = application.getSharedPreferences("vinotheque_prefs", Context.MODE_PRIVATE)
     private val appContext = application.applicationContext
     private var autoBackupJob: Job? = null
+
+    private val _restoreProgress = MutableStateFlow(RestoreProgress())
+    val restoreProgress: StateFlow<RestoreProgress> = _restoreProgress.asStateFlow()
+
+    fun resetRestoreState() { _restoreProgress.value = RestoreProgress() }
 
     val currentUser = MutableStateFlow(prefs.getString("current_user", "default") ?: "default")
     val isAdmin = MutableStateFlow(false) // Always OFF on cold start
@@ -110,9 +126,18 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             if (!imageDir.exists()) imageDir.mkdirs()
             val data = base64.substringAfter(",")
             val bytes = Base64.decode(data, Base64.DEFAULT)
-            val file = File(imageDir, "img_$reference.webp")
-            FileOutputStream(file).use { it.write(bytes) }
-            file.absolutePath
+            
+            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            if (bitmap != null) {
+                val file = File(imageDir, "img_$reference.webp")
+                FileOutputStream(file).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.WEBP, 85, out)
+                }
+                bitmap.recycle()
+                file.absolutePath
+            } else {
+                base64
+            }
         } catch (e: Exception) {
             base64
         }
@@ -434,9 +459,13 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             o.put("tastingNotes", w.tastingNotes); o.put("decanting", w.decanting)
             o.put("servingTemp", w.servingTemp); o.put("ratingSource", w.ratingSource)
             o.put("keywords", w.keywords)
-            if (w.image != null) {
+            // Convert image file path back to Base64 for the backup
+            if (!w.image.isNullOrEmpty()) {
                 val b64 = imagePathToBase64(w.image)
                 if (b64 != null) o.put("image", b64)
+                else o.put("image", w.image)
+            } else {
+                o.put("image", "")
             }
             wineArr.put(o)
         }
@@ -457,78 +486,110 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun restoreFromJson(json: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val trimmed = json.trim()
-                if (trimmed.isEmpty()) return@launch
-                
-                val wineArr: JSONArray
-                var salesArr: JSONArray? = null
-                var restoredUser: String? = null
+        viewModelScope.launch {
+            _restoreProgress.value = RestoreProgress(isRestoring = true, message = "Preparing restore...")
+            
+            val result = withContext(Dispatchers.IO) {
+                try {
+                    val trimmed = json.trim()
+                    if (trimmed.isEmpty()) return@withContext Result.failure(Exception("Backup is empty"))
+                    
+                    val wineArr: JSONArray
+                    var salesArr: JSONArray? = null
+                    var restoredUser: String? = null
 
-                if (trimmed.startsWith("{")) {
-                    val root = JSONObject(trimmed)
-                    wineArr = root.optJSONArray("wines") ?: JSONArray()
-                    salesArr = root.optJSONArray("sales")
-                    restoredUser = if (root.has("currentUser")) root.getString("currentUser") else null
-                } else {
-                    wineArr = JSONArray(trimmed)
-                }
-                
-                val list = mutableListOf<Wine>()
-                for (i in 0 until wineArr.length()) {
-                    val o = wineArr.getJSONObject(i)
-                    val importedImage = if (o.has("image")) o.getString("image") else null
-                    val ref = o.optString("reference", "IMP" + System.currentTimeMillis().toString() + "_" + i.toString())
-                    val finalImage = if (importedImage != null && importedImage.startsWith("data:image")) {
-                        saveBase64ToFile(importedImage, ref)
-                    } else importedImage
-
-                    val grape = o.optString("grape")
-                    val name = o.optString("name")
-                    val importedGlass = o.optString("glassType", "")
-                    val enriched = enrichWine(grape, name)
-
-                    list.add(Wine(
-                        ref,
-                        name, o.optString("region"), o.optString("vintage"),
-                        grape, o.optString("type", "Red"), o.optString("dryness", "Dry"),
-                        o.optDouble("price", 0.0), o.optInt("rating", 90), o.optString("aroma"),
-                        tastingNotes = o.optString("tastingNotes"),
-                        foodPairing = o.optString("foodPairing"), peakMaturity = o.optString("peakMaturity"),
-                        binLocation = o.optString("binLocation"),
-                        sold = o.optInt("sold", 0),
-                        glassType = if (importedGlass.isBlank()) enriched.glass else importedGlass,
-                        decanting = o.optString("decanting").ifEmpty { enriched.decanting },
-                        servingTemp = o.optString("servingTemp").ifEmpty { enriched.servingTemp },
-                        ratingSource = o.optString("ratingSource"),
-                        keywords = o.optString("keywords").ifEmpty { enriched.keywords },
-                        image = finalImage))
-                }
-                dao.deleteAll()
-                dao.insertAll(list)
-                
-                if (salesArr != null) {
-                    val sList = mutableListOf<com.vinotheque.nativeapp.data.Sale>()
-                    for (i in 0 until salesArr.length()) {
-                        val so = salesArr.getJSONObject(i)
-                        sList.add(com.vinotheque.nativeapp.data.Sale(
-                            wineReference = so.optString("ref"),
-                            wineName = so.optString("name"),
-                            username = so.optString("user"),
-                            timestamp = so.optLong("time"),
-                            price = so.optDouble("price"),
-                            quantity = so.optInt("qty", 1)
-                        ))
+                    if (trimmed.startsWith("{")) {
+                        val root = JSONObject(trimmed)
+                        wineArr = root.optJSONArray("wines") ?: JSONArray()
+                        salesArr = root.optJSONArray("sales")
+                        restoredUser = if (root.has("currentUser")) root.getString("currentUser") else null
+                    } else {
+                        wineArr = JSONArray(trimmed)
+                        salesArr = null
+                        restoredUser = null
                     }
-                    saleDao.clearAllSales()
-                    saleDao.insertAll(sList)
+                    
+                    val total = wineArr.length()
+                    val list = mutableListOf<Wine>()
+                    val imageDir = File(appContext.filesDir, "wine_images")
+                    if (!imageDir.exists()) imageDir.mkdirs()
+
+                    for (i in 0 until total) {
+                        val o = wineArr.getJSONObject(i)
+                        val ref = o.optString("reference", "IMP_${System.currentTimeMillis()}_$i")
+                        val importedImage = if (o.has("image")) o.getString("image") else null
+                        
+                        // Extract Base64 and save to file if necessary
+                        val finalImage = if (importedImage != null && importedImage.startsWith("data:image")) {
+                            saveBase64ToFile(importedImage, ref)
+                        } else importedImage
+
+                        val grape = o.optString("grape")
+                        val name = o.optString("name")
+                        val importedGlass = o.optString("glassType", "")
+                        val enriched = enrichWine(grape, name)
+
+                        list.add(Wine(
+                            ref, name, o.optString("region"), o.optString("vintage"),
+                            grape, o.optString("type", "Red"), o.optString("dryness", "Dry"),
+                            o.optDouble("price", 0.0), o.optInt("rating", 90), o.optString("aroma"),
+                            tastingNotes = o.optString("tastingNotes"),
+                            foodPairing = o.optString("foodPairing"), peakMaturity = o.optString("peakMaturity"),
+                            binLocation = o.optString("binLocation"),
+                            sold = o.optInt("sold", 0),
+                            glassType = if (importedGlass.isBlank()) enriched.glass else importedGlass,
+                            decanting = o.optString("decanting").ifEmpty { enriched.decanting },
+                            servingTemp = o.optString("servingTemp").ifEmpty { enriched.servingTemp },
+                            ratingSource = o.optString("ratingSource"),
+                            keywords = o.optString("keywords").ifEmpty { enriched.keywords },
+                            image = finalImage))
+
+                        if (i % 10 == 0 || i == total - 1) {
+                            val progress = ((i.toFloat() / total) * 90).toInt()
+                            _restoreProgress.value = RestoreProgress(
+                                isRestoring = true,
+                                message = "Restoring wine ${i + 1} of $total",
+                                progress = progress
+                            )
+                        }
+                    }
+
+                    _restoreProgress.value = RestoreProgress(isRestoring = true, message = "Finalizing database...", progress = 95)
+                    dao.deleteAll()
+                    dao.insertAll(list)
+                    
+                    if (salesArr != null) {
+                        val sList = mutableListOf<com.vinotheque.nativeapp.data.Sale>()
+                        for (i in 0 until salesArr.length()) {
+                            val so = salesArr.getJSONObject(i)
+                            sList.add(com.vinotheque.nativeapp.data.Sale(
+                                wineReference = so.optString("ref"),
+                                wineName = so.optString("name"),
+                                username = so.optString("user"),
+                                timestamp = so.optLong("time"),
+                                price = so.optDouble("price"),
+                                quantity = so.optInt("qty", 1)
+                            ))
+                        }
+                        saleDao.clearAllSales()
+                        saleDao.insertAll(sList)
+                    }
+                    
+                    if (restoredUser != null) {
+                        withContext(Dispatchers.Main) { setUser(restoredUser) }
+                    }
+                    
+                    Result.success("Restored $total wines successfully")
+                } catch (e: Exception) {
+                    Result.failure(e)
                 }
-                
-                if (restoredUser != null) {
-                    launch(Dispatchers.Main) { setUser(restoredUser) }
-                }
-            } catch (e: Exception) { e.printStackTrace() }
+            }
+
+            _restoreProgress.value = if (result.isSuccess) {
+                RestoreProgress(isComplete = true, message = result.getOrNull() ?: "Restore Complete")
+            } else {
+                RestoreProgress(error = result.exceptionOrNull()?.message ?: "Unknown error")
+            }
         }
     }
 
