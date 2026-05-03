@@ -15,6 +15,7 @@ data class Wine(
     val price: Double = 0.0,
     val rating: Int = 90,
     val aroma: String = "",
+    val tastingNotes: String = "",
     val foodPairing: String = "",
     val peakMaturity: String = "",
     val binLocation: String = "",
@@ -24,5 +25,9 @@ data class Wine(
     val sweetness: Int = 1,
     val sold: Int = 0,
     val glassType: String = "",
+    val decanting: String = "",
+    val servingTemp: String = "",
+    val ratingSource: String = "",
+    val keywords: String = "",
     val image: String? = null
 )

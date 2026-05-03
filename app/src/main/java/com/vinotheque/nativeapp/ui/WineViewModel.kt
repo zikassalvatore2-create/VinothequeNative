@@ -29,7 +29,7 @@ import java.io.FileOutputStream
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 
-data class EnrichmentResult(val type: String, val dryness: String, val aroma: String, val foodPairing: String, val glass: String)
+data class EnrichmentResult(val type: String, val dryness: String, val aroma: String, val foodPairing: String, val glass: String, val decanting: String = "No decanting", val servingTemp: String = "12-14°C", val keywords: String = "")
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WineViewModel(application: Application) : AndroidViewModel(application) {
@@ -41,12 +41,26 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     private var autoBackupJob: Job? = null
 
     val currentUser = MutableStateFlow(prefs.getString("current_user", "default") ?: "default")
-    val isAdmin = MutableStateFlow(prefs.getBoolean("is_admin", false))
+    val isAdmin = MutableStateFlow(false) // Always OFF on cold start
     val allSales = saleDao.getAllSales().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private var adminLastActivity = System.currentTimeMillis()
+    private val ADMIN_TIMEOUT = 30 * 60 * 1000L // 30 minutes
+
+    fun getAdminPin(): String = prefs.getString("admin_pin", "1970") ?: "1970"
+    fun setAdminPin(newPin: String) { prefs.edit().putString("admin_pin", newPin).apply() }
+    fun checkPin(pin: String): Boolean = pin == getAdminPin()
+    fun isFirstLaunch(): Boolean = !prefs.contains("user_name_set")
+    fun setNameSet() { prefs.edit().putBoolean("user_name_set", true).apply() }
 
     fun setAdmin(status: Boolean) {
         isAdmin.value = status
-        prefs.edit().putBoolean("is_admin", status).apply()
+        if (status) adminLastActivity = System.currentTimeMillis()
+    }
+    fun touchAdmin() { adminLastActivity = System.currentTimeMillis() }
+    fun checkAdminTimeout() {
+        if (isAdmin.value && System.currentTimeMillis() - adminLastActivity > ADMIN_TIMEOUT) {
+            isAdmin.value = false
+        }
     }
     val searchQuery = MutableStateFlow("")
     val typeFilter = MutableStateFlow("")
@@ -295,16 +309,29 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Record a sale: increment wine sold counter and track per-user sales */
-    fun sellWine(wine: Wine) {
+    fun sellWine(wine: Wine, quantity: Int = 1, onSaleId: (Long) -> Unit = {}) {
         viewModelScope.launch {
-            dao.updateWine(wine.copy(sold = wine.sold + 1))
-            saleDao.insertSale(com.vinotheque.nativeapp.data.Sale(
+            dao.updateWine(wine.copy(sold = wine.sold + quantity))
+            val sale = com.vinotheque.nativeapp.data.Sale(
                 wineReference = wine.reference,
                 wineName = wine.name,
                 username = currentUser.value,
                 timestamp = System.currentTimeMillis(),
-                price = wine.price
-            ))
+                price = wine.price,
+                quantity = quantity
+            )
+            saleDao.insertSale(sale)
+            // Get the ID of the last inserted sale for undo
+            val recent = saleDao.getRecentSales(currentUser.value, 1)
+            if (recent.isNotEmpty()) onSaleId(recent.first().id)
+        }
+    }
+
+    /** Undo the last sale */
+    fun undoSale(saleId: Long, wine: Wine, quantity: Int) {
+        viewModelScope.launch {
+            saleDao.deleteSale(saleId)
+            dao.updateWine(wine.copy(sold = (wine.sold - quantity).coerceAtLeast(0)))
         }
     }
 
@@ -341,20 +368,25 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
             g.contains("cabernet") || g.contains("merlot") || g.contains("malbec") || g.contains("syrah") ||
             g.contains("shiraz") || g.contains("tempranillo") || g.contains("sangiovese") ||
             g.contains("nebbiolo") || g.contains("pinot noir") || g.contains("grenache") || g.contains("zinfandel") ->
-                EnrichmentResult("Red", "Dry", "Dark fruits, oak, spice", "Beef, lamb, aged cheese", 
-                    if (g.contains("pinot noir") || g.contains("nebbiolo")) "Burgundy Glass" else "Bordeaux Glass")
+                EnrichmentResult("Red", "Dry", "Dark fruits, oak, spice", "Beef, lamb, aged cheese",
+                    if (g.contains("pinot noir") || g.contains("nebbiolo")) "Burgundy Glass" else "Bordeaux Glass",
+                    if (g.contains("cabernet") || g.contains("syrah") || g.contains("shiraz") || g.contains("nebbiolo")) "Decant 1-2h" else "No decanting",
+                    "16-18°C",
+                    if (g.contains("cabernet")) "Powerful. Structured. Dark fruit." else if (g.contains("pinot noir")) "Elegant. Silky. Red fruit." else if (g.contains("nebbiolo")) "Complex. Tannic. Roses." else "Bold. Rich. Spice.")
             g.contains("chardonnay") || g.contains("sauvignon blanc") || g.contains("pinot grigio") ||
             g.contains("viognier") || g.contains("albarino") || g.contains("gruner") || g.contains("chenin") ->
                 EnrichmentResult("White", "Dry", "Citrus, green apple, floral", "Seafood, poultry, salads",
-                    if (g.contains("chardonnay")) "Oaked White Glass" else "White Wine Glass")
-            g.contains("riesling") -> EnrichmentResult("White", "Off-Dry", "Peach, lime, mineral", "Asian cuisine, pork, spicy dishes", "White Wine Glass")
+                    if (g.contains("chardonnay")) "Oaked White Glass" else "White Wine Glass",
+                    "No decanting", "8-12°C",
+                    if (g.contains("chardonnay")) "Buttery. Oaky. Rich." else if (g.contains("sauvignon")) "Crisp. Fresh. Citrus." else "Light. Floral. Clean.")
+            g.contains("riesling") -> EnrichmentResult("White", "Off-Dry", "Peach, lime, mineral", "Asian cuisine, pork, spicy dishes", "White Wine Glass", "No decanting", "6-10°C", "Aromatic. Mineral. Versatile.")
             g.contains("moscato") || g.contains("muscat") || g.contains("tokaji") || n.contains("port") ->
-                EnrichmentResult("Dessert", "Sweet", "Honey, apricot, caramel", "Desserts, blue cheese, foie gras", "Dessert Glass")
+                EnrichmentResult("Dessert", "Sweet", "Honey, apricot, caramel", "Desserts, blue cheese, foie gras", "Dessert Glass", "No decanting", "10-14°C", "Luscious. Sweet. Golden.")
             g.contains("rose") || n.contains("rose") ->
-                EnrichmentResult("Rose", "Dry", "Strawberry, melon, herbs", "Salads, seafood, light pasta", "White Wine Glass")
+                EnrichmentResult("Rose", "Dry", "Strawberry, melon, herbs", "Salads, seafood, light pasta", "White Wine Glass", "No decanting", "8-10°C", "Fresh. Summery. Delicate.")
             n.contains("champagne") || n.contains("prosecco") || n.contains("cava") || n.contains("sparkling") || n.contains("brut") ->
-                EnrichmentResult("Sparkling", "Brut", "Citrus, toast, green apple", "Appetizers, seafood, celebration", "Champagne Flute")
-            else -> EnrichmentResult("Red", "Dry", "Fruit, earth, spice", "Grilled meats, pasta, cheese", "Bordeaux Glass")
+                EnrichmentResult("Sparkling", "Brut", "Citrus, toast, green apple", "Appetizers, seafood, celebration", "Champagne Flute", "No decanting", "6-8°C", "Festive. Crisp. Bubbles.")
+            else -> EnrichmentResult("Red", "Dry", "Fruit, earth, spice", "Grilled meats, pasta, cheese", "Bordeaux Glass", "No decanting", "16-18°C", "Smooth. Balanced. Classic.")
         }
     }
 

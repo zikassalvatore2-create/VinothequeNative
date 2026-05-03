@@ -10,5 +10,6 @@ data class Sale(
     val wineName: String,
     val username: String,
     val timestamp: Long,
-    val price: Double
+    val price: Double,
+    val quantity: Int = 1
 )
