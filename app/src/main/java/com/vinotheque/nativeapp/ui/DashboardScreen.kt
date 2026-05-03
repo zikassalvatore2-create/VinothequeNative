@@ -132,12 +132,12 @@ fun DashboardScreen(viewModel: WineViewModel) {
         if (lastBackup > 0) {
             val ago = (System.currentTimeMillis() - lastBackup) / 1000
             val timeText = when {
-                ago < 60 -> "just now"
-                ago < 3600 -> (ago / 60).toString() + "m ago"
-                ago < 86400 -> (ago / 3600).toString() + "h ago"
-                else -> (ago / 86400).toString() + "d ago"
+                ago < 60 -> stringResource(R.string.just_now)
+                ago < 3600 -> stringResource(R.string.m_ago, (ago / 60).toString())
+                ago < 86400 -> stringResource(R.string.h_ago, (ago / 3600).toString())
+                else -> stringResource(R.string.d_ago, (ago / 86400).toString())
             }
-            Text("\u2601 Auto-saved $timeText", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), fontSize = 11.sp, modifier = Modifier.padding(start = 24.dp))
+            Text("\u2601 " + stringResource(R.string.auto_saved, timeText), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), fontSize = 11.sp, modifier = Modifier.padding(start = 24.dp))
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -188,17 +188,17 @@ fun DashboardScreen(viewModel: WineViewModel) {
             Text(stringResource(R.string.collection), color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             if (totalBottles > 0) {
-                TypeBar("Red", redCount, totalBottles, RedWineColor)
+                TypeBar(stringResource(R.string.type_red), redCount, totalBottles, RedWineColor)
                 Spacer(modifier = Modifier.height(8.dp))
-                TypeBar("White", whiteCount, totalBottles, WhiteWineColor)
+                TypeBar(stringResource(R.string.type_white), whiteCount, totalBottles, WhiteWineColor)
                 Spacer(modifier = Modifier.height(8.dp))
-                TypeBar("Rosé", roseCount, totalBottles, RoseWineColor)
+                TypeBar(stringResource(R.string.type_rose), roseCount, totalBottles, RoseWineColor)
                 Spacer(modifier = Modifier.height(8.dp))
-                TypeBar("Sparkling", sparkCount, totalBottles, SparklingColor)
+                TypeBar(stringResource(R.string.type_sparkling), sparkCount, totalBottles, SparklingColor)
                 Spacer(modifier = Modifier.height(8.dp))
-                TypeBar("Dessert", dessertCount, totalBottles, DessertColor)
+                TypeBar(stringResource(R.string.type_dessert), dessertCount, totalBottles, DessertColor)
             } else {
-                Text("Add wines to see your collection breakdown", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
+                Text(stringResource(R.string.cellar_empty_hint), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
             }
 
             // Top Rated
@@ -241,7 +241,7 @@ fun DashboardScreen(viewModel: WineViewModel) {
                                 val wine = wines.firstOrNull { it.reference == sale.wineReference }
                                 if (wine != null) viewModel.sellWine(wine)
                             }, modifier = Modifier.height(28.dp)) {
-                                Icon(Icons.Default.Replay, "Serve Again", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Replay, stringResource(R.string.record_sale), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                             }
                         }
                     }

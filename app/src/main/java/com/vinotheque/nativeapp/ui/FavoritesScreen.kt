@@ -42,8 +42,8 @@ fun FavoritesScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
     val favorites by viewModel.favoriteWines.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(20.dp)) {
-        Text("Favorites", color = MaterialTheme.colorScheme.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text(favorites.size.toString() + " wines saved", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp)
+        Text(stringResource(R.string.favorites), color = MaterialTheme.colorScheme.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(favorites.size.toString() + " " + stringResource(R.string.wines_stat), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp)
         Spacer(modifier = Modifier.height(20.dp))
 
         if (favorites.isEmpty()) {
@@ -51,8 +51,8 @@ fun FavoritesScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.FavoriteBorder, "Empty", tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f), modifier = Modifier.size(64.dp))
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("No favorites yet", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 18.sp)
-                    Text("Tap the heart on any wine to save it", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
+                    Text(stringResource(R.string.favorites), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 18.sp)
+                    Text(stringResource(R.string.search_hint), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
                 }
             }
         } else {

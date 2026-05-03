@@ -126,7 +126,7 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
             val current = edits[ref]
             if (current != null) { edits[ref] = current.copy(imageBase64 = b64) }
             photoTargetRef = null
-            Toast.makeText(context, "Photo captured!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.toast_photo_captured), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -141,9 +141,9 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
                     val ref = photoTargetRef!!
                     val current = edits[ref]
                     if (current != null) { edits[ref] = current.copy(imageBase64 = b64) }
-                    Toast.makeText(context, "Photo loaded!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.toast_photo_loaded), Toast.LENGTH_SHORT).show()
                 }
-            } catch (e: Exception) { Toast.makeText(context, "Failed to load image", Toast.LENGTH_SHORT).show() }
+            } catch (e: Exception) { Toast.makeText(context, context.getString(R.string.toast_photo_failed), Toast.LENGTH_SHORT).show() }
             photoTargetRef = null
         }
     }
@@ -153,26 +153,26 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
         Row(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.ArrowBack, stringResource(R.string.back), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
             }
             Spacer(modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.weight(1f))
-            Text("Admin Table", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.admin_table), color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.weight(1f))
             if (isRepairing) {
-                Text("Repairing...  ", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.auto_saved, ""), color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             } else {
                 IconButton(onClick = onOpenSales) {
-                    Icon(Icons.Default.TrendingUp, "Sales", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.TrendingUp, stringResource(R.string.sales), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 }
                 IconButton(onClick = {
                     isRepairing = true
                     viewModel.repairAllImages { count ->
                         isRepairing = false
-                        Toast.makeText(context, "Repaired $count images!", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.toast_repaired, count), Toast.LENGTH_LONG).show()
                     }
                 }) {
-                    Icon(Icons.Default.LocalBar, "Repair", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.LocalBar, stringResource(R.string.repair), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 }
             }
             Text(filteredWines.size.toString() + "/" + wines.size.toString() + "  ", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp)
@@ -182,8 +182,8 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Search by reference, name, grape...", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)) },
-            leadingIcon = { Icon(Icons.Default.Search, "Search", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
+            placeholder = { Text(stringResource(R.string.search_hint), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)) },
+            leadingIcon = { Icon(Icons.Default.Search, stringResource(R.string.search_hint), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
@@ -198,7 +198,7 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(Icons.Default.LocalBar, "Empty", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), modifier = Modifier.size(64.dp))
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(if (searchQuery.isNotBlank()) "No wines match \"" + searchQuery + "\"" else "No wines to edit",
+                Text(if (searchQuery.isNotBlank()) stringResource(R.string.no_wines_match, searchQuery) else stringResource(R.string.no_wines_edit),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 16.sp)
             }
         } else {
@@ -231,12 +231,12 @@ fun AdminScreen(viewModel: WineViewModel, onBack: () -> Unit, onOpenSales: () ->
                         onSave = {
                             edits[wine.reference]?.let {
                                 viewModel.updateWine(it.toWine(wine))
-                                Toast.makeText(context, "Saved: " + it.name, Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.toast_saved_wine, it.name), Toast.LENGTH_SHORT).show()
                             }
                         },
                         onDelete = {
                             viewModel.deleteWine(wine.reference); edits.remove(wine.reference)
-                            Toast.makeText(context, "Deleted", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.toast_deleted), Toast.LENGTH_SHORT).show()
                         }
                     )
                 }
@@ -277,13 +277,13 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
                 Column {
                     Row {
                         IconButton(onClick = onTakePhoto, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.CameraAlt, "Camera", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.CameraAlt, stringResource(R.string.camera), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                         }
                         IconButton(onClick = onPickGallery, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Image, "Gallery", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Image, stringResource(R.string.gallery), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                         }
                         IconButton(onClick = { searchWineImage(context, edit.name) }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Search, "Search", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Search, stringResource(R.string.search_google), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -327,13 +327,13 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onSave, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-                    Icon(Icons.Default.Save, "Save", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
-                    Text(" Save", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Icon(Icons.Default.Save, stringResource(R.string.save), tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
+                    Text(" " + stringResource(R.string.save), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
                 Button(onClick = onDelete, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = WineRed)) {
-                    Icon(Icons.Default.Delete, "Delete", tint = Color.White, modifier = Modifier.size(16.dp))
-                    Text(" Delete", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = Color.White, modifier = Modifier.size(16.dp))
+                    Text(" " + stringResource(R.string.delete), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
         }
@@ -342,7 +342,7 @@ fun AdminRow(edit: EditableWine, onFieldChange: (String, String) -> Unit,
 
 @Composable
 fun MiniField(label: String, value: String, modifier: Modifier = Modifier.fillMaxWidth(), onChange: (String) -> Unit) {
-    OutlinedTextField(value = value, onValueChange = onChange, label = { Text(label, fontSize = 10.sp) },
+    OutlinedTextField(value = value, onValueChange = onChange, label = { Text(getLocalizedLabel(label), fontSize = 10.sp) },
         modifier = modifier.padding(vertical = 2.dp), singleLine = true, colors = miniFieldColors,
         textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp))
 }

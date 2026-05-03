@@ -512,6 +512,58 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun loadPremiumWines() {
+        viewModelScope.launch {
+            try {
+                val jsonString = getApplication<Application>().assets.open("wines.json")
+                    .bufferedReader().use { it.readText() }
+                val root = JSONObject(jsonString)
+                val winesArray = root.getJSONArray("wines")
+                val winesList = mutableListOf<Wine>()
+                
+                for (i in 0 until winesArray.length()) {
+                    val w = winesArray.getJSONObject(i)
+                    winesList.add(Wine(
+                        reference = w.optString("reference"),
+                        name = w.optString("name"),
+                        region = w.optString("region"),
+                        vintage = w.optString("vintage"),
+                        grape = w.optString("grape"),
+                        type = w.optString("type", "Red"),
+                        dryness = w.optString("dryness", "Dry"),
+                        price = w.optDouble("price", 0.0),
+                        rating = w.optInt("rating", 90),
+                        aroma = w.optString("aroma"),
+                        tastingNotes = w.optString("tastingNotes"),
+                        foodPairing = w.optString("foodPairing"),
+                        peakMaturity = w.optString("peakMaturity"),
+                        binLocation = w.optString("binLocation"),
+                        body = w.optInt("body", 3),
+                        tannin = w.optInt("tannin", 3),
+                        acidity = w.optInt("acidity", 3),
+                        sweetness = w.optInt("sweetness", 1),
+                        sold = w.optInt("sold", 0),
+                        glassType = w.optString("glassType"),
+                        decanting = w.optString("decanting"),
+                        servingTemp = w.optString("servingTemp"),
+                        ratingSource = w.optString("ratingSource"),
+                        keywords = w.optString("keywords"),
+                        image = w.optString("image", null)
+                    ))
+                }
+                
+                val premium = winesList
+                    .sortedWith(compareByDescending<Wine> { it.rating }.thenByDescending { it.price })
+                    .take(10)
+                
+                dao.insertAll(premium)
+                Log.d("WineViewModel", "Loaded 10 premium wines")
+            } catch (e: Exception) {
+                Log.e("WineViewModel", "Error loading premium wines", e)
+            }
+        }
+    }
+
     fun getBackupJson(): String {
         val root = JSONObject()
         val wineArr = JSONArray()

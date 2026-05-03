@@ -162,12 +162,12 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
     // Clear all confirmation
     if (showClearDialog) {
         AlertDialog(onDismissRequest = { showClearDialog = false },
-            title = { Text("Clear All Data") },
-            text = { Text("Permanently delete all " + wines.size.toString() + " wines?") },
+            title = { Text(stringResource(R.string.clear_all_data)) },
+            text = { Text(stringResource(R.string.clear_all_data) + " (" + wines.size.toString() + ")?") },
             confirmButton = { TextButton(onClick = { viewModel.clearAll(); showClearDialog = false
                 Toast.makeText(context, "All data cleared", Toast.LENGTH_SHORT).show()
-            }) { Text("Delete All", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = { showClearDialog = false }) { Text("Cancel") } })
+            }) { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = { showClearDialog = false }) { Text(stringResource(R.string.cancel)) } })
     }
 
     // Change PIN dialog
@@ -175,16 +175,16 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
         var newPin by remember { mutableStateOf("") }
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showChangePinDialog = false },
-            title = { Text("Change Admin PIN") },
+            title = { Text(stringResource(R.string.change_admin_pin)) },
             text = {
                 OutlinedTextField(value = newPin, onValueChange = { if (it.length <= 4 && it.all { c -> c.isDigit() }) newPin = it },
-                    label = { Text("New 4-digit PIN") }, singleLine = true)
+                    label = { Text("New PIN") }, singleLine = true)
             },
             confirmButton = { TextButton(onClick = {
                 if (newPin.length == 4) { viewModel.setAdminPin(newPin); showChangePinDialog = false
                     Toast.makeText(context, "PIN changed", Toast.LENGTH_SHORT).show() }
-            }) { Text("Save", color = MaterialTheme.colorScheme.primary) } },
-            dismissButton = { TextButton(onClick = { showChangePinDialog = false }) { Text("Cancel") } }
+            }) { Text(stringResource(R.string.save), color = MaterialTheme.colorScheme.primary) } },
+            dismissButton = { TextButton(onClick = { showChangePinDialog = false }) { Text(stringResource(R.string.cancel)) } }
         )
     }
 
@@ -197,16 +197,16 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
         Text(stringResource(R.string.more), color = MaterialTheme.colorScheme.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold)
 
         // Profile
-        SettingsCard("Profile", Icons.Default.Person) {
+        SettingsCard(stringResource(R.string.profile), Icons.Default.Person) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
-                    Text("Current Sommelier", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontSize = 12.sp)
+                    Text(stringResource(R.string.current_sommelier), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontSize = 12.sp)
                     Text(currentUser, color = MaterialTheme.colorScheme.primary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SettingsButton("Change Name", MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { onShowNamePrompt() }
+                SettingsButton(stringResource(R.string.change_name), MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { onShowNamePrompt() }
                 SettingsButton(stringResource(R.string.shift_summary), MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) { onShowShiftSummary() }
             }
         }
@@ -214,7 +214,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
 
         // Language Selector
         val currentLang by viewModel.selectedLanguage.collectAsState()
-        SettingsCard("Language / Sprache / Langue", Icons.Default.LocalBar) {
+        SettingsCard(stringResource(R.string.language_selection), Icons.Default.LocalBar) {
             val languages = listOf("en" to "English", "de" to "Deutsch", "fr" to "Français")
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 languages.forEach { (code, label) ->
@@ -242,7 +242,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
 
         // Theme Selector
         val currentTheme by viewModel.selectedTheme.collectAsState()
-        SettingsCard("Aesthetics & Theme", Icons.Default.LocalBar) {
+        SettingsCard(stringResource(R.string.aesthetics_theme), Icons.Default.LocalBar) {
             val themes = listOf("Midnight", "Burgundy", "Emerald", "Ocean")
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 themes.forEach { theme ->
@@ -276,123 +276,130 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
             }
         }
 
-        // Image Sharpness Slider
-        val currentQuality by viewModel.imageQuality.collectAsState()
-        SettingsCard("Image Quality & Performance", Icons.Default.CameraAlt) {
-            Text("Sharpness: ${currentQuality}%", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
-            Text("Higher sharpness increases backup size", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
-            Spacer(modifier = Modifier.height(4.dp))
-            Slider(
-                value = currentQuality.toFloat(),
-                onValueChange = { viewModel.setImageQuality(it.toInt()) },
-                valueRange = 10f..100f,
-                steps = 8,
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+        if (isAdmin) {
+            // Image Sharpness Slider
+            val currentQuality by viewModel.imageQuality.collectAsState()
+            SettingsCard(stringResource(R.string.image_quality), Icons.Default.CameraAlt) {
+                Text(stringResource(R.string.sharpness, currentQuality), color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                Text(stringResource(R.string.sharpness_hint), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Slider(
+                    value = currentQuality.toFloat(),
+                    onValueChange = { viewModel.setImageQuality(it.toInt()) },
+                    valueRange = 10f..100f,
+                    steps = 8,
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 )
-            )
-        }
+            }
 
-        // Backup (includes images)
-        SettingsCard("Backup & Restore", Icons.Default.CloudUpload) {
-            Text(wines.size.toString() + " bottles in cellar", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp)
-            Text("Includes wine photos in backup", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
-            // Auto-backup status
-            val lastBackup = viewModel.getLastBackupTime()
-            if (lastBackup > 0) {
-                val ago = (System.currentTimeMillis() - lastBackup) / 1000
-                val timeText = when {
-                    ago < 60 -> "just now"
-                    ago < 3600 -> (ago / 60).toString() + "m ago"
-                    ago < 86400 -> (ago / 3600).toString() + "h ago"
-                    else -> (ago / 86400).toString() + "d ago"
+            // Backup (includes images)
+            SettingsCard(stringResource(R.string.backup_restore), Icons.Default.CloudUpload) {
+                Text(stringResource(R.string.bottles_in_cellar, wines.size), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp)
+                Text(stringResource(R.string.includes_photos_hint), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
+                // Auto-backup status
+                val lastBackup = viewModel.getLastBackupTime()
+                if (lastBackup > 0) {
+                    val ago = (System.currentTimeMillis() - lastBackup) / 1000
+                    val timeText = when {
+                        ago < 60 -> stringResource(R.string.just_now)
+                        ago < 3600 -> stringResource(R.string.m_ago, (ago / 60).toString())
+                        ago < 86400 -> stringResource(R.string.h_ago, (ago / 3600).toString())
+                        else -> stringResource(R.string.d_ago, (ago / 86400).toString())
+                    }
+                    Text("\u2705 " + stringResource(R.string.auto_saved, timeText), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f), fontSize = 11.sp)
                 }
-                Text("\u2705 Auto-backup: $timeText", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f), fontSize = 11.sp)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            if (isBusy) {
-                Text("Processing... please wait", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(8.dp))
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SettingsButton("Export JSON", if (isBusy) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary, Modifier.weight(1f)) {
-                    if (!isBusy) jsonSave.launch("vinotheque_backup.json")
+                if (isBusy) {
+                    Text(stringResource(R.string.processing_wait), color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-                SettingsButton("Import JSON", MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) {
-                    if (!isBusy) jsonRestore.launch("application/json")
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SettingsButton(stringResource(R.string.export_json), if (isBusy) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary, Modifier.weight(1f)) {
+                        if (!isBusy) jsonSave.launch("vinotheque_backup.json")
+                    }
+                    SettingsButton(stringResource(R.string.import_json), MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) {
+                        if (!isBusy) jsonRestore.launch("application/json")
+                    }
                 }
-            }
-            Spacer(modifier = Modifier.height(6.dp))
-            // Restore from auto-backup
-            SettingsButton("Restore from Auto-Backup", MaterialTheme.colorScheme.surfaceVariant) {
-                if (!isBusy) {
-                    isBusy = true
-                    scope.launch(Dispatchers.IO) {
-                        try {
-                            val file = java.io.File(context.filesDir, "auto_backup/vinotheque_auto.json")
-                            if (file.exists()) {
-                                val json = file.readText()
-                                viewModel.restoreFromJson(json)
-                                withContext(Dispatchers.Main) {
-                                    Toast.makeText(context, "Restored from auto-backup!", Toast.LENGTH_SHORT).show()
+                Spacer(modifier = Modifier.height(6.dp))
+                // Restore from auto-backup
+                SettingsButton(stringResource(R.string.restore_auto_backup), MaterialTheme.colorScheme.surfaceVariant) {
+                    if (!isBusy) {
+                        isBusy = true
+                        scope.launch(Dispatchers.IO) {
+                            try {
+                                val file = java.io.File(context.filesDir, "auto_backup/vinotheque_auto.json")
+                                if (file.exists()) {
+                                    val json = file.readText()
+                                    viewModel.restoreFromJson(json)
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(context, stringResource(R.string.toast_restored_auto), Toast.LENGTH_SHORT).show()
+                                    }
+                                } else {
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(context, stringResource(R.string.toast_no_backup_found), Toast.LENGTH_SHORT).show()
+                                    }
                                 }
-                            } else {
+                            } catch (e: Exception) {
                                 withContext(Dispatchers.Main) {
-                                    Toast.makeText(context, "No auto-backup found", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, stringResource(R.string.toast_restore_failed), Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        } catch (e: Exception) {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(context, "Restore failed", Toast.LENGTH_SHORT).show()
-                            }
+                            withContext(Dispatchers.Main) { isBusy = false }
                         }
-                        withContext(Dispatchers.Main) { isBusy = false }
                     }
                 }
             }
-        }
+            // CSV
+            SettingsCard(stringResource(R.string.csv_import_export), Icons.Default.CloudDownload) {
+                Text(stringResource(R.string.csv_hint), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SettingsButton(stringResource(R.string.export_csv), MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { csvSave.launch("vinotheque_wines.csv") }
+                    SettingsButton(stringResource(R.string.import_csvs), MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) { csvImport.launch(arrayOf("text/*", "text/csv", "text/comma-separated-values", "application/csv")) }
+                }
+            }
 
-        // CSV
-        SettingsCard("CSV Import & Export", Icons.Default.CloudDownload) {
-            Text("Select one or multiple CSV files to import", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SettingsButton("Export CSV", MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { csvSave.launch("vinotheque_wines.csv") }
-                SettingsButton("Import CSV(s)", MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) { csvImport.launch(arrayOf("text/*", "text/csv", "text/comma-separated-values", "application/csv")) }
+
+            // Sample Data
+            SettingsCard(stringResource(R.string.sample_collection_title), Icons.Default.LocalBar) {
+                SettingsButton(stringResource(R.string.load_samples), MaterialTheme.colorScheme.primary) {
+                    viewModel.loadSampleData(); Toast.makeText(context, stringResource(R.string.toast_samples_loaded), Toast.LENGTH_SHORT).show() }
+                Spacer(modifier = Modifier.height(8.dp))
+                SettingsButton(stringResource(R.string.load_premium_wines), MaterialTheme.colorScheme.surfaceVariant) {
+                    viewModel.loadPremiumWines(); Toast.makeText(context, "10 Premium wines loaded!", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 
-        // Sample Data
-        SettingsCard("Sample Collection", Icons.Default.LocalBar) {
-            SettingsButton("Load 10 Premium Wines", MaterialTheme.colorScheme.primary) {
-                viewModel.loadSampleData(); Toast.makeText(context, "Sample wines loaded!", Toast.LENGTH_SHORT).show() }
-        }
 
         // Admin Panel
-        SettingsCard("Admin Panel", Icons.Default.Lock) {
+        SettingsCard(stringResource(R.string.admin_panel), Icons.Default.Lock) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Admin Mode", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
-                Text(if (isAdmin) "Active" else "Inactive", color = if (isAdmin) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.admin_mode), color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+                Text(if (isAdmin) stringResource(R.string.active) else stringResource(R.string.inactive), color = if (isAdmin) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(8.dp))
             if (isAdmin) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SettingsButton("Admin Panel", MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { onOpenAdmin() }
-                    SettingsButton("Lock Admin", BurgundyRed, Modifier.weight(1f)) { viewModel.setAdmin(false) }
+                    SettingsButton(stringResource(R.string.admin_panel), MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { onOpenAdmin() }
+                    SettingsButton(stringResource(R.string.lock_admin), BurgundyRed, Modifier.weight(1f)) { viewModel.setAdmin(false) }
                 }
                 Spacer(modifier = Modifier.height(6.6.dp))
-                SettingsButton("Change Admin PIN", MaterialTheme.colorScheme.surfaceVariant) { showChangePinDialog = true }
+                SettingsButton(stringResource(R.string.change_admin_pin), MaterialTheme.colorScheme.surfaceVariant) { showChangePinDialog = true }
             } else {
-                SettingsButton("Unlock Admin", MaterialTheme.colorScheme.primary) { onShowPinDialog() }
+                SettingsButton(stringResource(R.string.unlock_admin), MaterialTheme.colorScheme.primary) { onShowPinDialog() }
             }
         }
 
         // Danger
         if (isAdmin) {
-            SettingsCard("Danger Zone", Icons.Default.DeleteForever) {
-                SettingsButton("Clear All Data", BurgundyRed) { showClearDialog = true }
+            SettingsCard(stringResource(R.string.danger_zone), Icons.Default.DeleteForever) {
+                SettingsButton(stringResource(R.string.clear_all_data), BurgundyRed) { showClearDialog = true }
             }
         }
 
@@ -402,10 +409,10 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
                 AnimatedVinothequeLogo(modifier = Modifier.size(80.dp))
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("VINOTHEQUE PRO", color = MaterialTheme.colorScheme.primary, fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
-                Text("Native Android Edition v2.0", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 13.sp)
+                Text(stringResource(R.string.about_version), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Developed by", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), fontSize = 11.sp)
-                Text("Zakariae BOUZIDI-IDRISSI", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.developed_by), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), fontSize = 11.sp)
+                Text(stringResource(R.string.developer_name), color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
         Spacer(modifier = Modifier.height(40.dp))

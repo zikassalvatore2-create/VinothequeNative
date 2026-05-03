@@ -87,11 +87,11 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
 
     if (wineToDelete != null) {
         AlertDialog(onDismissRequest = { wineToDelete = null },
-            title = { Text("Remove Wine") },
-            text = { Text("Remove " + (wineToDelete?.name ?: "") + " from your cellar?") },
+            title = { Text(stringResource(R.string.remove)) },
+            text = { Text(stringResource(R.string.remove) + " " + (wineToDelete?.name ?: "") + "?") },
             confirmButton = { TextButton(onClick = { wineToDelete?.let { onDeleteWine(it) }; wineToDelete = null }) {
-                Text("Remove", color = Color.Red) } },
-            dismissButton = { TextButton(onClick = { wineToDelete = null }) { Text("Cancel") } })
+                Text(stringResource(R.string.remove), color = Color.Red) } },
+            dismissButton = { TextButton(onClick = { wineToDelete = null }) { Text(stringResource(R.string.cancel)) } })
     }
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -100,8 +100,8 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.searchQuery.value = it },
-                placeholder = { Text("Search wines, bins, regions...", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
-                leadingIcon = { Icon(Icons.Default.Search, "Search", tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)) },
+                placeholder = { Text(stringResource(R.string.search_hint), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
+                leadingIcon = { Icon(Icons.Default.Search, stringResource(R.string.search_hint), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)) },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 shape = RoundedCornerShape(20.dp),
@@ -128,8 +128,8 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            listOf("" to "All", "Red" to "Red", "White" to "White", "Rose" to "Rosé",
-                "Sparkling" to "Spark", "Dessert" to "Sweet").forEach { (value, label) ->
+            listOf("" to stringResource(R.string.type_all), "Red" to stringResource(R.string.type_red), "White" to stringResource(R.string.type_white), "Rose" to stringResource(R.string.type_rose),
+                "Sparkling" to stringResource(R.string.type_sparkling), "Dessert" to stringResource(R.string.type_dessert)).forEach { (value, label) ->
                 val isSelected = typeFilter == value
                 Button(
                     onClick = { viewModel.typeFilter.value = value },
@@ -148,7 +148,7 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
         Spacer(modifier = Modifier.height(8.dp))
 
         // Results
-        Text(wines.size.toString() + " wines", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 12.sp,
+        Text(wines.size.toString() + " " + stringResource(R.string.wines_stat), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 12.sp,
             modifier = Modifier.padding(horizontal = 20.dp))
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -157,9 +157,9 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.LocalBar, "Empty", tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), modifier = Modifier.size(80.dp))
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Your cellar is empty", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 18.sp, fontWeight = FontWeight.Light)
+                    Text(stringResource(R.string.cellar_empty), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 18.sp, fontWeight = FontWeight.Light)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Add wines or load sample data", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
+                    Text(stringResource(R.string.cellar_empty_hint), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f), fontSize = 14.sp)
                 }
             }
         } else {
@@ -262,7 +262,7 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                     .background(typeColor.copy(alpha = 0.8f))
                     .padding(horizontal = 8.dp, vertical = 3.dp)
             ) {
-                Text(wine.type, color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                Text(getLocalizedType(wine.type), color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             }
             // Sold badge
             if (wine.sold > 0) {
@@ -272,7 +272,7 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
-                    Text(wine.sold.toString() + " sold", color = MaterialTheme.colorScheme.primary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    Text(wine.sold.toString() + " " + stringResource(R.string.sold), color = MaterialTheme.colorScheme.primary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -310,23 +310,23 @@ fun WineListRow(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                 Text(wine.name, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
                 Spacer(modifier = Modifier.height(2.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (wine.region.isEmpty()) "No Region" else wine.region, color = if (wine.region.isEmpty()) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp, maxLines = 1)
+                    Text(if (wine.region.isEmpty()) stringResource(R.string.no_region) else wine.region, color = if (wine.region.isEmpty()) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp, maxLines = 1)
                     Text(" | ", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), fontSize = 11.sp)
-                    Text(if (wine.vintage.isEmpty()) "No Vintage" else wine.vintage, color = if (wine.vintage.isEmpty()) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
+                    Text(if (wine.vintage.isEmpty()) stringResource(R.string.no_vintage) else wine.vintage, color = if (wine.vintage.isEmpty()) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
                 }
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(if (wine.grape.isEmpty()) "No Grape" else wine.grape, color = if (wine.grape.isEmpty()) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 10.sp)
+                Text(if (wine.grape.isEmpty()) stringResource(R.string.no_grape) else wine.grape, color = if (wine.grape.isEmpty()) Color.Red else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 10.sp)
                 if (wine.rating == 0) {
-                    Text("No Rating", color = Color.Red, fontSize = 10.sp)
+                    Text(stringResource(R.string.no_rating), color = Color.Red, fontSize = 10.sp)
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End) {
                 Text("\u20AC" + wine.price.toInt().toString(), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 if (wine.binLocation.isEmpty()) {
-                    Text("No Bin", color = Color.Red, fontSize = 10.sp)
+                    Text(stringResource(R.string.no_bin), color = Color.Red, fontSize = 10.sp)
                 } else {
-                    Text("Bin " + wine.binLocation, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f), fontSize = 11.sp)
+                    Text(stringResource(R.string.bin_location) + " " + wine.binLocation, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f), fontSize = 11.sp)
                 }
             }
         }

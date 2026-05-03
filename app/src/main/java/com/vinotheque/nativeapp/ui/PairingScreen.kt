@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.data.Wine
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.res.stringResource
+import com.vinotheque.nativeapp.R
 
 @Composable
 fun PairingScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
@@ -48,8 +50,8 @@ fun PairingScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
     val matchingWines = if (selectedDish.isNotEmpty()) viewModel.getWinesByPairing(selectedDish) else emptyList()
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(20.dp)) {
-        Text("Wine Pairing", color = MaterialTheme.colorScheme.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text("Find the perfect match", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp)
+        Text(stringResource(R.string.pairing_title), color = MaterialTheme.colorScheme.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.pairing_hint), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp)
         Spacer(modifier = Modifier.height(20.dp))
 
         // Dish grid
@@ -60,7 +62,7 @@ fun PairingScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (selectedDish == dish) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(14.dp), modifier = Modifier.weight(1f)
-                ) { Text(dish, color = if (selectedDish == dish) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                ) { Text(getLocalizedDish(dish), color = if (selectedDish == dish) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     fontSize = 11.sp, fontWeight = FontWeight.Bold) }
             }
         }
@@ -71,7 +73,7 @@ fun PairingScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (selectedDish == dish) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(14.dp), modifier = Modifier.weight(1f)
-                ) { Text(dish, color = if (selectedDish == dish) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                ) { Text(getLocalizedDish(dish), color = if (selectedDish == dish) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     fontSize = 11.sp, fontWeight = FontWeight.Bold) }
             }
         }
@@ -79,7 +81,7 @@ fun PairingScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
         Spacer(modifier = Modifier.height(20.dp))
 
         if (selectedDish.isNotEmpty()) {
-            Text(matchingWines.size.toString() + " wines for " + selectedDish,
+            Text(stringResource(R.string.wines_for_dish, matchingWines.size, getLocalizedDish(selectedDish)),
                 color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -87,7 +89,7 @@ fun PairingScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Default.Restaurant, "No match", tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f), modifier = Modifier.size(48.dp))
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("No matching wines", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 16.sp)
+                    Text(stringResource(R.string.no_matching_wines), color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 16.sp)
                 }
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -110,7 +112,7 @@ fun PairingScreen(viewModel: WineViewModel, onWineClick: (Wine) -> Unit) {
                                 }
                                 if (wine.foodPairing.isNotEmpty()) {
                                     HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 8.dp))
-                                    Text("Pairs with: " + wine.foodPairing, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
+                                    Text(stringResource(R.string.pairs_with, wine.foodPairing), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
                                 }
                             }
                         }

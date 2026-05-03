@@ -109,16 +109,16 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
             // Top bar with back/fav/delete
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(28.dp))
+                    Icon(Icons.Default.ArrowBack, stringResource(R.string.back), tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(28.dp))
                 }
                 Row {
                     IconButton(onClick = { viewModel.toggleFavorite(wine.reference) }) {
                         Icon(if (isFav) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            "Favorite", tint = if (isFav) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(28.dp))
+                            stringResource(R.string.favorites), tint = if (isFav) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(28.dp))
                     }
                     if (isAdmin) {
                         IconButton(onClick = onDelete) {
-                            Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f), modifier = Modifier.size(28.dp))
+                            Icon(Icons.Default.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f), modifier = Modifier.size(28.dp))
                         }
                     }
                 }
@@ -128,10 +128,10 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
             Box(modifier = Modifier.fillMaxWidth().height(250.dp)) {
                 Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface), contentAlignment = Alignment.Center) {
                     AsyncWineImage(
-                        imageData = wine.image, contentDescription = "Wine",
+                        imageData = wine.image, contentDescription = stringResource(R.string.wines_stat),
                         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
                         contentScale = ContentScale.Fit,
-                        placeholder = { Icon(Icons.Default.LocalBar, "Wine", tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), modifier = Modifier.size(80.dp)) }
+                        placeholder = { Icon(Icons.Default.LocalBar, stringResource(R.string.wines_stat), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), modifier = Modifier.size(80.dp)) }
                     )
                 }
                 // Rating badge
@@ -142,7 +142,7 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                 // Type badge
                 Box(modifier = Modifier.align(Alignment.BottomStart).padding(12.dp).clip(RoundedCornerShape(12.dp))
                     .background(typeColor.copy(alpha = 0.9f)).padding(horizontal = 12.dp, vertical = 5.dp)) {
-                    Text(wine.type + " | " + wine.dryness, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(getLocalizedType(wine.type) + " | " + getLocalizedDryness(wine.dryness), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -152,8 +152,8 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                 Text(wine.name, color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold, lineHeight = 28.sp)
                 // Region | Vintage
                 Text(
-                    (if (wine.region.isNotEmpty()) wine.region else "Unknown Region") + " | " +
-                    (if (wine.vintage.isNotEmpty()) wine.vintage else "NV"),
+                    (if (wine.region.isNotEmpty()) wine.region else stringResource(R.string.unknown_region)) + " | " +
+                    (if (wine.vintage.isNotEmpty()) wine.vintage else stringResource(R.string.nv)),
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f), fontSize = 15.sp
                 )
                 // Three selling keywords
@@ -166,9 +166,9 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
 
                 // Price & info chips
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    InfoChip("Price", "\u20AC" + wine.price.toInt().toString(), Modifier.weight(1f))
-                    InfoChip("Vintage", wine.vintage.ifEmpty { "NV" }, Modifier.weight(1f))
-                    InfoChip("Sold", wine.sold.toString() + " btl", Modifier.weight(1f))
+                    InfoChip(stringResource(R.string.price), "\u20AC" + wine.price.toInt().toString(), Modifier.weight(1f))
+                    InfoChip(stringResource(R.string.vintage), wine.vintage.ifEmpty { stringResource(R.string.nv) }, Modifier.weight(1f))
+                    InfoChip(stringResource(R.string.sold), wine.sold.toString() + " " + stringResource(R.string.btl), Modifier.weight(1f))
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -195,9 +195,9 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                         shape = RoundedCornerShape(14.dp),
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                     ) {
-                        Icon(Icons.Default.Search, "Google", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Search, stringResource(R.string.search_google), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Search Google", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
+                        Text(stringResource(R.string.search_google), color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                     }
                     OutlinedButton(
                         onClick = { showPresentation = true },
@@ -205,20 +205,20 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                         shape = RoundedCornerShape(14.dp),
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                     ) {
-                        Icon(Icons.Default.Visibility, "Present", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Visibility, stringResource(R.string.present), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Present", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
+                        Text(stringResource(R.string.present), color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                     }
                 }
 
                 // ===== BELOW THE FOLD =====
                 Spacer(modifier = Modifier.height(20.dp))
-                DetailSection("Reference", wine.reference)
-                DetailSection("Grape", wine.grape)
+                DetailSection(stringResource(R.string.reference), wine.reference)
+                DetailSection(stringResource(R.string.grape), wine.grape)
 
                 if (wine.tastingNotes.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Tasting Notes", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.tasting_notes), color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Text(wine.tastingNotes, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
@@ -226,7 +226,7 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                 }
                 if (wine.aroma.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Aroma Profile", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.aroma_profile), color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Text(wine.aroma, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
@@ -234,17 +234,17 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                 }
                 if (wine.foodPairing.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Food Pairing", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.food_pairing), color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Text(wine.foodPairing, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
                     }
                 }
-                if (wine.peakMaturity.isNotEmpty()) { Spacer(modifier = Modifier.height(12.dp)); DetailSection("Peak Maturity", wine.peakMaturity) }
-                if (wine.ratingSource.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection("Rating Source", wine.ratingSource) }
-                if (wine.glassType.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection("Glass", wine.glassType) }
-                if (wine.decanting.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection("Decanting", wine.decanting) }
-                if (wine.servingTemp.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection("Serving Temp", wine.servingTemp) }
+                if (wine.peakMaturity.isNotEmpty()) { Spacer(modifier = Modifier.height(12.dp)); DetailSection(stringResource(R.string.peak_maturity), wine.peakMaturity) }
+                if (wine.ratingSource.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection(stringResource(R.string.rating_source), wine.ratingSource) }
+                if (wine.glassType.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection(stringResource(R.string.glass), wine.glassType) }
+                if (wine.decanting.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection(stringResource(R.string.decanting), wine.decanting) }
+                if (wine.servingTemp.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection(stringResource(R.string.serving_temp), wine.servingTemp) }
 
                 Spacer(modifier = Modifier.height(60.dp))
             }
@@ -342,10 +342,11 @@ fun SmartSoldButton(
                     onClick = {
                         // Single tap = 1 bottle
                         viewModel.sellWine(wine, quantity = 1)
+                        val msg = if (1 == 1) stringResource(R.string.one_bottle_sold) else stringResource(R.string.bottles_sold, 1)
                         scope.launch {
                             val result = snackbarHostState.showSnackbar(
-                                message = "1\u00D7 ${wine.name} sold",
-                                actionLabel = "Undo",
+                                message = "$msg: ${wine.name}",
+                                actionLabel = stringResource(R.string.undo),
                                 duration = SnackbarDuration.Short
                             )
                             if (result == SnackbarResult.ActionPerformed) {
@@ -369,20 +370,20 @@ fun SmartSoldButton(
             ) {
                 Icon(
                     Icons.Default.ShoppingCart,
-                    contentDescription = "Sell",
+                    contentDescription = stringResource(R.string.record_sale),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "Record Sale",
+                        stringResource(R.string.record_sale),
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
                     Text(
-                        "Hold for quantity",
+                        stringResource(R.string.hold_for_quantity),
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
                         fontSize = 9.sp
                     )
@@ -404,9 +405,10 @@ fun SmartSoldButton(
                     viewModel.sellWine(wine, quantity = quantity)
                     showQuantityPicker = false
                     scope.launch {
+                        val msg = stringResource(R.string.bottles_sold, quantity)
                         val result = snackbarHostState.showSnackbar(
-                            message = "$quantity× ${wine.name} sold",
-                            actionLabel = "Undo",
+                            message = "$msg: ${wine.name}",
+                            actionLabel = stringResource(R.string.undo),
                             duration = SnackbarDuration.Short
                         )
                         if (result == SnackbarResult.ActionPerformed) {
@@ -449,7 +451,7 @@ fun QuantityPickerDialog(
             ) {
                 // Title
                 Text(
-                    "Select Quantity",
+                    stringResource(R.string.select_quantity),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
@@ -508,7 +510,7 @@ fun QuantityPickerDialog(
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Custom", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
+                        placeholder = { Text(stringResource(R.string.custom), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -541,7 +543,7 @@ fun QuantityPickerDialog(
 
                 // Cancel button
                 TextButton(onClick = onDismiss) {
-                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp)
+                    Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp)
                 }
             }
         }

@@ -58,6 +58,8 @@ import com.vinotheque.nativeapp.ui.theme.RedWineColor
 import com.vinotheque.nativeapp.ui.theme.RoseWineColor
 import com.vinotheque.nativeapp.ui.theme.SparklingColor
 import com.vinotheque.nativeapp.ui.theme.WhiteWineColor
+import androidx.compose.ui.res.stringResource
+import com.vinotheque.nativeapp.R
 import java.io.ByteArrayOutputStream
 
 private val fieldColors @Composable get() = OutlinedTextFieldDefaults.colors(
@@ -114,10 +116,10 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.ArrowBack, stringResource(R.string.back), tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
             }
             Spacer(modifier = Modifier.weight(1f))
-            Text("Add Wine", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.add_wine), color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = {
                 val result = viewModel.enrichWine(grape, name)
@@ -129,7 +131,7 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                 if (servingTemp.isEmpty()) servingTemp = result.servingTemp
                 if (keywords.isEmpty()) keywords = result.keywords
             }) {
-                Icon(Icons.Default.AutoAwesome, "Smart Fill", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.AutoAwesome, stringResource(R.string.smart_fill), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
             }
         }
 
@@ -149,21 +151,21 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                     Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(onClick = { cameraLauncher.launch(null) }) {
-                                Icon(Icons.Default.CameraAlt, "Camera", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(36.dp))
+                                Icon(Icons.Default.CameraAlt, stringResource(R.string.camera), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(36.dp))
                             }
-                            Text("Camera", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
+                            Text(stringResource(R.string.camera), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(onClick = { galleryLauncher.launch("image/*") }) {
-                                Icon(Icons.Default.Image, "Gallery", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(36.dp))
+                                Icon(Icons.Default.Image, stringResource(R.string.gallery), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(36.dp))
                             }
-                            Text("Gallery", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
+                            Text(stringResource(R.string.gallery), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(onClick = { searchWineImage(context, name) }) {
-                                Icon(Icons.Default.Search, "Search", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(36.dp))
+                                Icon(Icons.Default.Search, stringResource(R.string.search_google), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(36.dp))
                             }
-                            Text("Search", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
+                            Text(stringResource(R.string.search_google), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
                         }
                     }
                 }
@@ -171,25 +173,25 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(value = name, onValueChange = { name = it },
-                label = { Text("Wine Name") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+                label = { Text(stringResource(R.string.wine_name)) }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = region, onValueChange = { region = it },
-                    label = { Text("Region") }, modifier = Modifier.weight(1f), colors = fieldColors)
+                    label = { Text(stringResource(R.string.region)) }, modifier = Modifier.weight(1f), colors = fieldColors)
                 OutlinedTextField(value = vintage, onValueChange = { vintage = it },
-                    label = { Text("Vintage") }, modifier = Modifier.weight(0.5f), colors = fieldColors)
+                    label = { Text(stringResource(R.string.vintage)) }, modifier = Modifier.weight(0.5f), colors = fieldColors)
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = grape, onValueChange = { grape = it },
-                    label = { Text("Grape") }, modifier = Modifier.weight(1f), colors = fieldColors)
+                    label = { Text(stringResource(R.string.grape)) }, modifier = Modifier.weight(1f), colors = fieldColors)
                 OutlinedTextField(value = price, onValueChange = { price = it },
-                    label = { Text("Price") }, modifier = Modifier.weight(0.5f), colors = fieldColors)
+                    label = { Text(stringResource(R.string.price)) }, modifier = Modifier.weight(0.5f), colors = fieldColors)
             }
             Spacer(modifier = Modifier.height(16.dp))
 
             // Type
-            Text("Type", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(getLocalizedLabel("Type"), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 listOf("Red", "White", "Rose", "Sparkling", "Dessert").forEach { t ->
@@ -197,13 +199,13 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (type == t) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
                         shape = RoundedCornerShape(12.dp), modifier = Modifier.weight(1f)
-                    ) { Text(t, color = if (type == t) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+                    ) { Text(getLocalizedType(t), color = if (type == t) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 9.sp, fontWeight = FontWeight.Bold) }
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
 
             // Dryness
-            Text("Dryness", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(getLocalizedLabel("Dry"), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 listOf("Dry", "Off-Dry", "Sweet", "Brut").forEach { d ->
@@ -211,7 +213,7 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (dryness == d) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
                         shape = RoundedCornerShape(12.dp), modifier = Modifier.weight(1f)
-                    ) { Text(d, color = if (dryness == d) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+                    ) { Text(getLocalizedDryness(d), color = if (dryness == d) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 9.sp, fontWeight = FontWeight.Bold) }
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -225,34 +227,34 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(value = aroma, onValueChange = { aroma = it },
-                label = { Text("Aroma Profile") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+                label = { Text(stringResource(R.string.aroma_profile)) }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(value = foodPairing, onValueChange = { foodPairing = it },
-                label = { Text("Food Pairing") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+                label = { Text(stringResource(R.string.food_pairing)) }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(value = glassType, onValueChange = { glassType = it },
-                label = { Text("Recommended Glass") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+                label = { Text(stringResource(R.string.glass_type)) }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(value = binLocation, onValueChange = { binLocation = it },
-                label = { Text("Bin Location") }, placeholder = { Text("e.g. A12, Shelf 3", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)) },
+                label = { Text(stringResource(R.string.bin_location)) }, placeholder = { Text("e.g. A12, Shelf 3", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)) },
                 modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(value = keywords, onValueChange = { keywords = it },
-                label = { Text("Selling Keywords (3 words)") }, placeholder = { Text("e.g. Bold. Rich. Spice.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)) },
+                label = { Text(stringResource(R.string.keywords)) }, placeholder = { Text(stringResource(R.string.keywords_hint), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)) },
                 modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(value = decanting, onValueChange = { decanting = it },
-                    label = { Text("Decanting") }, modifier = Modifier.weight(1f), colors = fieldColors)
+                    label = { Text(stringResource(R.string.decanting)) }, modifier = Modifier.weight(1f), colors = fieldColors)
                 OutlinedTextField(value = servingTemp, onValueChange = { servingTemp = it },
-                    label = { Text("Temp") }, modifier = Modifier.weight(1f), colors = fieldColors)
+                    label = { Text(stringResource(R.string.serving_temp)) }, modifier = Modifier.weight(1f), colors = fieldColors)
             }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(value = tastingNotes, onValueChange = { tastingNotes = it },
-                label = { Text("Tasting Notes") }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
+                label = { Text(stringResource(R.string.tasting_notes)) }, modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(value = ratingSource, onValueChange = { ratingSource = it },
-                label = { Text("Rating Source") }, placeholder = { Text("e.g. James Suckling, Vivino", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)) },
+                label = { Text(stringResource(R.string.rating_source)) }, placeholder = { Text("e.g. James Suckling, Vivino", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)) },
                 modifier = Modifier.fillMaxWidth(), colors = fieldColors)
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -272,7 +274,7 @@ fun AddWineScreen(viewModel: WineViewModel, onNavigateBack: () -> Unit) {
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Save to Cellar", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.save_to_cellar), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
             Spacer(modifier = Modifier.height(40.dp))
         }
