@@ -59,6 +59,12 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
     val currentUser = MutableStateFlow(prefs.getString("current_user", "default") ?: "default")
     val isAdmin = MutableStateFlow(false) // Always OFF on cold start
     val allSales = saleDao.getAllSales().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val selectedTheme = MutableStateFlow(prefs.getString("selected_theme", "Midnight") ?: "Midnight")
+    fun setTheme(theme: String) {
+        selectedTheme.value = theme
+        prefs.edit().putString("selected_theme", theme).apply()
+    }
+
     private var adminLastActivity = System.currentTimeMillis()
     private val ADMIN_TIMEOUT = 30 * 60 * 1000L // 30 minutes
 

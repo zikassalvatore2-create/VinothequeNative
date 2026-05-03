@@ -89,30 +89,30 @@ import com.vinotheque.nativeapp.ui.SettingsScreen
 import com.vinotheque.nativeapp.ui.SalesAnalyticsScreen
 import com.vinotheque.nativeapp.ui.WineDetailScreen
 import com.vinotheque.nativeapp.ui.WineViewModel
-import com.vinotheque.nativeapp.ui.theme.WineDark
-import com.vinotheque.nativeapp.ui.theme.WineGold
-import com.vinotheque.nativeapp.ui.theme.WineRed
-import com.vinotheque.nativeapp.ui.theme.WineSurface
-import com.vinotheque.nativeapp.ui.theme.TextSecondary
+import com.vinotheque.nativeapp.ui.theme.*
 import kotlinx.coroutines.delay
-
-private val VinothequeColorScheme = darkColorScheme(
-    primary = WineGold, secondary = WineRed, background = WineDark, surface = WineSurface,
-    onPrimary = Color.Black, onSecondary = Color.White, onBackground = Color.White, onSurface = Color.White
-)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme(colorScheme = VinothequeColorScheme) {
-                Surface(color = WineDark) {
-                    var showSplash by remember { mutableStateOf(true) }
-                    LaunchedEffect(Unit) { delay(2200); showSplash = false }
-                    AnimatedVisibility(visible = showSplash, exit = fadeOut()) { SplashScreen() }
-                    AnimatedVisibility(visible = !showSplash, enter = fadeIn()) { VinothequeApp() }
-                }
-            }
+            VinothequeAppContainer()
+        }
+    }
+}
+
+@Composable
+fun VinothequeAppContainer() {
+    val viewModel: WineViewModel = viewModel()
+    val theme by viewModel.selectedTheme.collectAsState()
+
+    ProvideVinothequeTheme(themeName = theme) {
+        val colorScheme = MaterialTheme.colorScheme
+        Surface(color = colorScheme.background) {
+            var showSplash by remember { mutableStateOf(true) }
+            LaunchedEffect(Unit) { delay(2200); showSplash = false }
+            AnimatedVisibility(visible = showSplash, exit = fadeOut()) { SplashScreen() }
+            AnimatedVisibility(visible = !showSplash, enter = fadeIn()) { VinothequeApp(viewModel) }
         }
     }
 }
@@ -120,17 +120,17 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SplashScreen() {
     Box(
-        modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(WineDark, WineRed.copy(alpha = 0.3f), WineDark))),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.LocalBar, "Logo", tint = WineGold, modifier = Modifier.size(80.dp))
-            Spacer(modifier = Modifier.height(24.dp))
-            Text("VINOTHEQUE", color = WineGold, fontSize = 36.sp, fontWeight = FontWeight.Bold, letterSpacing = 8.sp)
-            Text("PRO", color = WineGold.copy(alpha = 0.6f), fontSize = 18.sp, fontWeight = FontWeight.Light, letterSpacing = 12.sp)
+            com.vinotheque.nativeapp.ui.AnimatedVinothequeLogo(modifier = Modifier.size(140.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+            Text("VINOTHEQUE", color = MaterialTheme.colorScheme.primary, fontSize = 36.sp, fontWeight = FontWeight.Bold, letterSpacing = 8.sp)
+            Text("PRO", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), fontSize = 18.sp, fontWeight = FontWeight.Light, letterSpacing = 12.sp)
             Spacer(modifier = Modifier.height(60.dp))
             Text("Developed by", color = TextSecondary.copy(alpha = 0.5f), fontSize = 12.sp)
-            Text("Zakariae BOUZIDI-IDRISSI", color = WineGold.copy(alpha = 0.7f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text("Zakariae BOUZIDI-IDRISSI", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f), fontSize = 14.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
@@ -234,8 +234,7 @@ fun AdminPinDialog(onCorrect: () -> Unit, onDismiss: () -> Unit, viewModel: Wine
 data class NavItem(val label: String, val icon: ImageVector)
 
 @Composable
-fun VinothequeApp() {
-    val viewModel: WineViewModel = viewModel()
+fun VinothequeApp(viewModel: WineViewModel) {
     val context = LocalContext.current
     var selectedTab by remember { mutableIntStateOf(0) }
     var showAddWine by remember { mutableStateOf(false) }

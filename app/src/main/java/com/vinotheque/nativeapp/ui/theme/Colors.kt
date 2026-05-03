@@ -2,16 +2,31 @@ package com.vinotheque.nativeapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary Wine Palette — deep, rich, luxurious
+// Midnight Gold (Default)
+val MidnightDark = Color(0xFF080808)
+val MidnightGold = Color(0xFFD4AF6A)
+
+// Royal Burgundy
+val BurgundyDark = Color(0xFF0F0506)
+val BurgundyRed = Color(0xFF800020)
+val BurgundyGold = Color(0xFFE6BE8A)
+
+// Emerald Cellar
+val EmeraldDark = Color(0xFF050F08)
+val EmeraldGreen = Color(0xFF004D40)
+val EmeraldGold = Color(0xFFCFB53B)
+
+// Ocean Reserve
+val OceanDark = Color(0xFF05080F)
+val OceanBlue = Color(0xFF0D47A1)
+val OceanGold = Color(0xFFE5E4E2)
+
+// Global Utilities
 val WineDark = Color(0xFF080808)
 val WineSurface = Color(0xFF131316)
 val WineCard = Color(0xFF1A1A1F)
 val WineCardLight = Color(0xFF252530)
-
-// Accent Colors — refined gold tones
 val WineRed = Color(0xFF7A2E38)
-val WineRedLight = Color(0xFF943947)
-val WineRedDark = Color(0xFF5C222B)
 val WineGold = Color(0xFFD4AF6A)
 val WineGoldLight = Color(0xFFE0C07E)
 val WineGoldDim = Color(0xFF8E7D54)

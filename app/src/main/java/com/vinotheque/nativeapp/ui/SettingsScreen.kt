@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CloudDownload
@@ -188,7 +190,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
 
 
 
-    Column(modifier = Modifier.fillMaxSize().background(WineDark)
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
         .verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
@@ -201,6 +203,42 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SettingsButton("Change Name", WineGold, Modifier.weight(1f)) { onShowNamePrompt() }
                 SettingsButton("Shift Summary", WineSurface, Modifier.weight(1f)) { onShowShiftSummary() }
+            }
+        }
+
+        // Theme Selector
+        val currentTheme by viewModel.selectedTheme.collectAsState()
+        SettingsCard("Aesthetics & Theme", Icons.Default.LocalBar) {
+            val themes = listOf("Midnight", "Burgundy", "Emerald", "Ocean")
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                themes.forEach { theme ->
+                    val isSelected = currentTheme == theme
+                    val themeColor = when(theme) {
+                        "Midnight" -> MidnightGold
+                        "Burgundy" -> BurgundyRed
+                        "Emerald" -> EmeraldGreen
+                        "Ocean" -> OceanBlue
+                        else -> WineGold
+                    }
+                    
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (isSelected) themeColor else WineSurface)
+                            .clickable { viewModel.setTheme(theme) }
+                            .padding(4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = theme,
+                            color = if (isSelected) Color.White else TextSecondary,
+                            fontSize = 11.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                }
             }
         }
 
@@ -327,11 +365,13 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
         // About
         Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
             Column(modifier = Modifier.padding(20.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("VINOTHEQUE PRO", color = WineGold, fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
-                Text("Native Android Edition v1.0", color = TextTertiary, fontSize = 13.sp)
+                AnimatedVinothequeLogo(modifier = Modifier.size(80.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("VINOTHEQUE PRO", color = MaterialTheme.colorScheme.primary, fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
+                Text("Native Android Edition v2.0", color = TextTertiary, fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(12.dp))
                 Text("Developed by", color = TextTertiary, fontSize = 11.sp)
-                Text("Zakariae BOUZIDI-IDRISSI", color = WineGold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text("Zakariae BOUZIDI-IDRISSI", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
         Spacer(modifier = Modifier.height(40.dp))
@@ -398,10 +438,10 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
 
 @Composable
 fun SettingsCard(title: String, icon: ImageVector, content: @Composable () -> Unit) {
-    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+    Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, title, tint = WineGold, modifier = Modifier.size(20.dp))
+                Icon(icon, title, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.padding(start = 10.dp))
                 Text(title, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
@@ -413,8 +453,9 @@ fun SettingsCard(title: String, icon: ImageVector, content: @Composable () -> Un
 
 @Composable
 fun SettingsButton(text: String, color: Color, modifier: Modifier = Modifier.fillMaxWidth(), onClick: () -> Unit) {
+    val isPrimary = color == WineGold || color == MaterialTheme.colorScheme.primary
     Button(onClick = onClick, modifier = modifier, shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(containerColor = color)) {
-        Text(text, color = if (color == WineGold) Color.Black else Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Text(text, color = if (isPrimary) Color.Black else Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     }
 }

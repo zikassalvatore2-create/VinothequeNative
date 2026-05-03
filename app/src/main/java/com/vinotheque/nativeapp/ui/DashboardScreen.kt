@@ -99,13 +99,40 @@ fun DashboardScreen(viewModel: WineViewModel) {
     val recentSales = remember(sales) { sales.take(10) }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(WineDark)
-            .verticalScroll(rememberScrollState()).padding(20.dp)
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState()).padding(bottom = 80.dp)
     ) {
-        // Header
-        Text("Your Cellar", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text("at a glance", color = TextSecondary, fontSize = 16.sp, fontWeight = FontWeight.Light)
-        Spacer(modifier = Modifier.height(4.dp))
+        // Top Header with Greeting & Animated Logo
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Welcome back,",
+                    color = TextSecondary,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = currentUser.uppercase(),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp
+                )
+                Text(
+                    text = SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date()),
+                    color = TextTertiary,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+            AnimatedVinothequeLogo(modifier = Modifier.size(60.dp))
+        }
+
         val lastBackup = viewModel.getLastBackupTime()
         if (lastBackup > 0) {
             val ago = (System.currentTimeMillis() - lastBackup) / 1000
@@ -115,7 +142,7 @@ fun DashboardScreen(viewModel: WineViewModel) {
                 ago < 86400 -> (ago / 3600).toString() + "h ago"
                 else -> (ago / 86400).toString() + "d ago"
             }
-            Text("\u2601 Auto-saved $timeText", color = WineGold.copy(alpha = 0.5f), fontSize = 11.sp)
+            Text("\u2601 Auto-saved $timeText", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), fontSize = 11.sp, modifier = Modifier.padding(start = 24.dp))
         }
 
         Spacer(modifier = Modifier.height(12.dp))
