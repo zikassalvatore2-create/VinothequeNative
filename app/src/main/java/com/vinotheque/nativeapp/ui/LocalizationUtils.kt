@@ -39,7 +39,7 @@ fun getLocalizedLabel(label: String): String {
         "region" -> stringResource(R.string.region)
         "type" -> stringResource(R.string.type_label)
         "dry" -> stringResource(R.string.dry_label)
-        "rating" -> stringResource(R.string.rating_stat)
+        "rating" -> stringResource(R.string.rating_label)
         "aroma" -> stringResource(R.string.aroma_label)
         "pairing" -> stringResource(R.string.pairing_label)
         "recommended glass" -> stringResource(R.string.glass_recommended)

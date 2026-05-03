@@ -344,11 +344,12 @@ fun SmartSoldButton(
                     onClick = {
                         // Single tap = 1 bottle
                         viewModel.sellWine(wine, quantity = 1)
-                        val msg = if (1 == 1) stringResource(R.string.one_bottle_sold) else stringResource(R.string.bottles_sold, 1)
+                        val msg = context.getString(R.string.one_bottle_sold)
+                        val undoLabel = context.getString(R.string.undo)
                         scope.launch {
                             val result = snackbarHostState.showSnackbar(
                                 message = "$msg: ${wine.name}",
-                                actionLabel = stringResource(R.string.undo),
+                                actionLabel = undoLabel,
                                 duration = SnackbarDuration.Short
                             )
                             if (result == SnackbarResult.ActionPerformed) {
@@ -407,10 +408,11 @@ fun SmartSoldButton(
                     viewModel.sellWine(wine, quantity = quantity)
                     showQuantityPicker = false
                     scope.launch {
-                        val msg = stringResource(R.string.bottles_sold, quantity)
+                        val msg = context.getString(R.string.bottles_sold, quantity)
+                        val undoLabel = context.getString(R.string.undo)
                         val result = snackbarHostState.showSnackbar(
                             message = "$msg: ${wine.name}",
-                            actionLabel = stringResource(R.string.undo),
+                            actionLabel = undoLabel,
                             duration = SnackbarDuration.Short
                         )
                         if (result == SnackbarResult.ActionPerformed) {

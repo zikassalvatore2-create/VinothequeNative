@@ -336,17 +336,20 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
                                 if (file.exists()) {
                                     val json = file.readText()
                                     viewModel.restoreFromJson(json)
+                                    val msgRestored = context.getString(R.string.toast_restored_auto)
                                     withContext(Dispatchers.Main) {
-                                        Toast.makeText(context, stringResource(R.string.toast_restored_auto), Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, msgRestored, Toast.LENGTH_SHORT).show()
                                     }
                                 } else {
+                                    val msgNoBackup = context.getString(R.string.toast_no_backup_found)
                                     withContext(Dispatchers.Main) {
-                                        Toast.makeText(context, stringResource(R.string.toast_no_backup_found), Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, msgNoBackup, Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             } catch (e: Exception) {
+                                val msgFailed = context.getString(R.string.toast_restore_failed)
                                 withContext(Dispatchers.Main) {
-                                    Toast.makeText(context, stringResource(R.string.toast_restore_failed), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, msgFailed, Toast.LENGTH_SHORT).show()
                                 }
                             }
                             withContext(Dispatchers.Main) { isBusy = false }
@@ -368,7 +371,9 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
             // Sample Data
             SettingsCard(stringResource(R.string.sample_collection_title), Icons.Default.LocalBar) {
                 SettingsButton(stringResource(R.string.load_samples), MaterialTheme.colorScheme.primary) {
-                    viewModel.loadSampleData(); Toast.makeText(context, stringResource(R.string.toast_samples_loaded), Toast.LENGTH_SHORT).show() }
+                    viewModel.loadSampleData()
+                    Toast.makeText(context, context.getString(R.string.toast_samples_loaded), Toast.LENGTH_SHORT).show()
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 SettingsButton(stringResource(R.string.load_premium_wines), MaterialTheme.colorScheme.surfaceVariant) {
                     viewModel.loadPremiumWines(); Toast.makeText(context, "10 Premium wines loaded!", Toast.LENGTH_SHORT).show()
