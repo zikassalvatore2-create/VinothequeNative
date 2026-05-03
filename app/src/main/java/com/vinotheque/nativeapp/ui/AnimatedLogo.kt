@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +47,9 @@ fun AnimatedVinothequeLogo(
         textAlpha.animateTo(1f, animationSpec = tween(800))
     }
 
+    val goldColor = WineGold
+    val redColor = WineRed
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -60,8 +64,6 @@ fun AnimatedVinothequeLogo(
                 },
             contentAlignment = Alignment.Center
         ) {
-            val goldColor = WineGold
-            val redColor = WineRed
             
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val w = size.width
