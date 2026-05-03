@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -45,7 +46,7 @@ fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
     )
 
     Canvas(modifier = modifier) {
-        val center = size / 2f
+        val centerPos = Offset(size.width / 2f, size.height / 2f)
         val radius = size.minDimension / 2.5f * scale
         
         // Outer ring
@@ -62,22 +63,23 @@ fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(WineGold.copy(alpha = 0.3f), Color.Transparent),
-                    center = center,
+                    center = centerPos,
                     radius = radius * 0.8f
                 ),
-                radius = radius * 0.8f
+                radius = radius * 0.8f,
+                center = centerPos
             )
         }
         
         // The core glow
         drawCircle(
             brush = Brush.radialGradient(
-                0.0f to WineGold.copy(alpha = 0.8f),
-                1.0f to Color.Transparent,
-                center = center,
+                colors = listOf(WineGold.copy(alpha = 0.8f), Color.Transparent),
+                center = centerPos,
                 radius = radius * 0.4f
             ),
-            radius = radius * 0.4f
+            radius = radius * 0.4f,
+            center = centerPos
         )
     }
 }

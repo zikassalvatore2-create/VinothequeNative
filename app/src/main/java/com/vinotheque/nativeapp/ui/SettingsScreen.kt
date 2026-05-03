@@ -34,6 +34,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -56,12 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vinotheque.nativeapp.ui.theme.TextSecondary
-import com.vinotheque.nativeapp.ui.theme.TextTertiary
-import com.vinotheque.nativeapp.ui.theme.WineDark
-import com.vinotheque.nativeapp.ui.theme.WineGold
-import com.vinotheque.nativeapp.ui.theme.WineRed
-import com.vinotheque.nativeapp.ui.theme.WineSurface
+import com.vinotheque.nativeapp.ui.theme.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
