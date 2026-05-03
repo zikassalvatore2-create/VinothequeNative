@@ -18,9 +18,32 @@ import androidx.compose.material3.MaterialTheme
 fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
     val infiniteTransition = rememberInfiniteTransition(label = "logo")
     
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.8f,
+    // Animation for the liquid level oscillation
+    val liquidOscillation by infiniteTransition.animateFloat(
+        initialValue = -5f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "liquid"
+    )
+
+    // Animation for the "glint" on the glass rim
+    val glintPosition by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "glint"
+    )
+
+    // Animation for subtle glow pulse
+    val glowScale by infiniteTransition.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 1.2f,
         animationSpec = infiniteRepeatable(
             animation = tween(3000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -29,15 +52,7 @@ fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
     )
 
     val primaryColor = MaterialTheme.colorScheme.primary
-    val colorShift by infiniteTransition.animateColor(
-        initialValue = primaryColor,
-        targetValue = primaryColor.copy(alpha = 0.6f),
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "colorShift"
-    )
+    val secondaryColor = MaterialTheme.colorScheme.secondary
 
     Canvas(
         modifier = modifier
@@ -48,85 +63,116 @@ fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
         val w = size.width
         val h = size.height
         val centerX = w / 2f
+        val centerY = h / 2f
         
-        // 1. Arch Path (Stone Cellar Arch)
-        val archPath = Path().apply {
-            moveTo(w * 0.15f, h * 0.9f)
-            lineTo(w * 0.15f, h * 0.5f)
+        // 1. Draw the Background Glow
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(primaryColor.copy(alpha = 0.15f), Color.Transparent),
+                center = Offset(centerX, h * 0.45f),
+                radius = (w * 0.45f) * glowScale
+            ),
+            radius = (w * 0.45f) * glowScale,
+            center = Offset(centerX, h * 0.45f)
+        )
+
+        // 2. Define the Glass Bowl Path
+        val bowlPath = Path().apply {
+            moveTo(w * 0.3f, h * 0.25f) // Top left rim
             cubicTo(
-                w * 0.15f, h * 0.1f,
-                w * 0.85f, h * 0.1f,
-                w * 0.85f, h * 0.5f
+                w * 0.3f, h * 0.65f, // Control point 1
+                w * 0.7f, h * 0.65f, // Control point 2
+                w * 0.7f, h * 0.25f  // Top right rim
             )
-            lineTo(w * 0.85f, h * 0.9f)
         }
 
-        // Deep background glow behind the arch
+        // 3. Draw the "Liquid" inside the bowl
+        val liquidPath = Path().apply {
+            val liquidLevel = h * 0.45f + liquidOscillation
+            moveTo(w * 0.35f, liquidLevel)
+            cubicTo(
+                w * 0.35f, h * 0.62f,
+                w * 0.65f, h * 0.62f,
+                w * 0.65f, liquidLevel
+            )
+            // Surface curve
+            quadraticTo(centerX, liquidLevel - 4.dp.toPx(), w * 0.35f, liquidLevel)
+        }
+        
         drawPath(
-            path = archPath,
+            path = liquidPath,
             brush = Brush.verticalGradient(
-                listOf(primaryColor.copy(alpha = 0.2f), Color.Transparent)
+                listOf(primaryColor.copy(alpha = 0.4f), primaryColor.copy(alpha = 0.1f))
             )
         )
 
-        // 2. Draw wine bottles inside the arch (Neatly arranged)
-        val bottleWidth = w * 0.08f
-        val bottleHeight = h * 0.25f
-        val startX = w * 0.25f
-        val endX = w * 0.75f
-        val bottleCount = 5
-        val spacing = (endX - startX) / (bottleCount - 1)
+        // 4. Draw Glass Outline (Stem and Base)
+        val glassOutlineColor = primaryColor.copy(alpha = 0.8f)
+        val strokeWidth = 1.5.dp.toPx()
 
-        for (i in 0 until bottleCount) {
-            val x = startX + i * spacing
-            // Bottle body
-            drawRoundRect(
-                color = colorShift.copy(alpha = 0.6f),
-                topLeft = Offset(x - bottleWidth / 2, h * 0.55f),
-                size = Size(bottleWidth, bottleHeight),
-                cornerRadius = CornerRadius(4.dp.toPx()),
-                style = Stroke(width = 1.dp.toPx())
-            )
-            // Bottle neck
-            drawRect(
-                color = colorShift.copy(alpha = 0.6f),
-                topLeft = Offset(x - bottleWidth / 4, h * 0.45f),
-                size = Size(bottleWidth / 2, h * 0.1f),
-                style = Stroke(width = 1.dp.toPx())
-            )
-        }
+        // Stem
+        drawLine(
+            color = glassOutlineColor,
+            start = Offset(centerX, h * 0.58f),
+            end = Offset(centerX, h * 0.82f),
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round
+        )
 
-        // 3. Draw the Arch line art
+        // Base
         drawPath(
-            path = archPath,
-            color = colorShift,
+            path = Path().apply {
+                moveTo(w * 0.35f, h * 0.85f)
+                quadraticTo(centerX, h * 0.82f, w * 0.65f, h * 0.85f)
+            },
+            color = glassOutlineColor,
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+        )
+
+        // Bowl Outline
+        drawPath(
+            path = bowlPath,
+            color = glassOutlineColor,
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+        )
+
+        // 5. Elegant "V" logo inside the glass
+        drawPath(
+            path = Path().apply {
+                moveTo(w * 0.45f, h * 0.35f)
+                lineTo(centerX, h * 0.48f)
+                lineTo(w * 0.55f, h * 0.35f)
+            },
+            color = primaryColor,
             style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
         )
 
-        // 4. Subtle "Stone" markers on the arch
-        for (i in 0..8) {
-            val angle = Math.PI + (i * Math.PI / 8)
-            val rx = w * 0.35f
-            val ry = h * 0.4f
-            val px = centerX + rx * Math.cos(angle).toFloat()
-            val py = h * 0.5f + ry * Math.sin(angle).toFloat()
-            
-            drawCircle(
-                color = colorShift.copy(alpha = glowAlpha),
-                radius = 2.dp.toPx(),
-                center = Offset(px, py)
-            )
-        }
+        // 6. Rim "Glint" Animation
+        // We find a point along the top arc for the glint
+        val glintX = centerX + (w * 0.2f) * Math.cos(Math.PI + glintPosition * Math.PI).toFloat()
+        val glintY = h * 0.25f + (h * 0.05f) * Math.sin(glintPosition * Math.PI * 2).toFloat()
 
-        // 5. Refined central glow
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(colorShift.copy(alpha = 0.15f * glowAlpha), Color.Transparent),
-                center = Offset(centerX, h * 0.4f),
-                radius = w * 0.4f
+                colors = listOf(Color.White.copy(alpha = 0.9f), Color.Transparent),
+                center = Offset(glintX, glintY),
+                radius = 4.dp.toPx()
             ),
-            radius = w * 0.4f,
-            center = Offset(centerX, h * 0.4f)
+            radius = 4.dp.toPx(),
+            center = Offset(glintX, glintY)
         )
+
+        // 7. Subtle rising bubbles
+        val time = System.currentTimeMillis()
+        for (i in 0..2) {
+            val bubbleX = centerX + (i - 1) * 12.dp.toPx() + (Math.sin(time / 500.0 + i) * 4.dp.toPx()).toFloat()
+            val bubbleY = h * 0.55f - ((time / 20 + i * 100) % 100) / 100f * (h * 0.2f)
+            
+            drawCircle(
+                color = primaryColor.copy(alpha = 0.3f),
+                radius = 1.dp.toPx(),
+                center = Offset(bubbleX, bubbleY)
+            )
+        }
     }
 }
