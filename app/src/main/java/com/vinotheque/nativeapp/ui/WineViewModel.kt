@@ -622,12 +622,13 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 val headers = parseCsvLine(headerLine).map { it.lowercase().trim() }
                 val dataLines = allLines.drop(1)
 
-                fun findIdx(names: List<String>): Int {
-                    // Try exact matches first
+                fun findIdx(names: List<String>, exclude: List<String> = emptyList()): Int {
                     val exact = headers.indexOfFirst { h -> names.any { it.equals(h, ignoreCase = true) } }
                     if (exact >= 0) return exact
-                    // Try fuzzy contains
-                    return headers.indexOfFirst { h -> names.any { n -> h.contains(n, ignoreCase = true) } }
+                    return headers.indexOfFirst { h -> 
+                        names.any { n -> h.contains(n, ignoreCase = true) } &&
+                        exclude.none { e -> h.contains(e, ignoreCase = true) }
+                    }
                 }
 
                 val nameIdx = findIdx(listOf("name", "wine", "label"))
@@ -636,14 +637,18 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 val vintageIdx = findIdx(listOf("vintage", "year", "millésime", "millesime"))
                 val grapeIdx = findIdx(listOf("grape", "varietal", "variety", "cépage", "cepage"))
                 val priceIdx = findIdx(listOf("price", "cost", "prix"))
-                val typeIdx = findIdx(listOf("type", "color", "couleur"))
+                val typeIdx = findIdx(listOf("type", "color", "couleur"), exclude = listOf("glass"))
                 val drynessIdx = findIdx(listOf("dryness", "sugar", "sucre", "dry"))
                 val ratingIdx = findIdx(listOf("rating", "score", "points", "note"))
+                val ratingSourceIdx = findIdx(listOf("rating_source", "source", "critic"))
                 val aromaIdx = findIdx(listOf("aroma", "nose", "bouquet", "nez"))
                 val pairingIdx = findIdx(listOf("pairing", "food", "accord"))
                 val binIdx = findIdx(listOf("bin", "location", "shelf", "emplacement", "cave"))
                 val keywordsIdx = findIdx(listOf("keywords", "selling", "tags"))
                 val notesIdx = findIdx(listOf("notes", "tasting", "description"))
+                val glassIdx = findIdx(listOf("glass", "verre"))
+                val decantIdx = findIdx(listOf("decant", "decanting", "carafe"))
+                val tempIdx = findIdx(listOf("temp", "serving", "temperature"))
 
                 // Build a map of existing wines for upsert
                 val existingWines = allWines.value.associateBy { it.reference }
@@ -678,9 +683,10 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                         aroma = merge(col(aromaIdx), existing?.aroma ?: "", enriched.aroma),
                         foodPairing = merge(col(pairingIdx), existing?.foodPairing ?: "", enriched.foodPairing),
                         binLocation = merge(col(binIdx), existing?.binLocation ?: ""),
-                        glassType = existing?.glassType?.ifBlank { null } ?: enriched.glass,
-                        decanting = existing?.decanting?.ifBlank { null } ?: enriched.decanting,
-                        servingTemp = existing?.servingTemp?.ifBlank { null } ?: enriched.servingTemp,
+                        glassType = merge(col(glassIdx), existing?.glassType ?: "", enriched.glass),
+                        decanting = merge(col(decantIdx), existing?.decanting ?: "", enriched.decanting),
+                        servingTemp = merge(col(tempIdx), existing?.servingTemp ?: "", enriched.servingTemp),
+                        ratingSource = merge(col(ratingSourceIdx), existing?.ratingSource ?: "User"),
                         keywords = merge(col(keywordsIdx), existing?.keywords ?: "", enriched.keywords),
                         tastingNotes = merge(col(notesIdx), existing?.tastingNotes ?: ""),
                         sold = existing?.sold ?: 0,
