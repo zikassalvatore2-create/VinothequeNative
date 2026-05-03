@@ -302,11 +302,6 @@ fun VinothequeApp(viewModel: WineViewModel) {
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            Box(modifier = Modifier.fillMaxWidth().height(70.dp), contentAlignment = Alignment.Center) {
-                com.vinotheque.nativeapp.ui.AnimatedVinothequeLogo(isSmall = true)
-            }
-        },
         bottomBar = {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
                 navItems.forEachIndexed { index, item ->
