@@ -152,13 +152,13 @@ fun DashboardScreen(viewModel: WineViewModel) {
         OutlinedTextField(
             value = searchQuery, onValueChange = { searchQuery = it; viewModel.searchQuery.value = it },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search wines, regions, grapes...", color = TextSecondary, fontSize = 14.sp) },
-            leadingIcon = { Icon(Icons.Default.Search, "Search", tint = WineGold.copy(alpha = 0.6f)) },
+            placeholder = { Text("Search wines, regions, grapes...", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f), fontSize = 14.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, "Search", tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)) },
             singleLine = true, shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = WineGold, unfocusedBorderColor = WineSurface,
-                focusedContainerColor = WineSurface, unfocusedContainerColor = WineSurface,
-                cursorColor = WineGold, focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                focusedBorderColor = MaterialTheme.colorScheme.primary, unfocusedBorderColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surface, unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                cursorColor = MaterialTheme.colorScheme.primary, focusedTextColor = MaterialTheme.colorScheme.onSurface, unfocusedTextColor = MaterialTheme.colorScheme.onSurface)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -178,13 +178,13 @@ fun DashboardScreen(viewModel: WineViewModel) {
 
         // Hero stat cards
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            HeroCard("Wines", totalBottles.toString(), Icons.Default.LocalBar, WineGold, Modifier.weight(1f))
-            HeroCard("Value", "\u20AC" + totalValue.toInt().toString(), Icons.Default.TrendingUp, WineRed, Modifier.weight(1f))
+            HeroCard("Wines", totalBottles.toString(), Icons.Default.LocalBar, MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+            HeroCard("Value", "\u20AC" + totalValue.toInt().toString(), Icons.Default.TrendingUp, MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
         }
         Spacer(modifier = Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            HeroCard("Your Sales", userSales.toString() + " btl", Icons.Default.Star, WineRed, Modifier.weight(1f))
-            HeroCard("Your Revenue", "\u20AC" + userRevenue.toInt().toString(), Icons.Default.TrendingUp, WineGold, Modifier.weight(1f))
+            HeroCard("Your Sales", userSales.toString() + " btl", Icons.Default.Star, MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
+            HeroCard("Your Revenue", "\u20AC" + userRevenue.toInt().toString(), Icons.Default.TrendingUp, MaterialTheme.colorScheme.primary, Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(28.dp))
@@ -232,21 +232,21 @@ fun DashboardScreen(viewModel: WineViewModel) {
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = WineSurface)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("${sale.quantity}\u00D7 ${sale.wineName}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                            Text("${sale.username} \u2022 ${sdf.format(Date(sale.timestamp))}", color = TextTertiary, fontSize = 11.sp)
+                            Text("${sale.quantity}\u00D7 ${sale.wineName}", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                            Text("${sale.username} \u2022 ${sdf.format(Date(sale.timestamp))}", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontSize = 11.sp)
                         }
-                        Text("\u20AC${(sale.price * sale.quantity).toInt()}", color = WineGold, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("\u20AC${(sale.price * sale.quantity).toInt()}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         Spacer(modifier = Modifier.width(8.dp))
                         // Serve Again quick action
                         TextButton(onClick = {
                             val wine = wines.firstOrNull { it.reference == sale.wineReference }
                             if (wine != null) viewModel.sellWine(wine)
                         }, modifier = Modifier.height(28.dp)) {
-                            Icon(Icons.Default.Replay, "Serve Again", tint = WineGold, modifier = Modifier.size(14.dp))
+                            Icon(Icons.Default.Replay, "Serve Again", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                         }
                     }
                 }
@@ -260,10 +260,10 @@ fun DashboardScreen(viewModel: WineViewModel) {
 @Composable
 fun TimeStatChip(label: String, value: String, modifier: Modifier) {
     Card(modifier = modifier, shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(value, color = WineGold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text(label, color = TextTertiary, fontSize = 9.sp)
+            Text(value, color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(label, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontSize = 9.sp)
         }
     }
 }
@@ -271,12 +271,12 @@ fun TimeStatChip(label: String, value: String, modifier: Modifier) {
 @Composable
 fun HeroCard(title: String, value: String, icon: ImageVector, accent: Color, modifier: Modifier) {
     Card(modifier = modifier, shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(modifier = Modifier.padding(20.dp)) {
             Icon(icon, contentDescription = title, tint = accent, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.height(12.dp))
-            Text(value, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
-            Text(title, color = TextSecondary, fontSize = 13.sp)
+            Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text(title, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 13.sp)
         }
     }
 }
@@ -285,8 +285,8 @@ fun HeroCard(title: String, value: String, icon: ImageVector, accent: Color, mod
 fun TypeBar(label: String, count: Int, total: Int, color: Color) {
     val fraction = if (total > 0) count.toFloat() / total.toFloat() else 0f
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = TextSecondary, fontSize = 13.sp, modifier = Modifier.width(80.dp))
-        Box(modifier = Modifier.weight(1f).height(24.dp).clip(RoundedCornerShape(12.dp)).background(WineSurface)) {
+        Text(label, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f), fontSize = 13.sp, modifier = Modifier.width(80.dp))
+        Box(modifier = Modifier.weight(1f).height(24.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surface)) {
             Box(modifier = Modifier.fillMaxWidth(fraction).height(24.dp).clip(RoundedCornerShape(12.dp))
                 .background(Brush.horizontalGradient(listOf(color.copy(alpha = 0.7f), color))))
         }

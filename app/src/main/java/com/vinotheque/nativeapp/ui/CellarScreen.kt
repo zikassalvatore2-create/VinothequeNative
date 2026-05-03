@@ -99,31 +99,31 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
             dismissButton = { TextButton(onClick = { wineToDelete = null }) { Text("Cancel") } })
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(WineDark)) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.searchQuery.value = it },
-                placeholder = { Text("Search wines, bins, regions...", color = TextTertiary) },
-                leadingIcon = { Icon(Icons.Default.Search, "Search", tint = WineGold.copy(alpha = 0.6f)) },
+                placeholder = { Text("Search wines, bins, regions...", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)) },
+                leadingIcon = { Icon(Icons.Default.Search, "Search", tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)) },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = WineGold.copy(alpha = 0.5f),
-                    unfocusedBorderColor = WineSurface,
-                    focusedContainerColor = WineSurface,
-                    unfocusedContainerColor = WineSurface,
-                    cursorColor = WineGold,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
+                    focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    unfocusedBorderColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                 )
             )
             if (isAdmin) {
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(onClick = { isListView = !isListView }) {
-                    Icon(if (isListView) Icons.Default.GridView else Icons.Default.ViewList, "Toggle View", tint = WineGold)
+                    Icon(if (isListView) Icons.Default.GridView else Icons.Default.ViewList, "Toggle View", tint = MaterialTheme.colorScheme.primary)
                 }
             }
         }
@@ -139,12 +139,12 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
                 Button(
                     onClick = { viewModel.typeFilter.value = value },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isSelected) WineGold else WineSurface),
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp)
                 ) {
-                    Text(label, color = if (isSelected) Color.Black else TextSecondary,
+                    Text(label, color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         fontSize = 10.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
                 }
             }
@@ -207,7 +207,7 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth().aspectRatio(0.62f).alpha(alpha)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = WineSurface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -216,9 +216,9 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                 Box(
                     modifier = Modifier.fillMaxWidth().weight(1f)
                         .background(Brush.verticalGradient(listOf(
-                            WineSurface,
+                            MaterialTheme.colorScheme.surface,
                             typeColor.copy(alpha = 0.05f),
-                            WineSurface
+                            MaterialTheme.colorScheme.surface
                         ))),
                     contentAlignment = Alignment.Center
                 ) {
@@ -235,19 +235,19 @@ fun WineCard(wine: Wine, onClick: () -> Unit, onLongClick: () -> Unit) {
                     )
                 }                // Info section
                 Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
-                    Text(wine.name, color = Color.White, fontWeight = FontWeight.SemiBold,
+                    Text(wine.name, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold,
                         fontSize = 12.sp, maxLines = 2, lineHeight = 15.sp)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text(wine.region, color = TextSecondary, fontSize = 10.sp, maxLines = 1)
+                    Text(wine.region, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 10.sp, maxLines = 1)
                     if (wine.binLocation.isNotEmpty()) {
-                        Text("📍 " + wine.binLocation, color = WineGold.copy(alpha = 0.7f), fontSize = 9.sp, maxLines = 1)
+                        Text("📍 " + wine.binLocation, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f), fontSize = 9.sp, maxLines = 1)
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically) {
-                        Text("\u20AC" + wine.price.toInt().toString(), color = WineGold,
+                        Text("\u20AC" + wine.price.toInt().toString(), color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text(wine.vintage, color = TextTertiary, fontSize = 11.sp)
+                        Text(wine.vintage, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
                     }
                 }
             }

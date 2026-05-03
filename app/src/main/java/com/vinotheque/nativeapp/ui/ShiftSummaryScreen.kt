@@ -83,23 +83,23 @@ fun ShiftSummaryScreen(viewModel: WineViewModel, onBack: () -> Unit) {
         return sb.toString()
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(WineDark)) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back", tint = Color.White) }
-            Text("Shift Summary", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onBackground) }
+            Text("Shift Summary", color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             IconButton(onClick = {
                 val shareIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, buildShareText())
                 }
                 context.startActivity(Intent.createChooser(shareIntent, "Share Shift Summary"))
-            }) { Icon(Icons.Default.Share, "Share", tint = WineGold) }
+            }) { Icon(Icons.Default.Share, "Share", tint = MaterialTheme.colorScheme.primary) }
         }
 
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
             // Date & Shift label
             Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(dateFormat.format(Date(now)), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -110,12 +110,12 @@ fun ShiftSummaryScreen(viewModel: WineViewModel, onBack: () -> Unit) {
                                 onClick = { shiftLabel = label },
                                 label = { Text(label, fontSize = 12.sp) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = WineGold,
-                                    selectedLabelColor = Color.Black)
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary)
                             )
                         }
                     }
-                    Text("Server: $currentUser", color = TextSecondary, fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
+                    Text("Server: $currentUser", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp))
                 }
             }
 
@@ -133,23 +133,23 @@ fun ShiftSummaryScreen(viewModel: WineViewModel, onBack: () -> Unit) {
             // Top wines
             if (topWines.isNotEmpty()) {
                 Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Top Wines This Shift", color = WineGold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = TextTertiary.copy(alpha = 0.2f))
+                        Text("Top Wines This Shift", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                         topWines.forEachIndexed { i, entry ->
                             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("${i + 1}. ${entry.key}", color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f), maxLines = 1)
-                                Text("${entry.value}×", color = WineGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text("${i + 1}. ${entry.key}", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, modifier = Modifier.weight(1f), maxLines = 1)
+                                Text("${entry.value}×", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                 }
             } else {
                 Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = WineSurface)) {
-                    Text("No sales this shift yet", color = TextTertiary, fontSize = 14.sp,
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                    Text("No sales this shift yet", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontSize = 14.sp,
                         modifier = Modifier.padding(20.dp))
                 }
             }
@@ -167,11 +167,11 @@ fun ShiftSummaryScreen(viewModel: WineViewModel, onBack: () -> Unit) {
                 },
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = WineGold)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Icon(Icons.Default.Share, "Share", tint = Color.Black, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Share, "Share", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Share Summary", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text("Share Summary", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(60.dp))
@@ -182,10 +182,10 @@ fun ShiftSummaryScreen(viewModel: WineViewModel, onBack: () -> Unit) {
 @Composable
 fun StatCard(label: String, value: String, modifier: Modifier) {
     Card(modifier = modifier, shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(value, color = WineGold, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Text(label, color = TextSecondary, fontSize = 11.sp)
+            Text(value, color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text(label, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
         }
     }
 }

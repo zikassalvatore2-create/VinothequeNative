@@ -110,12 +110,12 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize().background(WineDark).verticalScroll(rememberScrollState())) {
+        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).verticalScroll(rememberScrollState())) {
             // ===== SERVICE ACTION BAR — ALWAYS VISIBLE, NO SCROLLING NEEDED =====
             Card(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = WineGold.copy(alpha = 0.10f))
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f))
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp).fillMaxWidth(),
@@ -137,7 +137,7 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                 Row {
                     IconButton(onClick = { viewModel.toggleFavorite(wine.reference) }) {
                         Icon(if (isFav) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            "Favorite", tint = if (isFav) Color.Red else Color.White, modifier = Modifier.size(28.dp))
+                            "Favorite", tint = if (isFav) Color.Red else MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(28.dp))
                     }
                     if (isAdmin) {
                         IconButton(onClick = onDelete) {
@@ -149,18 +149,18 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
 
             // Wine image
             Box(modifier = Modifier.fillMaxWidth().height(250.dp)) {
-                Box(modifier = Modifier.fillMaxSize().background(WineSurface), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface), contentAlignment = Alignment.Center) {
                     AsyncWineImage(
                         imageData = wine.image, contentDescription = "Wine",
                         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
                         contentScale = ContentScale.Fit,
-                        placeholder = { Icon(Icons.Default.LocalBar, "Wine", tint = WineGoldDim.copy(alpha = 0.2f), modifier = Modifier.size(80.dp)) }
+                        placeholder = { Icon(Icons.Default.LocalBar, "Wine", tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), modifier = Modifier.size(80.dp)) }
                     )
                 }
                 // Rating badge
                 Box(modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp).size(56.dp).clip(CircleShape)
-                    .background(Brush.radialGradient(listOf(WineGold, WineGoldDim))), contentAlignment = Alignment.Center) {
-                    Text(wine.rating.toString(), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    .background(Brush.radialGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)))), contentAlignment = Alignment.Center) {
+                    Text(wine.rating.toString(), color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 }
                 // Type badge
                 Box(modifier = Modifier.align(Alignment.BottomStart).padding(12.dp).clip(RoundedCornerShape(12.dp))
@@ -172,17 +172,17 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
             // ===== ABOVE THE FOLD CONTENT =====
             Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
                 // Wine name
-                Text(wine.name, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold, lineHeight = 28.sp)
+                Text(wine.name, color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold, lineHeight = 28.sp)
                 // Region | Vintage
                 Text(
                     (if (wine.region.isNotEmpty()) wine.region else "Unknown Region") + " | " +
                     (if (wine.vintage.isNotEmpty()) wine.vintage else "NV"),
-                    color = TextSecondary, fontSize = 15.sp
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f), fontSize = 15.sp
                 )
                 // Three selling keywords
                 if (wine.keywords.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(wine.keywords, color = WineGold, fontSize = 18.sp, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Light)
+                    Text(wine.keywords, color = MaterialTheme.colorScheme.primary, fontSize = 18.sp, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Light)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -235,34 +235,33 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
                 }
 
                 // ===== BELOW THE FOLD =====
-                Spacer(modifier = Modifier.height(20.dp))
-                DetailSection("Reference", wine.reference)
+                Spacer(modifier = Modifier.h                DetailSection("Reference", wine.reference)
                 DetailSection("Grape", wine.grape)
 
                 if (wine.tastingNotes.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Tasting Notes", color = WineGold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Tasting Notes", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
-                        Text(wine.tastingNotes, color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
+                    Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                        Text(wine.tastingNotes, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
                     }
                 }
                 if (wine.aroma.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Aroma Profile", color = WineGold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Aroma Profile", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
-                        Text(wine.aroma, color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
+                    Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                        Text(wine.aroma, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
                     }
                 }
                 if (wine.foodPairing.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Food Pairing", color = WineGold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Food Pairing", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
-                        Text(wine.foodPairing, color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
+                    Card(shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                        Text(wine.foodPairing, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
                     }
-                }
+                }             }
                 if (wine.peakMaturity.isNotEmpty()) { Spacer(modifier = Modifier.height(12.dp)); DetailSection("Peak Maturity", wine.peakMaturity) }
                 if (wine.ratingSource.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection("Rating Source", wine.ratingSource) }
                 if (wine.glassType.isNotEmpty()) { Spacer(modifier = Modifier.height(8.dp)); DetailSection("Glass", wine.glassType) }
@@ -282,18 +281,18 @@ fun ServiceTag(icon: String, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(icon, fontSize = 14.sp)
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        Text(text, color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
     }
 }
 
 @Composable
 fun InfoChip(label: String, value: String, modifier: Modifier) {
     Card(modifier = modifier, shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(label, color = TextTertiary, fontSize = 10.sp)
+            Text(label, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontSize = 10.sp)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(value, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1)
+            Text(value, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1)
         }
     }
 }
@@ -303,8 +302,8 @@ fun DetailSection(label: String, value: String) {
     if (value.isEmpty()) return
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = TextSecondary, fontSize = 14.sp)
-        Text(value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Text(label, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f), fontSize = 14.sp)
+        Text(value, color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -338,8 +337,6 @@ fun PresentationMode(wine: Wine, onClose: () -> Unit) {
                 ServiceTag("⏳", wine.decanting.ifEmpty { "—" })
                 ServiceTag("\uD83C\uDF21\uFE0F", wine.servingTemp.ifEmpty { "—" })
             }
-        }
-
         }
     }
 }
@@ -382,18 +379,18 @@ fun SmartSoldButton(
                     )
                 },
             shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = WineGold)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Icon(
                 Icons.Default.ShoppingCart,
                 contentDescription = "Sell",
-                tint = Color.Black,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 "Record Sale",
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
@@ -450,7 +447,7 @@ fun QuantityPickerDialog(
                 .width(300.dp)
                 .clickable(enabled = false) {},
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = WineSurface)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -460,7 +457,7 @@ fun QuantityPickerDialog(
                 Text(
                     "Select Quantity",
                     style = MaterialTheme.typography.titleMedium,
-                    color = WineGold,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -483,14 +480,14 @@ fun QuantityPickerDialog(
                                         .height(52.dp),
                                     shape = RoundedCornerShape(12.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (qty == 1) WineGold.copy(alpha = 0.2f)
-                                                         else WineSurface
+                                        containerColor = if (qty == 1) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                                         else MaterialTheme.colorScheme.surfaceVariant
                                     ),
-                                    border = BorderStroke(1.dp, WineGold.copy(alpha = 0.4f))
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
                                 ) {
                                     Text(
                                         qty.toString(),
-                                        color = WineGold,
+                                        color = MaterialTheme.colorScheme.primary,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 18.sp
                                     )
@@ -517,15 +514,15 @@ fun QuantityPickerDialog(
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Custom", color = TextSecondary) },
+                        placeholder = { Text("Custom", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = WineGold,
-                            unfocusedBorderColor = WineGold.copy(alpha = 0.3f),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            cursorColor = WineGold
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            cursorColor = MaterialTheme.colorScheme.primary
                         ),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -540,9 +537,9 @@ fun QuantityPickerDialog(
                         modifier = Modifier.height(52.dp),
                         enabled = customQuantity.isNotEmpty() && customQuantity.toIntOrNull()?.let { it > 0 } == true,
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = WineGold)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
-                        Text("✓", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("✓", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     }
                 }
 
@@ -550,7 +547,7 @@ fun QuantityPickerDialog(
 
                 // Cancel button
                 TextButton(onClick = onDismiss) {
-                    Text("Cancel", color = TextSecondary, fontSize = 13.sp)
+                    Text("Cancel", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 13.sp)
                 }
             }
         }

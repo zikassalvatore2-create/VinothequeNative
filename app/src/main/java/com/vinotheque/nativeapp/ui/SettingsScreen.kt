@@ -179,7 +179,7 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
             confirmButton = { TextButton(onClick = {
                 if (newPin.length == 4) { viewModel.setAdminPin(newPin); showChangePinDialog = false
                     Toast.makeText(context, "PIN changed", Toast.LENGTH_SHORT).show() }
-            }) { Text("Save", color = WineGold) } },
+            }) { Text("Save", color = MaterialTheme.colorScheme.primary) } },
             dismissButton = { TextButton(onClick = { showChangePinDialog = false }) { Text("Cancel") } }
         )
     }
@@ -194,11 +194,11 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
 
         // Profile
         SettingsCard("Profile", Icons.Default.Person) {
-            Text("Serving as: " + currentUser, color = Color.White, fontSize = 14.sp)
+            Text("Serving as: " + currentUser, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SettingsButton("Change Name", WineGold, Modifier.weight(1f)) { onShowNamePrompt() }
-                SettingsButton("Shift Summary", WineSurface, Modifier.weight(1f)) { onShowShiftSummary() }
+                SettingsButton("Change Name", MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { onShowNamePrompt() }
+                SettingsButton("Shift Summary", MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) { onShowShiftSummary() }
             }
         }
 
@@ -210,11 +210,11 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
                 themes.forEach { theme ->
                     val isSelected = currentTheme == theme
                     val themeColor = when(theme) {
-                        "Midnight" -> MidnightGold
-                        "Burgundy" -> BurgundyRed
-                        "Emerald" -> EmeraldGreen
-                        "Ocean" -> OceanBlue
-                        else -> WineGold
+                        "Midnight" -> Color(0xFFD4AF6A)
+                        "Burgundy" -> Color(0xFF800020)
+                        "Emerald" -> Color(0xFF004D40)
+                        "Ocean" -> Color(0xFF0D47A1)
+                        else -> MaterialTheme.colorScheme.primary
                     }
                     
                     Box(
@@ -222,14 +222,14 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
                             .weight(1f)
                             .height(40.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSelected) themeColor else WineSurface)
+                            .background(if (isSelected) themeColor else MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { viewModel.setTheme(theme) }
                             .padding(4.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = theme,
-                            color = if (isSelected) Color.White else TextSecondary,
+                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             fontSize = 11.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         )
@@ -241,8 +241,8 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
         // Image Sharpness Slider
         val currentQuality by viewModel.imageQuality.collectAsState()
         SettingsCard("Image Quality & Performance", Icons.Default.CameraAlt) {
-            Text("Sharpness: ${currentQuality}%", color = Color.White, fontSize = 14.sp)
-            Text("Higher sharpness increases backup size", color = TextTertiary, fontSize = 11.sp)
+            Text("Sharpness: ${currentQuality}%", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
+            Text("Higher sharpness increases backup size", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
             Spacer(modifier = Modifier.height(4.dp))
             Slider(
                 value = currentQuality.toFloat(),
@@ -250,9 +250,9 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
                 valueRange = 10f..100f,
                 steps = 8,
                 colors = SliderDefaults.colors(
-                    thumbColor = WineGold,
-                    activeTrackColor = WineGold,
-                    inactiveTrackColor = WineSurface
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             )
         }
@@ -279,10 +279,10 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
                 Spacer(modifier = Modifier.height(8.dp))
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SettingsButton("Export JSON", if (isBusy) WineSurface else WineGold, Modifier.weight(1f)) {
+                SettingsButton("Export JSON", if (isBusy) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary, Modifier.weight(1f)) {
                     if (!isBusy) jsonSave.launch("vinotheque_backup.json")
                 }
-                SettingsButton("Import JSON", WineSurface, Modifier.weight(1f)) {
+                SettingsButton("Import JSON", MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) {
                     if (!isBusy) jsonRestore.launch("application/json")
                 }
             }
@@ -318,11 +318,11 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
 
         // CSV
         SettingsCard("CSV Import & Export", Icons.Default.CloudDownload) {
-            Text("Select one or multiple CSV files to import", color = TextTertiary, fontSize = 11.sp)
+            Text("Select one or multiple CSV files to import", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 11.sp)
             Spacer(modifier = Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SettingsButton("Export CSV", WineGold, Modifier.weight(1f)) { csvSave.launch("vinotheque_wines.csv") }
-                SettingsButton("Import CSV(s)", WineSurface, Modifier.weight(1f)) { csvImport.launch(arrayOf("text/*", "text/csv", "text/comma-separated-values", "application/csv")) }
+                SettingsButton("Export CSV", MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { csvSave.launch("vinotheque_wines.csv") }
+                SettingsButton("Import CSV(s)", MaterialTheme.colorScheme.surfaceVariant, Modifier.weight(1f)) { csvImport.launch(arrayOf("text/*", "text/csv", "text/comma-separated-values", "application/csv")) }
             }
         }
 
@@ -341,32 +341,32 @@ fun SettingsScreen(viewModel: WineViewModel, onOpenAdmin: () -> Unit = {}, onSho
             Spacer(modifier = Modifier.height(8.dp))
             if (isAdmin) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SettingsButton("Admin Panel", WineGold, Modifier.weight(1f)) { onOpenAdmin() }
-                    SettingsButton("Lock Admin", WineRed, Modifier.weight(1f)) { viewModel.setAdmin(false) }
+                    SettingsButton("Admin Panel", MaterialTheme.colorScheme.primary, Modifier.weight(1f)) { onOpenAdmin() }
+                    SettingsButton("Lock Admin", BurgundyRed, Modifier.weight(1f)) { viewModel.setAdmin(false) }
                 }
-                Spacer(modifier = Modifier.height(6.dp))
-                SettingsButton("Change Admin PIN", WineSurface) { showChangePinDialog = true }
+                Spacer(modifier = Modifier.height(6.6.dp))
+                SettingsButton("Change Admin PIN", MaterialTheme.colorScheme.surfaceVariant) { showChangePinDialog = true }
             } else {
-                SettingsButton("Unlock Admin", WineGold) { onShowPinDialog() }
+                SettingsButton("Unlock Admin", MaterialTheme.colorScheme.primary) { onShowPinDialog() }
             }
         }
 
         // Danger
         if (isAdmin) {
             SettingsCard("Danger Zone", Icons.Default.DeleteForever) {
-                SettingsButton("Clear All Data", WineRed) { showClearDialog = true }
+                SettingsButton("Clear All Data", BurgundyRed) { showClearDialog = true }
             }
         }
 
         // About
-        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
             Column(modifier = Modifier.padding(20.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 AnimatedVinothequeLogo(modifier = Modifier.size(80.dp))
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("VINOTHEQUE PRO", color = MaterialTheme.colorScheme.primary, fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
-                Text("Native Android Edition v2.0", color = TextTertiary, fontSize = 13.sp)
+                Text("Native Android Edition v2.0", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f), fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Developed by", color = TextTertiary, fontSize = 11.sp)
+                Text("Developed by", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), fontSize = 11.sp)
                 Text("Zakariae BOUZIDI-IDRISSI", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
