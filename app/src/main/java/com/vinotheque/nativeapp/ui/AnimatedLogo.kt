@@ -9,11 +9,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,9 +47,9 @@ fun AnimatedVinothequeLogo(
         label = "flicker"
     )
 
-    // Dust particles state
+    // Dust particles state (Position to Speed)
     val particles = remember {
-        List(30) {
+        List<Pair<Offset, Float>>(30) {
             Offset(Random.nextFloat(), Random.nextFloat()) to Random.nextFloat()
         }
     }
@@ -211,7 +213,9 @@ fun AnimatedVinothequeLogo(
 
                 // 6. SHIMMERING DUST PARTICLES
                 if (dustAlpha.value > 0f) {
-                    particles.forEach { (pos, speed) ->
+                    particles.forEach { pair ->
+                        val pos = pair.first
+                        val speed = pair.second
                         val move = (System.currentTimeMillis() % 10000) / 10000f * speed
                         val px = archRect.left + archWidth * pos.x
                         val py = archRect.top + archHeight * ((pos.y + move) % 1f)
