@@ -54,6 +54,8 @@ import com.vinotheque.nativeapp.ui.theme.SparklingColor
 import com.vinotheque.nativeapp.ui.theme.WhiteWineColor
 import androidx.compose.ui.res.stringResource
 import com.vinotheque.nativeapp.R
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun DashboardScreen(viewModel: WineViewModel) {
@@ -221,25 +223,26 @@ fun DashboardScreen(viewModel: WineViewModel) {
                 Text(stringResource(R.string.recent_activity), color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(12.dp))
                 val sdf = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
-            for (sale in recentSales) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("${sale.quantity}\u00D7 ${sale.wineName}", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                            Text("${sale.username} \u2022 ${sdf.format(Date(sale.timestamp))}", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontSize = 11.sp)
-                        }
-                        Text("\u20AC${(sale.price * sale.quantity).toInt()}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        // Serve Again quick action
-                        TextButton(onClick = {
-                            val wine = wines.firstOrNull { it.reference == sale.wineReference }
-                            if (wine != null) viewModel.sellWine(wine)
-                        }, modifier = Modifier.height(28.dp)) {
-                            Icon(Icons.Default.Replay, "Serve Again", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                for (sale in recentSales) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("${sale.quantity}\u00D7 ${sale.wineName}", color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                                Text("${sale.username} \u2022 ${sdf.format(Date(sale.timestamp))}", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), fontSize = 11.sp)
+                            }
+                            Text("\u20AC${(sale.price * sale.quantity).toInt()}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            // Serve Again quick action
+                            TextButton(onClick = {
+                                val wine = wines.firstOrNull { it.reference == sale.wineReference }
+                                if (wine != null) viewModel.sellWine(wine)
+                            }, modifier = Modifier.height(28.dp)) {
+                                Icon(Icons.Default.Replay, "Serve Again", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                            }
                         }
                     }
                 }
