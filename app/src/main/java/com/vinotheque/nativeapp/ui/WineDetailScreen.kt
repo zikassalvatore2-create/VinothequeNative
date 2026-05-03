@@ -61,6 +61,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.text.KeyboardOptions
 
+import androidx.compose.ui.res.stringResource
+import com.vinotheque.nativeapp.R
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onBack: () -> Unit, onDelete: () -> Unit) {

@@ -67,6 +67,8 @@ import com.vinotheque.nativeapp.ui.theme.RoseWineColor
 import com.vinotheque.nativeapp.ui.theme.SparklingColor
 import com.vinotheque.nativeapp.ui.theme.WhiteWineColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.res.stringResource
+import com.vinotheque.nativeapp.R
 
 fun getTypeColor(type: String): Color = when (type.lowercase().replace("é", "e")) {
     "red" -> RedWineColor
@@ -124,12 +126,19 @@ fun CellarScreen(viewModel: WineViewModel, isAdmin: Boolean, onWineClick: (Wine)
         }
 
         // Filter chips
+        val filterOptions = listOf(
+            "" to stringResource(R.string.type_all),
+            "Red" to stringResource(R.string.type_red),
+            "White" to stringResource(R.string.type_white),
+            "Rose" to stringResource(R.string.type_rose),
+            "Sparkling" to stringResource(R.string.type_sparkling),
+            "Dessert" to stringResource(R.string.type_dessert)
+        )
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            listOf("" to stringResource(R.string.type_all), "Red" to stringResource(R.string.type_red), "White" to stringResource(R.string.type_white), "Rose" to stringResource(R.string.type_rose),
-                "Sparkling" to stringResource(R.string.type_sparkling), "Dessert" to stringResource(R.string.type_dessert)).forEach { (value, label) ->
+            filterOptions.forEach { (value, label) ->
                 val isSelected = typeFilter == value
                 Button(
                     onClick = { viewModel.typeFilter.value = value },

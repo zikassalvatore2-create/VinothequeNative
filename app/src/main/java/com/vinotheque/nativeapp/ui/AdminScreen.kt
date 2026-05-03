@@ -64,7 +64,6 @@ import androidx.compose.ui.unit.sp
 import com.vinotheque.nativeapp.data.Wine
 import androidx.compose.material3.MaterialTheme
 import com.vinotheque.nativeapp.ui.theme.WineRed
-import java.io.ByteArrayOutputStream
 
 data class EditableWine(
     val reference: String,

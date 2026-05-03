@@ -60,8 +60,6 @@ import com.vinotheque.nativeapp.ui.theme.RedWineColor
 import com.vinotheque.nativeapp.ui.theme.RoseWineColor
 import com.vinotheque.nativeapp.ui.theme.SparklingColor
 import com.vinotheque.nativeapp.ui.theme.WhiteWineColor
-import androidx.compose.ui.res.stringResource
-import com.vinotheque.nativeapp.R
 import java.io.ByteArrayOutputStream
 
 private val fieldColors @Composable get() = OutlinedTextFieldDefaults.colors(
