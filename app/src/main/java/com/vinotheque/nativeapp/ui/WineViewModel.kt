@@ -622,20 +622,28 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 val headers = parseCsvLine(headerLine).map { it.lowercase().trim() }
                 val dataLines = allLines.drop(1)
 
-                val nameIdx = headers.indexOfFirst { it.contains("name") }
-                val refIdx = headers.indexOfFirst { it.contains("ref") }
-                val regionIdx = headers.indexOfFirst { it.contains("region") }
-                val vintageIdx = headers.indexOfFirst { it.contains("vintage") || it.contains("year") }
-                val grapeIdx = headers.indexOfFirst { it.contains("grape") || it.contains("varietal") || it.contains("variety") }
-                val priceIdx = headers.indexOfFirst { it.contains("price") }
-                val typeIdx = headers.indexOfFirst { it.contains("type") }
-                val drynessIdx = headers.indexOfFirst { it.contains("dry") }
-                val ratingIdx = headers.indexOfFirst { it.contains("rating") || it.contains("score") || it.contains("point") }
-                val aromaIdx = headers.indexOfFirst { it.contains("aroma") || it.contains("nose") || it.contains("bouquet") }
-                val pairingIdx = headers.indexOfFirst { it.contains("pair") || it.contains("food") }
-                val binIdx = headers.indexOfFirst { it.contains("bin") || it.contains("location") || it.contains("shelf") }
-                val keywordsIdx = headers.indexOfFirst { it.contains("keyword") || it.contains("selling") }
-                val notesIdx = headers.indexOfFirst { it.contains("tasting") || it.contains("notes") }
+                fun findIdx(names: List<String>): Int {
+                    // Try exact matches first
+                    val exact = headers.indexOfFirst { h -> names.any { it.equals(h, ignoreCase = true) } }
+                    if (exact >= 0) return exact
+                    // Try fuzzy contains
+                    return headers.indexOfFirst { h -> names.any { n -> h.contains(n, ignoreCase = true) } }
+                }
+
+                val nameIdx = findIdx(listOf("name", "wine", "label"))
+                val refIdx = findIdx(listOf("reference", "ref", "id", "sku"))
+                val regionIdx = findIdx(listOf("region", "appellation", "origin", "terroir"))
+                val vintageIdx = findIdx(listOf("vintage", "year", "millésime", "millesime"))
+                val grapeIdx = findIdx(listOf("grape", "varietal", "variety", "cépage", "cepage"))
+                val priceIdx = findIdx(listOf("price", "cost", "prix"))
+                val typeIdx = findIdx(listOf("type", "color", "couleur"))
+                val drynessIdx = findIdx(listOf("dryness", "sugar", "sucre", "dry"))
+                val ratingIdx = findIdx(listOf("rating", "score", "points", "note"))
+                val aromaIdx = findIdx(listOf("aroma", "nose", "bouquet", "nez"))
+                val pairingIdx = findIdx(listOf("pairing", "food", "accord"))
+                val binIdx = findIdx(listOf("bin", "location", "shelf", "emplacement", "cave"))
+                val keywordsIdx = findIdx(listOf("keywords", "selling", "tags"))
+                val notesIdx = findIdx(listOf("notes", "tasting", "description"))
 
                 // Build a map of existing wines for upsert
                 val existingWines = allWines.value.associateBy { it.reference }
@@ -698,12 +706,25 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
         val result = mutableListOf<String>()
         var current = StringBuilder()
         var inQuotes = false
-        for (ch in line) {
+        var i = 0
+        while (i < line.length) {
+            val ch = line[i]
             when {
-                ch == '"' -> inQuotes = !inQuotes
-                ch == ',' && !inQuotes -> { result.add(current.toString().trim()); current = StringBuilder() }
+                ch == '"' -> {
+                    if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
+                        current.append('"') // Escaped quote
+                        i++
+                    } else {
+                        inQuotes = !inQuotes
+                    }
+                }
+                ch == ',' && !inQuotes -> {
+                    result.add(current.toString().trim())
+                    current = StringBuilder()
+                }
                 else -> current.append(ch)
             }
+            i++
         }
         result.add(current.toString().trim())
         return result

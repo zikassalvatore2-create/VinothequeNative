@@ -346,20 +346,6 @@ fun VinothequeApp(viewModel: WineViewModel) {
                 }
             }
 
-            // Admin lock icon overlay (top-right)
-            if (selectedTab == 0 || selectedTab == 1) {
-                IconButton(
-                    onClick = { if (isAdmin) viewModel.setAdmin(false) else showPinDialog = true },
-                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
-                ) {
-                    Icon(
-                        if (isAdmin) Icons.Default.LockOpen else Icons.Default.Lock,
-                        "Admin", tint = WineGold.copy(alpha = if (isAdmin) 1f else 0.3f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
             // Gold indicator line when admin active
             if (isAdmin) {
                 Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(WineGold.copy(alpha = 0.6f)).align(Alignment.TopCenter))
