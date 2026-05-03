@@ -26,4 +26,10 @@ interface WineDao {
 
     @Query("DELETE FROM wines")
     suspend fun deleteAll()
+
+    @Query("UPDATE wines SET sold = sold + :quantity WHERE reference = :reference")
+    suspend fun incrementSold(reference: String, quantity: Int)
+
+    @Query("UPDATE wines SET sold = MAX(0, sold - :quantity) WHERE reference = :reference")
+    suspend fun decrementSold(reference: String, quantity: Int)
 }

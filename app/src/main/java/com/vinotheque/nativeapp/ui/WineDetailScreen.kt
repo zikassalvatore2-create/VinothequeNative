@@ -76,6 +76,12 @@ import com.vinotheque.nativeapp.ui.theme.WineGold
 import com.vinotheque.nativeapp.ui.theme.WineGoldDim
 import com.vinotheque.nativeapp.ui.theme.WineRed
 import com.vinotheque.nativeapp.ui.theme.WineSurface
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.input.KeyboardType
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -85,12 +91,7 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
     val isFav = favoriteRefs.contains(wine.reference)
     val typeColor = getTypeColor(wine.type)
     val context = LocalContext.current
-    var showQuantityPicker by remember { mutableStateOf(false) }
-    var showPresentation by remember { mutableStateOf(false) }
-    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    var lastSaleId by remember { mutableStateOf<Long?>(null) }
-    var lastSaleQty by remember { mutableStateOf(1) }
 
     // Keep screen on while viewing wine detail
     val activity = context as? android.app.Activity
@@ -101,42 +102,8 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
         }
     }
 
-    // Quantity picker dialog
-    if (showQuantityPicker) {
-        Dialog(onDismissRequest = { showQuantityPicker = false }) {
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = WineSurface)) {
-                Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Quantity", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    val quantities = listOf(1, 2, 3, 4, 6, 12)
-                    for (row in quantities.chunked(3)) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            for (qty in row) {
-                                Button(
-                                    onClick = {
-                                        showQuantityPicker = false
-                                        viewModel.sellWine(wine, qty) { id -> lastSaleId = id }
-                                        lastSaleQty = qty
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar("Sold ${qty}× ${wine.name}")
-                                        }
-                                    },
-                                    modifier = Modifier.size(72.dp),
-                                    shape = RoundedCornerShape(14.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = WineGold)
-                                ) {
-                                    Text(qty.toString(), color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
-            }
-        }
-    }
-
     // Presentation mode
+    var showPresentation by remember { mutableStateOf(false) }
     if (showPresentation) {
         PresentationMode(wine = wine, onClose = { showPresentation = false })
         return
@@ -231,28 +198,11 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
 
                 // ===== ACTION BUTTONS =====
                 // Smart Sold button — tap=1, long press=quantity
-                Button(
-                    onClick = {
-                        viewModel.sellWine(wine, 1) { id -> lastSaleId = id }
-                        lastSaleQty = 1
-                        scope.launch { snackbarHostState.showSnackbar("Sold 1× ${wine.name}") }
-                    },
-                    modifier = Modifier.fillMaxWidth().height(48.dp)
-                        .combinedClickable(
-                            onClick = {
-                                viewModel.sellWine(wine, 1) { id -> lastSaleId = id }
-                                lastSaleQty = 1
-                                scope.launch { snackbarHostState.showSnackbar("Sold 1× ${wine.name}") }
-                            },
-                            onLongClick = { showQuantityPicker = true }
-                        ),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = WineGold)
-                ) {
-                    Icon(Icons.Default.ShoppingCart, "Sell", tint = Color.Black, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Record Sale", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                }
+                SmartSoldButton(
+                    wine = wine,
+                    viewModel = viewModel,
+                    context = context
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -323,25 +273,7 @@ fun WineDetailScreen(wine: Wine, viewModel: WineViewModel, isAdmin: Boolean, onB
             }
         }
 
-        // Undo Snackbar
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
-        ) { data ->
-            Snackbar(
-                containerColor = WineSurface,
-                contentColor = Color.White,
-                action = {
-                    TextButton(onClick = {
-                        lastSaleId?.let { id ->
-                            viewModel.undoSale(id, wine, lastSaleQty)
-                            Toast.makeText(context, "Sale undone", Toast.LENGTH_SHORT).show()
-                        }
-                        snackbarHostState.currentSnackbarData?.dismiss()
-                    }) { Text("Undo", color = WineGold, fontWeight = FontWeight.Bold) }
-                }
-            ) { Text(data.visuals.message) }
-        }
+        // Undo Snackbar is now handled within SmartSoldButton
     }
 }
 
@@ -408,45 +340,219 @@ fun PresentationMode(wine: Wine, onClose: () -> Unit) {
             }
         }
 
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text(wine.name, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold, lineHeight = 32.sp)
-            Text("${wine.region} | ${wine.vintage}", color = TextSecondary, fontSize = 16.sp)
-            if (wine.keywords.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(wine.keywords, color = WineGold, fontSize = 20.sp, fontStyle = FontStyle.Italic)
-            }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(20.dp))
+@Composable
+fun SmartSoldButton(
+    wine: Wine,
+    viewModel: WineViewModel,
+    context: android.content.Context
+) {
+    var showQuantityPicker by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-            DetailSection("Reference", wine.reference)
-            DetailSection("Grape", wine.grape)
-            DetailSection("Type", "${wine.type} | ${wine.dryness}")
-            DetailSection("Price", "\u20AC${wine.price.toInt()}")
-            DetailSection("Rating", "${wine.rating}/100")
-            if (wine.ratingSource.isNotEmpty()) DetailSection("Rating Source", wine.ratingSource)
-            DetailSection("Bin Location", wine.binLocation)
-            DetailSection("Glass", wine.glassType)
-            DetailSection("Decanting", wine.decanting)
-            DetailSection("Serving Temp", wine.servingTemp)
-            DetailSection("Peak Maturity", wine.peakMaturity)
-            DetailSection("Sold", "${wine.sold} bottles")
+    Box {
+        // Main button
+        Button(
+            onClick = {
+                // Single tap = 1 bottle
+                viewModel.sellWine(wine, quantity = 1)
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(
+                        message = "1× ${wine.name} sold",
+                        actionLabel = "Undo",
+                        duration = SnackbarDuration.Short
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.undoLastSale()
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = {
+                            showQuantityPicker = true
+                        }
+                    )
+                },
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = WineGold)
+        ) {
+            Icon(
+                Icons.Default.ShoppingCart,
+                contentDescription = "Sell",
+                tint = Color.Black,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                "Record Sale",
+                color = Color.Black,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+        }
 
-            if (wine.aroma.isNotEmpty()) {
+        // Snackbar host
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+
+        // Quantity picker popover
+        if (showQuantityPicker) {
+            QuantityPickerDialog(
+                onDismiss = { showQuantityPicker = false },
+                onConfirm = { quantity ->
+                    viewModel.sellWine(wine, quantity = quantity)
+                    showQuantityPicker = false
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(
+                            message = "$quantity× ${wine.name} sold",
+                            actionLabel = "Undo",
+                            duration = SnackbarDuration.Short
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            viewModel.undoLastSale()
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun QuantityPickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    var customQuantity by remember { mutableStateOf("") }
+    val presets = listOf(1, 2, 3, 4, 6, 12)
+
+    // Semi-transparent backdrop — tap to dismiss
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.6f))
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center
+    ) {
+        // Popover card — tap inside does NOT dismiss
+        Card(
+            modifier = Modifier
+                .width(300.dp)
+                .clickable(enabled = false) {},
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = WineSurface)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Title
+                Text(
+                    "Select Quantity",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = WineGold,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Preset grid: 3 columns × 2 rows
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for (row in 0..1) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            for (col in 0..2) {
+                                val index = row * 3 + col
+                                val qty = presets[index]
+                                Button(
+                                    onClick = { onConfirm(qty) },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(52.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (qty == 1) WineGold.copy(alpha = 0.2f)
+                                                         else WineSurface
+                                    ),
+                                    border = BorderStroke(1.dp, WineGold.copy(alpha = 0.4f))
+                                ) {
+                                    Text(
+                                        qty.toString(),
+                                        color = WineGold,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Aroma", color = WineGold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Text(wine.aroma, color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
-            }
-            if (wine.tastingNotes.isNotEmpty()) {
+
+                // Custom quantity input
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = customQuantity,
+                        onValueChange = { newValue ->
+                            // Only allow digits
+                            if (newValue.all { it.isDigit() } && newValue.length <= 3) {
+                                customQuantity = newValue
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Custom", color = TextSecondary) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = WineGold,
+                            unfocusedBorderColor = WineGold.copy(alpha = 0.3f),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = WineGold
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    Button(
+                        onClick = {
+                            val qty = customQuantity.toIntOrNull()
+                            if (qty != null && qty > 0) {
+                                onConfirm(qty)
+                            }
+                        },
+                        modifier = Modifier.height(52.dp),
+                        enabled = customQuantity.isNotEmpty() && customQuantity.toIntOrNull()?.let { it > 0 } == true,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = WineGold)
+                    ) {
+                        Text("✓", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Tasting Notes", color = WineGold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Text(wine.tastingNotes, color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
+
+                // Cancel button
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel", color = TextSecondary, fontSize = 13.sp)
+                }
             }
-            if (wine.foodPairing.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("Food Pairing", color = WineGold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Text(wine.foodPairing, color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
-            }
-            Spacer(modifier = Modifier.height(60.dp))
         }
     }
 }

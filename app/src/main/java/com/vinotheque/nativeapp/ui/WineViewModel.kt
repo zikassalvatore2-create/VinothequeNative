@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.vinotheque.nativeapp.data.AppDatabase
 import com.vinotheque.nativeapp.data.Favorite
+import com.vinotheque.nativeapp.data.Sale
 import com.vinotheque.nativeapp.data.Wine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -351,11 +352,12 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
         } 
     }
 
+    private val _lastSaleId = MutableStateFlow<Long?>(null)
+
     /** Record a sale: increment wine sold counter and track per-user sales */
-    fun sellWine(wine: Wine, quantity: Int = 1, onSaleId: (Long) -> Unit = {}) {
+    fun sellWine(wine: Wine, quantity: Int = 1) {
         viewModelScope.launch {
-            dao.updateWine(wine.copy(sold = wine.sold + quantity))
-            val sale = com.vinotheque.nativeapp.data.Sale(
+            val sale = Sale(
                 wineReference = wine.reference,
                 wineName = wine.name,
                 username = currentUser.value,
@@ -363,18 +365,29 @@ class WineViewModel(application: Application) : AndroidViewModel(application) {
                 price = wine.price,
                 quantity = quantity
             )
-            saleDao.insertSale(sale)
-            // Get the ID of the last inserted sale for undo
-            val recent = saleDao.getRecentSales(currentUser.value, 1)
-            if (recent.isNotEmpty()) onSaleId(recent.first().id)
+            val saleId = saleDao.insertSale(sale)
+            
+            // Also update the wine's sold counter
+            dao.incrementSold(wine.reference, quantity)
+            
+            // Track the last sale ID for undo
+            _lastSaleId.value = saleId
         }
     }
 
     /** Undo the last sale */
-    fun undoSale(saleId: Long, wine: Wine, quantity: Int) {
+    fun undoLastSale() {
         viewModelScope.launch {
+            val saleId = _lastSaleId.value ?: return@launch
+            val sale = saleDao.getSaleById(saleId) ?: return@launch
+            
+            // Delete the sale
             saleDao.deleteSale(saleId)
-            dao.updateWine(wine.copy(sold = (wine.sold - quantity).coerceAtLeast(0)))
+            
+            // Decrement the wine's sold counter
+            dao.decrementSold(sale.wineReference, sale.quantity)
+            
+            _lastSaleId.value = null
         }
     }
 

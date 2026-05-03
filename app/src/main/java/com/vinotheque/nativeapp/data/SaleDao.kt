@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SaleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSale(sale: Sale)
+    suspend fun insertSale(sale: Sale): Long
 
     @Query("SELECT * FROM sales ORDER BY timestamp DESC")
     fun getAllSales(): Flow<List<Sale>>
@@ -55,6 +55,9 @@ interface SaleDao {
 
     @Query("SELECT * FROM sales WHERE timestamp >= :since AND timestamp < :until ORDER BY timestamp DESC")
     suspend fun getSalesInRange(since: Long, until: Long): List<Sale>
+
+    @Query("SELECT * FROM sales WHERE id = :id LIMIT 1")
+    suspend fun getSaleById(id: Long): Sale?
 }
 
 data class TopWineResult(val wineName: String, val totalQty: Int)
