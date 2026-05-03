@@ -96,7 +96,7 @@ fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
                 w * 0.65f, liquidLevel
             )
             // Surface curve
-            quadraticTo(centerX, liquidLevel - 4.dp.toPx(), w * 0.35f, liquidLevel)
+            quadraticBezierTo(centerX, liquidLevel - 4.dp.toPx(), w * 0.35f, liquidLevel)
         }
         
         drawPath(
@@ -123,7 +123,7 @@ fun AnimatedVinothequeLogo(modifier: Modifier = Modifier.size(120.dp)) {
         drawPath(
             path = Path().apply {
                 moveTo(w * 0.35f, h * 0.85f)
-                quadraticTo(centerX, h * 0.82f, w * 0.65f, h * 0.85f)
+                quadraticBezierTo(centerX, h * 0.82f, w * 0.65f, h * 0.85f)
             },
             color = glassOutlineColor,
             style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
